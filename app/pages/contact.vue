@@ -99,6 +99,9 @@ const submitError = ref('')
 const contactInfoRef = await useContactInfo()
 const contactInfo = computed(() => contactInfoRef.value)
 
+const brandRef = await useBrandName()
+const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
+
 async function submitForm() {
   submitting.value = true
   submitSuccess.value = ''
@@ -117,5 +120,5 @@ async function submitForm() {
   }
 }
 
-useHead({ title: '联系我们 - 清透视界' })
+useHead({ title: computed(() => `联系我们 - ${siteName.value}`) })
 </script>

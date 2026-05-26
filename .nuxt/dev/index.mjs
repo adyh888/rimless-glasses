@@ -2273,7 +2273,22 @@ _XvucZn4nt0n2b15ErRFoknaO_XpshFLFFQ0uYAL79o,
 _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw
 ];
 
-const assets = {};
+const assets = {
+  "/index.mjs": {
+    "type": "text/javascript; charset=utf-8",
+    "etag": "\"21306-RlgVO/SnA0VYJ/RE7m9qCSB8BSU\"",
+    "mtime": "2026-05-26T06:46:42.815Z",
+    "size": 135942,
+    "path": "index.mjs"
+  },
+  "/index.mjs.map": {
+    "type": "application/json",
+    "etag": "\"7dff7-ZOhaGnSu/UGuMs42nwpRlqP6Fag\"",
+    "mtime": "2026-05-26T06:46:42.815Z",
+    "size": 516087,
+    "path": "index.mjs.map"
+  }
+};
 
 function readAsset (id) {
   const serverDir = dirname$1(fileURLToPath(globalThis._importMeta_.url));
@@ -2365,6 +2380,9 @@ const _FOJrzW = eventHandler((event) => {
 const getSecret = () => {
   return useRuntimeConfig().jwtSecret || "fallback-secret";
 };
+function hashPassword(password) {
+  return bcrypt.hashSync(password, 10);
+}
 function verifyPassword(password, hash) {
   return bcrypt.compareSync(password, hash);
 }
@@ -2844,6 +2862,7 @@ const _lazy_7oMKHq = () => Promise.resolve().then(function () { return _id__get$
 const _lazy_MP3trZ = () => Promise.resolve().then(function () { return _id__put$5; });
 const _lazy_vYk9xa = () => Promise.resolve().then(function () { return index_get$7; });
 const _lazy_vGhszN = () => Promise.resolve().then(function () { return index_post$5; });
+const _lazy_Qvpi22 = () => Promise.resolve().then(function () { return account_put$1; });
 const _lazy_wf4UQb = () => Promise.resolve().then(function () { return login_post$1; });
 const _lazy_ML9CT7 = () => Promise.resolve().then(function () { return me_get$1; });
 const _lazy_9l4TlH = () => Promise.resolve().then(function () { return _id__delete$3; });
@@ -2871,6 +2890,7 @@ const handlers = [
   { route: '/api/articles/:id', handler: _lazy_MP3trZ, lazy: true, middleware: false, method: "put" },
   { route: '/api/articles', handler: _lazy_vYk9xa, lazy: true, middleware: false, method: "get" },
   { route: '/api/articles', handler: _lazy_vGhszN, lazy: true, middleware: false, method: "post" },
+  { route: '/api/auth/account', handler: _lazy_Qvpi22, lazy: true, middleware: false, method: "put" },
   { route: '/api/auth/login', handler: _lazy_wf4UQb, lazy: true, middleware: false, method: "post" },
   { route: '/api/auth/me', handler: _lazy_ML9CT7, lazy: true, middleware: false, method: "get" },
   { route: '/api/banners/:id', handler: _lazy_9l4TlH, lazy: true, middleware: false, method: "delete" },
@@ -3390,6 +3410,52 @@ const index_post$4 = defineEventHandler(async (event) => {
 const index_post$5 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   default: index_post$4
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const account_put = defineEventHandler(async (event) => {
+  const auth = getAuthUser(event);
+  if (!auth) {
+    throw createError({ statusCode: 401, statusMessage: "\u672A\u6388\u6743" });
+  }
+  const body = await readBody(event);
+  const currentPassword = String(body?.currentPassword || "");
+  const newUsername = body?.newUsername ? String(body.newUsername).trim() : "";
+  const newPassword = body?.newPassword ? String(body.newPassword) : "";
+  if (!currentPassword) {
+    throw createError({ statusCode: 400, statusMessage: "\u8BF7\u8F93\u5165\u5F53\u524D\u5BC6\u7801" });
+  }
+  if (!newUsername && !newPassword) {
+    throw createError({ statusCode: 400, statusMessage: "\u8BF7\u8F93\u5165\u65B0\u7684\u7528\u6237\u540D\u6216\u65B0\u5BC6\u7801" });
+  }
+  if (newPassword && newPassword.length < 6) {
+    throw createError({ statusCode: 400, statusMessage: "\u65B0\u5BC6\u7801\u81F3\u5C11 6 \u4F4D" });
+  }
+  const user = db.prepare("SELECT * FROM admin_users WHERE id = ?").get(auth.id);
+  if (!user) {
+    throw createError({ statusCode: 404, statusMessage: "\u8D26\u53F7\u4E0D\u5B58\u5728" });
+  }
+  if (!verifyPassword(currentPassword, user.password_hash)) {
+    throw createError({ statusCode: 401, statusMessage: "\u5F53\u524D\u5BC6\u7801\u9519\u8BEF" });
+  }
+  if (newUsername && newUsername !== user.username) {
+    const dup = db.prepare("SELECT id FROM admin_users WHERE username = ? AND id != ?").get(newUsername, auth.id);
+    if (dup) {
+      throw createError({ statusCode: 409, statusMessage: "\u8BE5\u7528\u6237\u540D\u5DF2\u88AB\u5360\u7528" });
+    }
+    db.prepare("UPDATE admin_users SET username = ? WHERE id = ?").run(newUsername, auth.id);
+  }
+  if (newPassword) {
+    const hash = hashPassword(newPassword);
+    db.prepare("UPDATE admin_users SET password_hash = ? WHERE id = ?").run(hash, auth.id);
+  }
+  const updated = db.prepare("SELECT id, username FROM admin_users WHERE id = ?").get(auth.id);
+  const token = signToken({ id: updated.id, username: updated.username });
+  return { success: true, token, user: updated };
+});
+
+const account_put$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: account_put
 }, Symbol.toStringTag, { value: 'Module' }));
 
 const login_post = defineEventHandler(async (event) => {

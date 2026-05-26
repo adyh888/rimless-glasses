@@ -3,7 +3,7 @@
     <section class="pt-32 pb-16 bg-surface">
       <div class="max-w-7xl mx-auto px-6 text-center">
         <h1 class="text-4xl md:text-5xl font-light tracking-tight text-primary">新闻动态</h1>
-        <p class="mt-4 text-secondary">了解清透视界的最新资讯与行业洞察</p>
+        <p class="mt-4 text-secondary">了解{{ siteName }}的最新资讯与行业洞察</p>
       </div>
     </section>
 
@@ -43,13 +43,16 @@
 const { data } = await useFetch('/api/articles', { query: { published_only: 'true' } })
 const articles = computed(() => (data.value as any)?.items || [])
 
+const brandRef = await useBrandName()
+const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
+
 function formatDate(dateStr: string) {
   if (!dateStr) return ''
   const d = new Date(dateStr)
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 }
 
-useHead({ title: '新闻动态 - 清透视界' })
+useHead({ title: computed(() => `新闻动态 - ${siteName.value}`) })
 </script>
 
 <style scoped>

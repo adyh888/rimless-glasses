@@ -61,7 +61,10 @@ function formatDate(dateStr: string) {
   return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`
 }
 
+const brandRef = await useBrandName()
+const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
+
 useHead({
-  title: computed(() => article.value ? `${article.value.title} - 清透视界` : '新闻详情 - 清透视界'),
+  title: computed(() => article.value ? `${article.value.title} - ${siteName.value}` : `新闻详情 - ${siteName.value}`),
 })
 </script>

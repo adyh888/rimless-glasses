@@ -2,7 +2,7 @@
   <aside class="fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-gray-100 flex flex-col z-40">
     <div class="h-16 flex items-center px-6 border-b border-gray-100">
       <NuxtLink to="/" class="text-lg font-light tracking-wider">
-        清透<span class="text-accent">视界</span>
+        {{ brand.primary }}<span class="text-accent">{{ brand.accent }}</span>
       </NuxtLink>
     </div>
 
@@ -29,6 +29,8 @@
 
 <script setup lang="ts">
 const route = useRoute()
+const brandRef = await useBrandName()
+const brand = computed(() => brandRef.value)
 
 const menuItems = [
   { label: '仪表盘', path: '/admin', icon: '&#9634;' },

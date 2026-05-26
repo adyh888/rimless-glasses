@@ -107,7 +107,10 @@ const specs = computed(() => {
 const currentImageIdx = ref(0)
 const currentImage = computed(() => images.value[currentImageIdx.value] || 'https://via.placeholder.com/800')
 
+const brandRef = await useBrandName()
+const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
+
 useHead({
-  title: computed(() => product.value ? `${product.value.name} - 清透视界` : '产品详情 - 清透视界'),
+  title: computed(() => product.value ? `${product.value.name} - ${siteName.value}` : `产品详情 - ${siteName.value}`),
 })
 </script>

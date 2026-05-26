@@ -4,10 +4,10 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
         <div class="md:col-span-1">
           <div class="text-2xl font-light tracking-wider text-white mb-4">
-            清透<span class="text-accent">视界</span>
+            {{ brand.primary }}<span class="text-accent">{{ brand.accent }}</span>
           </div>
           <p class="text-sm leading-relaxed">
-            以极简设计重新定义视觉体验<br />让框架消失，让世界更清晰
+            {{ tagline.line1 }}<br />{{ tagline.line2 }}
           </p>
         </div>
 
@@ -32,15 +32,15 @@
         <div>
           <h4 class="text-white text-sm font-medium mb-4 tracking-wide">联系方式</h4>
           <ul class="space-y-2 text-sm">
-            <li>电话：400-888-0000</li>
-            <li>邮箱：hello@qingtou.com</li>
-            <li>地址：深圳市南山区科技园</li>
+            <li v-for="item in contactInfo.items.slice(0, 3)" :key="item.label">
+              {{ item.label }}：{{ item.value }}
+            </li>
           </ul>
         </div>
       </div>
 
       <div class="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/40">
-        <p>&copy; {{ new Date().getFullYear() }} 清透视界 QINGTOU VISION. All rights reserved.</p>
+        <p>&copy; {{ new Date().getFullYear() }} {{ brand.primary }}{{ brand.accent }}. All rights reserved.</p>
         <div class="flex gap-6">
           <a href="#" class="hover:text-white/60 transition-colors">隐私政策</a>
           <a href="#" class="hover:text-white/60 transition-colors">使用条款</a>
@@ -49,3 +49,12 @@
     </div>
   </footer>
 </template>
+
+<script setup lang="ts">
+const brandRef = await useBrandName()
+const taglineRef = await useFooterTagline()
+const contactInfoRef = await useContactInfo()
+const brand = computed(() => brandRef.value)
+const tagline = computed(() => taglineRef.value)
+const contactInfo = computed(() => contactInfoRef.value)
+</script>

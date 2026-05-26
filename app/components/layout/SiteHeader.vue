@@ -5,7 +5,7 @@
   >
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
       <NuxtLink to="/" class="text-xl font-light tracking-wider">
-        <span class="text-primary">清透</span><span class="text-accent">视界</span>
+        <span class="text-primary">{{ brand.primary }}</span><span class="text-accent">{{ brand.accent }}</span>
       </NuxtLink>
 
       <nav class="hidden md:flex items-center gap-8">
@@ -46,6 +46,9 @@
 </template>
 
 <script setup lang="ts">
+const brandRef = await useBrandName()
+const brand = computed(() => brandRef.value)
+
 const scrolled = ref(false)
 const mobileOpen = ref(false)
 

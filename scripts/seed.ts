@@ -306,5 +306,19 @@ if (!priceFlagExists) {
   console.log('Product price flag inserted')
 }
 
+const brandDefaults: Array<[string, string]> = [
+  ['brand_name_primary', '清透'],
+  ['brand_name_accent', '视界'],
+  ['footer_tagline_line1', '以极简设计重新定义视觉体验'],
+  ['footer_tagline_line2', '让框架消失，让世界更清晰'],
+]
+for (const [key, value] of brandDefaults) {
+  const exists = db.prepare('SELECT id FROM site_content WHERE key = ?').get(key)
+  if (!exists) {
+    db.prepare('INSERT INTO site_content (key, content) VALUES (?, ?)').run(key, value)
+    console.log(`Seeded site_content[${key}]`)
+  }
+}
+
 db.close()
 console.log('Seed completed successfully!')

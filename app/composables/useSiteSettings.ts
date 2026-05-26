@@ -45,3 +45,37 @@ export async function useShowPrice() {
   // 默认显示价格；只有显式设置为 "0" 才隐藏
   return computed<boolean>(() => (data.value?.content ?? '1') !== '0')
 }
+
+export type BrandName = { primary: string; accent: string }
+
+export async function useBrandName() {
+  const [{ data: primary }, { data: accent }] = await Promise.all([
+    useFetch<{ key: string; content: string }>('/api/content/brand_name_primary', {
+      key: 'site-brand-primary',
+    }),
+    useFetch<{ key: string; content: string }>('/api/content/brand_name_accent', {
+      key: 'site-brand-accent',
+    }),
+  ])
+  return computed<BrandName>(() => ({
+    primary: primary.value?.content || '清透',
+    accent: accent.value?.content || '视界',
+  }))
+}
+
+export type FooterTagline = { line1: string; line2: string }
+
+export async function useFooterTagline() {
+  const [{ data: l1 }, { data: l2 }] = await Promise.all([
+    useFetch<{ key: string; content: string }>('/api/content/footer_tagline_line1', {
+      key: 'site-tagline-1',
+    }),
+    useFetch<{ key: string; content: string }>('/api/content/footer_tagline_line2', {
+      key: 'site-tagline-2',
+    }),
+  ])
+  return computed<FooterTagline>(() => ({
+    line1: l1.value?.content || '以极简设计重新定义视觉体验',
+    line2: l2.value?.content || '让框架消失，让世界更清晰',
+  }))
+}

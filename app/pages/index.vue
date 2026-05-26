@@ -99,8 +99,8 @@
               让框架消失<br />让世界更清晰
             </h2>
             <p class="mt-6 text-secondary leading-relaxed">
-              清透视界创立于2018年，专注于无框眼镜的设计与制造。我们相信，好的设计应该是无形的。
-              每一副清透视界眼镜都经过48道手工工序精心打磨，从选材到成品，对每一个环节都保持着近乎苛刻的品质要求。
+              {{ siteName }}创立于2018年，专注于无框眼镜的设计与制造。我们相信，好的设计应该是无形的。
+              每一副{{ siteName }}眼镜都经过48道手工工序精心打磨，从选材到成品，对每一个环节都保持着近乎苛刻的品质要求。
             </p>
             <NuxtLink
               to="/about"
@@ -120,7 +120,7 @@
     <section class="py-24 md:py-32 bg-white">
       <div class="max-w-7xl mx-auto px-6">
         <ScrollReveal>
-          <SectionTitle title="新闻动态" subtitle="了解清透视界的最新资讯" />
+          <SectionTitle title="新闻动态" :subtitle="`了解${siteName}的最新资讯`" />
         </ScrollReveal>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -199,6 +199,9 @@ const { data: articlesData } = await useFetch('/api/articles', {
   query: { published_only: 'true', limit: 3 },
 })
 const latestArticles = computed(() => (articlesData.value as any)?.items || [])
+
+const brandRef = await useBrandName()
+const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
 
 function formatDate(dateStr: string) {
   if (!dateStr) return ''

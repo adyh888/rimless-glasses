@@ -3,12 +3,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: qingtou-vision:latest
     container_name: qingtou-vision
     restart: unless-stopped
     ports:
       # 宿主机端口:容器端口；如 3000 被占用改成 8080:3000 即可
-      - "3000:3000"
+      - "3130:3130"
     volumes:
       # SQLite 数据库持久化
       - ./data:/app/data

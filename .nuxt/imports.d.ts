@@ -32,6 +32,6 @@ export { setInterval } from '#app/compat/interval';
 export { definePageMeta, PageMeta } from '#app/composables/pages';
 export { defineLazyHydrationComponent } from '#app/composables/lazy-hydration';
 export { useAuth } from '../app/composables/useAuth';
-export { useContactInfo, useShowPrice, ContactInfo } from '../app/composables/useSiteSettings';
+export { useContactInfo, useShowPrice, useBrandName, useFooterTagline, ContactInfo, BrandName, FooterTagline } from '../app/composables/useSiteSettings';
 export { reactiveStyle, reactiveTransform, useElementStyle, useElementTransform, useMotion, useMotionControls, useMotionProperties, useMotions, useMotionTransitions, useMotionVariants, useSpring, useReducedMotion } from '../node_modules/.pnpm/@vueuse+motion@3.0.3_magicast@0.5.3_vue@3.5.34/node_modules/@vueuse/motion/dist/nuxt/runtime/composables/index';
 export { useNuxtDevTools } from '../node_modules/.pnpm/@nuxt+devtools@3.2.4_vite@7.3.3_@types+node@25.9.1_jiti@2.7.0_lightningcss@1.32.0_terse_d37a8223c67560ab6d25685d1bf5616b/node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools';

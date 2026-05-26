@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-surface flex items-center justify-center">
     <div class="w-full max-w-sm mx-4">
       <div class="text-center mb-8">
-        <h1 class="text-2xl font-light tracking-wider text-primary">清透<span class="text-accent">视界</span></h1>
+        <h1 class="text-2xl font-light tracking-wider text-primary">{{ brand.primary }}<span class="text-accent">{{ brand.accent }}</span></h1>
         <p class="mt-2 text-sm text-secondary">管理后台</p>
       </div>
 
@@ -42,6 +42,9 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: false })
+
+const brandRef = await useBrandName()
+const brand = computed(() => brandRef.value)
 
 const { login } = useAuth()
 const username = ref('')
