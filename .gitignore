@@ -1,0 +1,13 @@
+node_modules/
+.nuxt/
+.output/
+.git/
+data/
+uploads/
+*.db
+*.db-shm
+*.db-wal
+.env
+.DS_Store
+dist/
+.cache/
