@@ -52,6 +52,9 @@ declare module "nitropack/types" {
     '/api/upload': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/upload.post').default>>>>
     }
+    '/uploads/**:path': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/routes/uploads/[...path].get').default>>>>
+    }
     '/__nuxt_error': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../node_modules/.pnpm/@nuxt+nitro-server@4.4.6_@babel+plugin-syntax-typescript@7.29.7_@babel+core@7.29.7__bet_7c0987fa8668e44f5aa819aff9cb10a5/node_modules/@nuxt/nitro-server/dist/runtime/handlers/renderer').default>>>>
     }

@@ -1,14 +1,14 @@
 import process from 'node:process';globalThis._importMeta_={url:import.meta.url,env:process.env};import { tmpdir } from 'node:os';
-import { defineEventHandler, handleCacheHeaders, splitCookiesString, createEvent, fetchWithEvent, isEvent, eventHandler, setHeaders, createError, sendRedirect, proxyRequest, getRequestHeader, setResponseHeaders, setResponseStatus, send, getRequestHeaders, setResponseHeader, appendResponseHeader, getRequestURL, getResponseHeader, removeResponseHeader, getHeader, getQuery as getQuery$1, readBody, createApp, createRouter as createRouter$1, toNodeListener, lazyEventHandler, getResponseStatus, getRouterParam, readMultipartFormData, getResponseStatusText } from 'file:///Users/liqian/Desktop/Demo/2026-05/node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index.mjs';
+import { defineEventHandler, handleCacheHeaders, splitCookiesString, createEvent, fetchWithEvent, isEvent, eventHandler, setHeaders, createError, sendRedirect, proxyRequest, getRequestHeader, setResponseHeaders, setResponseStatus, send, getRequestHeaders, setResponseHeader, appendResponseHeader, getRequestURL, getResponseHeader, removeResponseHeader, getHeader, getQuery as getQuery$1, readBody, createApp, createRouter as createRouter$1, toNodeListener, lazyEventHandler, getResponseStatus, getRouterParam, readMultipartFormData, setHeader, getResponseStatusText } from 'file:///Users/liqian/Desktop/Demo/2026-05/node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index.mjs';
 import { Server } from 'node:http';
-import { resolve, dirname, join } from 'node:path';
+import { resolve, dirname, join, normalize, sep } from 'node:path';
 import crypto$1 from 'node:crypto';
 import { parentPort, threadId } from 'node:worker_threads';
 import { escapeHtml } from 'file:///Users/liqian/Desktop/Demo/2026-05/node_modules/.pnpm/@vue+shared@3.5.34/node_modules/@vue/shared/dist/shared.cjs.js';
 import viteNodeEntry_mjs from 'file:///Users/liqian/Desktop/Demo/2026-05/node_modules/.pnpm/@nuxt+vite-builder@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@types+nod_bc8eee5aab3a591eed2ef06d3aeb41f0/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs';
 import { viteNodeFetch } from 'file:///Users/liqian/Desktop/Demo/2026-05/node_modules/.pnpm/@nuxt+vite-builder@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@types+nod_bc8eee5aab3a591eed2ef06d3aeb41f0/node_modules/@nuxt/vite-builder/dist/vite-node.mjs';
 import Database from 'file:///Users/liqian/Desktop/Demo/2026-05/node_modules/.pnpm/better-sqlite3@12.10.0/node_modules/better-sqlite3/lib/index.js';
-import { promises, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { promises, existsSync, mkdirSync, writeFileSync, statSync, readFileSync } from 'node:fs';
 import { v4 } from 'file:///Users/liqian/Desktop/Demo/2026-05/node_modules/.pnpm/uuid@14.0.0/node_modules/uuid/dist-node/index.js';
 import { createRenderer, getRequestDependencies, getPreloadLinks, getPrefetchLinks } from 'file:///Users/liqian/Desktop/Demo/2026-05/node_modules/.pnpm/vue-bundle-renderer@2.2.0/node_modules/vue-bundle-renderer/dist/runtime.mjs';
 import { parseURL, withoutBase, joinURL, getQuery, withQuery, withTrailingSlash, decodePath, withLeadingSlash, withoutTrailingSlash, encodePath, joinRelativeURL } from 'file:///Users/liqian/Desktop/Demo/2026-05/node_modules/.pnpm/ufo@1.6.4/node_modules/ufo/dist/index.mjs';
@@ -2276,16 +2276,16 @@ _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw
 const assets = {
   "/index.mjs": {
     "type": "text/javascript; charset=utf-8",
-    "etag": "\"21306-RlgVO/SnA0VYJ/RE7m9qCSB8BSU\"",
-    "mtime": "2026-05-26T06:46:42.815Z",
-    "size": 135942,
+    "etag": "\"224f8-flC2+ZH5to6xbj58uo9TWUuvIVc\"",
+    "mtime": "2026-05-26T09:58:29.396Z",
+    "size": 140536,
     "path": "index.mjs"
   },
   "/index.mjs.map": {
     "type": "application/json",
-    "etag": "\"7dff7-ZOhaGnSu/UGuMs42nwpRlqP6Fag\"",
-    "mtime": "2026-05-26T06:46:42.815Z",
-    "size": 516087,
+    "etag": "\"81722-EJULm5jqapsf2sjb+GaNRglw0N8\"",
+    "mtime": "2026-05-26T09:58:29.397Z",
+    "size": 530210,
     "path": "index.mjs.map"
   }
 };
@@ -2880,6 +2880,7 @@ const _lazy_KYOjeJ = () => Promise.resolve().then(function () { return index_get
 const _lazy_F2UV7G = () => Promise.resolve().then(function () { return index_post$1; });
 const _lazy_Y0DDhR = () => Promise.resolve().then(function () { return index_get$1; });
 const _lazy_bIN3wg = () => Promise.resolve().then(function () { return upload_post$1; });
+const _lazy_aWRcqd = () => Promise.resolve().then(function () { return ____path__get$1; });
 const _lazy_U2aoDA = () => Promise.resolve().then(function () { return renderer; });
 
 const handlers = [
@@ -2908,6 +2909,7 @@ const handlers = [
   { route: '/api/products', handler: _lazy_F2UV7G, lazy: true, middleware: false, method: "post" },
   { route: '/api/stats', handler: _lazy_Y0DDhR, lazy: true, middleware: false, method: "get" },
   { route: '/api/upload', handler: _lazy_bIN3wg, lazy: true, middleware: false, method: "post" },
+  { route: '/uploads/**:path', handler: _lazy_aWRcqd, lazy: true, middleware: false, method: "get" },
   { route: '/__nuxt_error', handler: _lazy_U2aoDA, lazy: true, middleware: false, method: undefined },
   { route: '/__nuxt_island/**', handler: handler$1, lazy: false, middleware: false, method: undefined },
   { route: '/**', handler: _lazy_U2aoDA, lazy: true, middleware: false, method: undefined }
@@ -3763,6 +3765,44 @@ const upload_post = defineEventHandler(async (event) => {
 const upload_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   default: upload_post
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const UPLOAD_ROOT = resolve(process.cwd(), "public/uploads");
+const MIME = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".gif": "image/gif",
+  ".webp": "image/webp",
+  ".svg": "image/svg+xml"
+};
+const ____path__get = defineEventHandler((event) => {
+  const path = getRouterParam(event, "path") || "";
+  const safe = normalize(path).replace(/^[/\\]+/, "");
+  if (safe.startsWith("..") || safe.includes(`..${sep}`)) {
+    throw createError({ statusCode: 400, statusMessage: "invalid path" });
+  }
+  const full = resolve(UPLOAD_ROOT, safe);
+  if (!full.startsWith(UPLOAD_ROOT)) {
+    throw createError({ statusCode: 400, statusMessage: "invalid path" });
+  }
+  if (!existsSync(full)) {
+    throw createError({ statusCode: 404, statusMessage: "not found" });
+  }
+  const stat = statSync(full);
+  if (!stat.isFile()) {
+    throw createError({ statusCode: 404, statusMessage: "not found" });
+  }
+  const ext = full.slice(full.lastIndexOf(".")).toLowerCase();
+  setHeader(event, "Content-Type", MIME[ext] || "application/octet-stream");
+  setHeader(event, "Content-Length", stat.size);
+  setHeader(event, "Cache-Control", "public, max-age=31536000, immutable");
+  return readFileSync(full);
+});
+
+const ____path__get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: ____path__get
 }, Symbol.toStringTag, { value: 'Module' }));
 
 function renderPayloadResponse(ssrContext) {
