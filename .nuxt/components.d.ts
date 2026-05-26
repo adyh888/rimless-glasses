@@ -14,7 +14,9 @@ type HydrationStrategies = {
 type LazyComponent<T> = DefineComponent<HydrationStrategies, {}, {}, {}, {}, {}, {}, { hydrated: () => void }> & T
 
 
+export const ImagePreview: typeof import("../app/components/admin/ImagePreview.vue")['default']
 export const ImageUploader: typeof import("../app/components/admin/ImageUploader.vue")['default']
+export const ImageUploaderMultiple: typeof import("../app/components/admin/ImageUploaderMultiple.vue")['default']
 export const RichTextEditor: typeof import("../app/components/admin/RichTextEditor.vue")['default']
 export const AdminSidebar: typeof import("../app/components/layout/AdminSidebar.vue")['default']
 export const SiteFooter: typeof import("../app/components/layout/SiteFooter.vue")['default']
@@ -48,7 +50,9 @@ export const Head: typeof import("../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin
 export const Html: typeof import("../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/head/runtime/components")['Html']
 export const Body: typeof import("../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/head/runtime/components")['Body']
 export const NuxtIsland: typeof import("../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/components/nuxt-island")['default']
+export const LazyImagePreview: LazyComponent<typeof import("../app/components/admin/ImagePreview.vue")['default']>
 export const LazyImageUploader: LazyComponent<typeof import("../app/components/admin/ImageUploader.vue")['default']>
+export const LazyImageUploaderMultiple: LazyComponent<typeof import("../app/components/admin/ImageUploaderMultiple.vue")['default']>
 export const LazyRichTextEditor: LazyComponent<typeof import("../app/components/admin/RichTextEditor.vue")['default']>
 export const LazyAdminSidebar: LazyComponent<typeof import("../app/components/layout/AdminSidebar.vue")['default']>
 export const LazySiteFooter: LazyComponent<typeof import("../app/components/layout/SiteFooter.vue")['default']>

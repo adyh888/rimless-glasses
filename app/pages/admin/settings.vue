@@ -28,6 +28,34 @@
       </div>
     </section>
 
+    <!-- 上传设置 -->
+    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+      <h2 class="text-sm font-medium text-primary mb-1">上传设置</h2>
+      <p class="text-xs text-secondary mb-5">限制图片上传文件大小（单位：MB）</p>
+
+      <div class="flex items-center gap-4">
+        <input
+          v-model.number="uploadMaxSize"
+          type="number"
+          min="1"
+          max="50"
+          class="w-24 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+        />
+        <span class="text-sm text-secondary">MB</span>
+      </div>
+
+      <div class="mt-6">
+        <button
+          @click="saveUploadMaxSize"
+          :disabled="savingUploadMaxSize"
+          class="px-5 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50"
+        >
+          {{ savingUploadMaxSize ? '保存中...' : '保存' }}
+        </button>
+        <span v-if="uploadMaxSizeSaved" class="ml-3 text-sm text-green-600">已保存</span>
+      </div>
+    </section>
+
     <!-- 品牌名称 -->
     <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">品牌名称</h2>
@@ -264,6 +292,10 @@ const showPrice = ref(true)
 const savingPrice = ref(false)
 const priceSaved = ref(false)
 
+const uploadMaxSize = ref(5)
+const savingUploadMaxSize = ref(false)
+const uploadMaxSizeSaved = ref(false)
+
 type ContactItem = { label: string; value: string }
 const contact = reactive<{ items: ContactItem[]; hours: string[] }>({
   items: [],
@@ -292,15 +324,17 @@ const accountError = ref('')
 const currentUsername = computed(() => user.value?.username || '—')
 
 onMounted(async () => {
-  const [priceRes, contactRes, brandP, brandA, tag1, tag2] = await Promise.all([
+  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes] = await Promise.all([
     $fetch<any>('/api/content/show_product_price'),
     $fetch<any>('/api/content/contact_info'),
     $fetch<any>('/api/content/brand_name_primary'),
     $fetch<any>('/api/content/brand_name_accent'),
     $fetch<any>('/api/content/footer_tagline_line1'),
     $fetch<any>('/api/content/footer_tagline_line2'),
+    $fetch<any>('/api/content/upload_max_size'),
   ])
   showPrice.value = (priceRes?.content ?? '1') !== '0'
+  uploadMaxSize.value = uploadSizeRes?.content ? parseInt(uploadSizeRes.content, 10) : 5
 
   let parsed: any = {}
   try {
@@ -361,6 +395,23 @@ async function savePriceFlag() {
     alert(e?.data?.statusMessage || '保存失败')
   } finally {
     savingPrice.value = false
+  }
+}
+
+async function saveUploadMaxSize() {
+  savingUploadMaxSize.value = true
+  uploadMaxSizeSaved.value = false
+  try {
+    await authFetch('/api/content/upload_max_size', {
+      method: 'PUT',
+      body: { content: String(uploadMaxSize.value) },
+    })
+    uploadMaxSizeSaved.value = true
+    setTimeout(() => { uploadMaxSizeSaved.value = false }, 3000)
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '保存失败')
+  } finally {
+    savingUploadMaxSize.value = false
   }
 }
 

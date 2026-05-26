@@ -48,17 +48,37 @@
 
       <!-- Images -->
       <div>
-        <label class="block text-sm text-secondary mb-1.5">产品图片</label>
+        <label class="block text-sm text-secondary mb-1.5">产品图片 <span class="text-xs text-gray-400">（拖拽可调节顺序）</span></label>
         <div class="flex flex-wrap gap-3 mb-3">
-          <div v-for="(img, idx) in form.images" :key="idx" class="relative">
-            <img :src="img" class="w-24 h-24 object-cover rounded-lg" />
-            <button type="button" @click="form.images.splice(idx, 1)"
-              class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center">
+          <div
+            v-for="(img, idx) in form.images"
+            :key="img + idx"
+            class="relative group cursor-move"
+            :class="{ 'opacity-50 ring-2 ring-accent': dragIdx === idx, 'ring-2 ring-gray-300': dragOverIdx === idx && dragIdx !== idx }"
+            draggable="true"
+            @dragstart="onDragStart(idx)"
+            @dragover.prevent="onDragOver(idx)"
+            @drop.prevent="onDrop"
+            @dragend="onDragEnd"
+          >
+            <img
+              :src="img"
+              class="w-24 h-24 object-cover rounded-lg"
+              @click.stop="previewSrc = img; showPreview = true"
+            />
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-all flex items-center justify-center" @click.stop="previewSrc = img; showPreview = true">
+              <svg class="w-5 h-5 text-white opacity-0 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
+              </svg>
+            </div>
+            <button type="button" @click.stop="form.images.splice(idx, 1)"
+              class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600">
               &times;
             </button>
+            <div class="absolute bottom-1 left-1 bg-black/50 text-white text-xs px-1 rounded">{{ idx + 1 }}</div>
           </div>
         </div>
-        <ImageUploader :model-value="''" @update:model-value="(v: string) => { if(v) form.images.push(v) }" />
+        <ImageUploaderMultiple v-model="form.images" />
       </div>
 
       <!-- Description -->
@@ -91,6 +111,8 @@
         </NuxtLink>
       </div>
     </form>
+
+    <ImagePreview v-model="showPreview" :src="previewSrc" />
   </div>
 </template>
 
@@ -101,6 +123,11 @@ const route = useRoute()
 const { authFetch } = useAuth()
 const isNew = route.params.id === 'new'
 const saving = ref(false)
+const showPreview = ref(false)
+const previewSrc = ref('')
+const dragIdx = ref(-1)
+const dragOverIdx = ref(-1)
+const originalImages = ref<string[]>([])
 
 const form = reactive({
   name: '',
@@ -129,6 +156,7 @@ if (!isNew) {
     try {
       form.images = JSON.parse(data.images_json || '[]')
     } catch { form.images = [] }
+    originalImages.value = [...form.images]
     try {
       const specs = JSON.parse(data.specs_json || '{}')
       form.specRows = Object.entries(specs).map(([key, value]) => ({ key, value: value as string }))
@@ -137,7 +165,46 @@ if (!isNew) {
   })
 }
 
+function onDragStart(idx: number) {
+  dragIdx.value = idx
+}
+
+function onDragOver(idx: number) {
+  if (dragIdx.value !== idx) {
+    dragOverIdx.value = idx
+  }
+}
+
+function onDrop() {
+  if (dragIdx.value !== -1 && dragOverIdx.value !== -1 && dragIdx.value !== dragOverIdx.value) {
+    const items = [...form.images]
+    const [moved] = items.splice(dragIdx.value, 1)
+    items.splice(dragOverIdx.value, 0, moved)
+    form.images = items
+  }
+}
+
+function onDragEnd() {
+  dragIdx.value = -1
+  dragOverIdx.value = -1
+}
+
+async function deleteUploadFile(url: string) {
+  if (!url) return
+  try {
+    const path = url.replace('/uploads/', '')
+    await $fetch(`/uploads/${path}`, { method: 'DELETE' })
+  } catch { /* ignore */ }
+}
+
 async function save() {
+  // 删除被移除的图片
+  const removedImages = originalImages.value.filter(img => !form.images.includes(img))
+  for (const img of removedImages) {
+    await deleteUploadFile(img)
+  }
+
+  saving.value = true
   saving.value = true
   const specs: Record<string, string> = {}
   form.specRows.forEach(r => { if (r.key) specs[r.key] = r.value })

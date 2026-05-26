@@ -53,6 +53,7 @@ declare module "nitropack/types" {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/upload.post').default>>>>
     }
     '/uploads/**:path': {
+      'delete': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/routes/uploads/[...path].delete').default>>>>
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/routes/uploads/[...path].get').default>>>>
     }
     '/__nuxt_error': {

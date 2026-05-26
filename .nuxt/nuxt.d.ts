@@ -1,6 +1,6 @@
-/// <reference types="@vueuse/motion" />
 /// <reference types="@nuxt/devtools" />
 /// <reference types="@nuxt/telemetry" />
+/// <reference types="@vueuse/motion" />
 /// <reference path="types/nitro-layouts.d.ts" />
 /// <reference path="types/builder-env.d.ts" />
 /// <reference path="types/plugins.d.ts" />

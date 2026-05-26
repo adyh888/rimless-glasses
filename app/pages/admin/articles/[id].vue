@@ -56,6 +56,7 @@ const route = useRoute()
 const { authFetch } = useAuth()
 const isNew = route.params.id === 'new'
 const saving = ref(false)
+const originalCoverImage = ref('')
 
 const form = reactive({
   title: '',
@@ -77,7 +78,16 @@ if (!isNew) {
       content: data.content,
       is_published: data.is_published,
     })
+    originalCoverImage.value = data.cover_image || ''
   })
+}
+
+async function deleteUploadFile(url: string) {
+  if (!url) return
+  try {
+    const path = url.replace('/uploads/', '')
+    await $fetch(`/uploads/${path}`, { method: 'DELETE' })
+  } catch { /* ignore */ }
 }
 
 async function save() {
@@ -89,6 +99,10 @@ async function save() {
     if (isNew) {
       await authFetch('/api/articles', { method: 'POST', body })
     } else {
+      // 删除旧图片（如果更换或删除了封面图）
+      if (originalCoverImage.value && originalCoverImage.value !== form.cover_image) {
+        await deleteUploadFile(originalCoverImage.value)
+      }
       await authFetch(`/api/articles/${route.params.id}`, { method: 'PUT', body })
     }
     navigateTo('/admin/articles')
