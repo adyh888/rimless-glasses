@@ -1,0 +1,14 @@
+node_modules
+.nuxt
+.output
+data
+uploads
+public/uploads
+.git
+.gitignore
+.DS_Store
+*.log
+npm-debug.log*
+.env
+.env.*
+!.env.example
