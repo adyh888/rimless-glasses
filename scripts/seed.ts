@@ -278,5 +278,33 @@ if (!contentExists) {
   console.log('About us content inserted')
 }
 
+const contactExists = db.prepare('SELECT id FROM site_content WHERE key = ?').get('contact_info')
+if (!contactExists) {
+  const contactInfo = {
+    items: [
+      { label: '客服热线', value: '400-888-0000' },
+      { label: '电子邮箱', value: 'hello@qingtou.com' },
+      { label: '总部地址', value: '深圳市南山区科技园南区清透大厦 18F' },
+      { label: '上海体验店', value: '上海市静安区南京西路 1788 号 L3-012' },
+    ],
+    hours: [
+      '周一至周五：9:00 - 18:00',
+      '周六：10:00 - 16:00',
+      '周日及法定节假日：休息',
+    ],
+  }
+  db.prepare('INSERT INTO site_content (key, content) VALUES (?, ?)').run(
+    'contact_info',
+    JSON.stringify(contactInfo),
+  )
+  console.log('Contact info inserted')
+}
+
+const priceFlagExists = db.prepare('SELECT id FROM site_content WHERE key = ?').get('show_product_price')
+if (!priceFlagExists) {
+  db.prepare('INSERT INTO site_content (key, content) VALUES (?, ?)').run('show_product_price', '1')
+  console.log('Product price flag inserted')
+}
+
 db.close()
 console.log('Seed completed successfully!')

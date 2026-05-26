@@ -13,13 +13,16 @@
       <h3 class="text-base font-medium text-primary group-hover:text-accent transition-colors duration-300">
         {{ product.name }}
       </h3>
-      <p class="text-sm text-secondary">&yen;{{ Number(product.price).toLocaleString() }}</p>
+      <p v-if="showPrice" class="text-sm text-secondary">&yen;{{ Number(product.price).toLocaleString() }}</p>
     </div>
   </NuxtLink>
 </template>
 
 <script setup lang="ts">
 const props = defineProps<{ product: any }>()
+
+const showPriceRef = await useShowPrice()
+const showPrice = computed(() => showPriceRef.value)
 
 const firstImage = computed(() => {
   try {

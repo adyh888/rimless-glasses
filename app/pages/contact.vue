@@ -71,17 +71,17 @@
           <ScrollReveal :delay="200">
             <h2 class="text-2xl font-light text-primary mb-8">联系方式</h2>
             <div class="space-y-8">
-              <div v-for="info in contactInfo" :key="info.label">
+              <div v-for="info in contactInfo.items" :key="info.label">
                 <h3 class="text-sm font-medium text-primary">{{ info.label }}</h3>
                 <p class="mt-1 text-secondary">{{ info.value }}</p>
               </div>
             </div>
 
-            <div class="mt-12 p-8 bg-surface rounded-2xl">
+            <div v-if="contactInfo.hours.length" class="mt-12 p-8 bg-surface rounded-2xl">
               <h3 class="text-sm font-medium text-primary mb-2">营业时间</h3>
-              <p class="text-secondary text-sm">周一至周五：9:00 - 18:00</p>
-              <p class="text-secondary text-sm">周六：10:00 - 16:00</p>
-              <p class="text-secondary text-sm">周日及法定节假日：休息</p>
+              <p v-for="(line, idx) in contactInfo.hours" :key="idx" class="text-secondary text-sm">
+                {{ line }}
+              </p>
             </div>
           </ScrollReveal>
         </div>
@@ -96,12 +96,8 @@ const submitting = ref(false)
 const submitSuccess = ref('')
 const submitError = ref('')
 
-const contactInfo = [
-  { label: '客服热线', value: '400-888-0000' },
-  { label: '电子邮箱', value: 'hello@qingtou.com' },
-  { label: '总部地址', value: '深圳市南山区科技园南区清透大厦 18F' },
-  { label: '上海体验店', value: '上海市静安区南京西路 1788 号 L3-012' },
-]
+const contactInfoRef = await useContactInfo()
+const contactInfo = computed(() => contactInfoRef.value)
 
 async function submitForm() {
   submitting.value = true

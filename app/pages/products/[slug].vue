@@ -40,7 +40,7 @@
             <h1 class="mt-2 text-3xl md:text-4xl font-light tracking-tight text-primary">
               {{ product.name }}
             </h1>
-            <p class="mt-4 text-2xl text-primary font-light">
+            <p v-if="showPrice" class="mt-4 text-2xl text-primary font-light">
               &yen;{{ Number(product.price).toLocaleString() }}
             </p>
 
@@ -84,6 +84,9 @@ const { data } = await useFetch('/api/products', {
 })
 
 const product = computed(() => data.value as any)
+
+const showPriceRef = await useShowPrice()
+const showPrice = computed(() => showPriceRef.value)
 
 const images = computed(() => {
   try {
