@@ -1,0 +1,66 @@
+<template>
+  <div>
+    <!-- Page Hero -->
+    <section class="pt-32 pb-16 bg-surface">
+      <div class="max-w-7xl mx-auto px-6 text-center">
+        <h1 class="text-4xl md:text-5xl font-light tracking-tight text-primary">产品中心</h1>
+        <p class="mt-4 text-secondary">每一副无框眼镜，都是对极简美学的极致诠释</p>
+      </div>
+    </section>
+
+    <!-- Filter -->
+    <section class="py-8 bg-white border-b border-gray-100">
+      <div class="max-w-7xl mx-auto px-6 flex flex-wrap gap-3 justify-center">
+        <button
+          v-for="cat in categories"
+          :key="cat"
+          class="px-5 py-2 text-sm rounded-full transition-all duration-300"
+          :class="selectedCategory === cat
+            ? 'bg-primary text-white'
+            : 'bg-surface text-secondary hover:bg-gray-200'"
+          @click="selectedCategory = cat"
+        >
+          {{ cat }}
+        </button>
+      </div>
+    </section>
+
+    <!-- Products Grid -->
+    <section class="py-16 bg-white">
+      <div class="max-w-7xl mx-auto px-6">
+        <div v-if="filteredProducts.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <ScrollReveal
+            v-for="(product, idx) in filteredProducts"
+            :key="product.id"
+            :delay="idx * 80"
+          >
+            <ProductCard :product="product" />
+          </ScrollReveal>
+        </div>
+        <div v-else class="text-center py-20 text-secondary">
+          暂无相关产品
+        </div>
+      </div>
+    </section>
+  </div>
+</template>
+
+<script setup lang="ts">
+const { data } = await useFetch('/api/products', {
+  query: { active_only: 'true', limit: 50 },
+})
+
+const allProducts = computed(() => (data.value as any)?.items || [])
+
+const categories = computed(() => {
+  const cats = ['全部', ...new Set(allProducts.value.map((p: any) => p.category).filter(Boolean))]
+  return cats
+})
+
+const selectedCategory = ref('全部')
+
+const filteredProducts = computed(() => {
+  if (selectedCategory.value === '全部') return allProducts.value
+  return allProducts.value.filter((p: any) => p.category === selectedCategory.value)
+})
+</script>
