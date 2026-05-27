@@ -58,6 +58,7 @@
                 class="relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all group"
                 :class="selectedUrls.has(item.url) ? 'border-accent ring-2 ring-accent/30' : 'border-transparent hover:border-gray-300'"
                 @click="toggleSelect(item)"
+                @dblclick.stop="openPreview(item)"
               >
                 <img
                   v-if="item.type === 'image'"
@@ -153,6 +154,39 @@
       </div>
     </Transition>
   </Teleport>
+
+  <!-- Preview lightbox -->
+  <Teleport to="body">
+    <Transition name="fade">
+      <div
+        v-if="preview.show"
+        class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/90"
+        @click.self="preview.show = false"
+      >
+        <button
+          type="button"
+          @click="preview.show = false"
+          class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-white/70 hover:text-white text-3xl z-10"
+        >&times;</button>
+        <div class="text-center" @click.stop>
+          <video
+            v-if="preview.type === 'video'"
+            :src="preview.url"
+            controls
+            autoplay
+            class="max-w-[90vw] max-h-[80vh] rounded-lg"
+          />
+          <img
+            v-else
+            :src="preview.url"
+            :alt="preview.name"
+            class="max-w-[90vw] max-h-[80vh] object-contain rounded-lg"
+          />
+          <p class="mt-3 text-white/70 text-sm">{{ preview.name }}</p>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -182,6 +216,7 @@ const total = ref(0)
 const currentPage = ref(1)
 const selectedUrls = ref(new Set<string>())
 const filter = ref('all')
+const preview = reactive({ show: false, url: '', name: '', type: '' })
 
 const filters = [
   { label: '全部', value: 'all' },
@@ -234,6 +269,13 @@ function toggleSelect(item: MediaItem) {
     s.add(item.url)
   }
   selectedUrls.value = s
+}
+
+function openPreview(item: MediaItem) {
+  preview.url = item.url
+  preview.name = item.name
+  preview.type = item.type
+  preview.show = true
 }
 
 function selectAll() {

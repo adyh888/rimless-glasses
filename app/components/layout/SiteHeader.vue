@@ -5,7 +5,7 @@
   >
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
       <NuxtLink to="/" class="flex items-center gap-2 text-xl font-light tracking-wider">
-        <img v-if="logo.show && logo.url" :src="logo.url" alt="Logo" class="h-8 w-auto object-contain" />
+        <img v-if="logo.show && logo.url" :src="logo.url" alt="Logo" class="w-auto object-contain" :style="{ height: logo.height + 'px' }" />
         <template v-else>
           <span class="text-primary">{{ brand.primary }}</span><span class="text-accent">{{ brand.accent }}</span>
         </template>

@@ -180,7 +180,7 @@ export async function useAdminMenu() {
   })
 }
 
-export type SiteLogo = { url: string; show: boolean }
+export type SiteLogo = { url: string; show: boolean; height: number }
 
 export async function useSiteLogo() {
   const { data } = await useFetch<{ key: string; content: string }>('/api/content/site_logo', {
@@ -188,12 +188,12 @@ export async function useSiteLogo() {
   })
   return computed<SiteLogo>(() => {
     const raw = data.value?.content
-    if (!raw) return { url: '', show: false }
+    if (!raw) return { url: '', show: false, height: 32 }
     try {
       const parsed = JSON.parse(raw)
-      return { url: parsed.url || '', show: !!parsed.show }
+      return { url: parsed.url || '', show: !!parsed.show, height: parsed.height || 32 }
     } catch {
-      return { url: '', show: false }
+      return { url: '', show: false, height: 32 }
     }
   })
 }

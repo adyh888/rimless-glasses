@@ -70,7 +70,7 @@ function initCropper() {
   destroyCropper()
   if (!imgRef.value) return
   cropper = new Cropper(imgRef.value, {
-    aspectRatio: props.aspectRatio,
+    aspectRatio: props.aspectRatio || NaN,
     viewMode: 1,
     autoCropArea: 1,
     responsive: true,

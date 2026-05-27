@@ -37,6 +37,19 @@
         :disabled="deleting"
         class="px-3 py-1.5 text-sm text-white bg-red-500 rounded-lg hover:bg-red-600 disabled:opacity-50"
       >{{ deleting ? '删除中...' : `删除选中 (${selectedUrls.size})` }}</button>
+      <div class="flex items-center gap-2">
+        <label class="text-xs text-secondary">每页</label>
+        <select
+          v-model.number="pageSize"
+          class="px-2 py-1 border border-gray-200 rounded-lg text-xs focus:border-accent focus:outline-none bg-white"
+          @change="currentPage = 1; loadMedia()"
+        >
+          <option :value="12">12</option>
+          <option :value="24">24</option>
+          <option :value="48">48</option>
+          <option :value="96">96</option>
+        </select>
+      </div>
       <span class="text-xs text-secondary">共 {{ total }} 项</span>
     </div>
 
@@ -70,6 +83,7 @@
         class="relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all group bg-gray-50"
         :class="selectedUrls.has(item.url) ? 'border-accent ring-2 ring-accent/30' : 'border-transparent hover:border-gray-300'"
         @click="toggleSelect(item)"
+        @dblclick.stop="openPreview(item)"
       >
         <img
           v-if="item.type === 'image'"
@@ -179,6 +193,39 @@
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Preview lightbox -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div
+          v-if="preview.show"
+          class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90"
+          @click.self="preview.show = false"
+        >
+          <button
+            type="button"
+            @click="preview.show = false"
+            class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-white/70 hover:text-white text-3xl z-10"
+          >&times;</button>
+          <div class="text-center" @click.stop>
+            <video
+              v-if="preview.type === 'video'"
+              :src="preview.url"
+              controls
+              autoplay
+              class="max-w-[90vw] max-h-[80vh] rounded-lg"
+            />
+            <img
+              v-else
+              :src="preview.url"
+              :alt="preview.name"
+              class="max-w-[90vw] max-h-[80vh] object-contain rounded-lg"
+            />
+            <p class="mt-3 text-white/70 text-sm">{{ preview.name }}</p>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -198,7 +245,7 @@ interface MediaItem {
 const items = ref<MediaItem[]>([])
 const total = ref(0)
 const currentPage = ref(1)
-const pageSize = 24
+const pageSize = ref(24)
 const filterType = ref('all')
 const searchQuery = ref('')
 const selectedUrls = ref(new Set<string>())
@@ -210,6 +257,7 @@ const dragging = ref(false)
 const uploadInput = ref<HTMLInputElement>()
 
 const renameModal = reactive({ show: false, oldName: '', newName: '' })
+const preview = reactive({ show: false, url: '', name: '', type: '' })
 
 const filters = [
   { label: '全部', value: 'all' },
@@ -217,7 +265,7 @@ const filters = [
   { label: '视频', value: 'video' },
 ]
 
-const totalPages = computed(() => Math.ceil(total.value / pageSize))
+const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
 
 const paginationRange = computed(() => {
   const pages: (number | string)[] = []
@@ -253,7 +301,7 @@ async function loadMedia() {
     const res = await $fetch<{ items: MediaItem[]; total: number }>('/api/media', {
       params: {
         page: currentPage.value,
-        limit: pageSize,
+        limit: pageSize.value,
         type: filterType.value,
         search: searchQuery.value,
       },
@@ -273,6 +321,17 @@ function toggleSelect(item: MediaItem) {
   else s.add(item.url)
   selectedUrls.value = s
 }
+
+function openPreview(item: MediaItem) {
+  preview.url = item.url
+  preview.name = item.name
+  preview.type = item.type
+  preview.show = true
+}
+
+watch(() => preview.show, (val) => {
+  document.body.style.overflow = val ? 'hidden' : ''
+})
 
 async function singleDelete(item: MediaItem) {
   if (!window.confirm(`确定删除「${item.name}」？`)) return

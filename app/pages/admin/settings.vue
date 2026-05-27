@@ -291,13 +291,65 @@
 
       <div>
         <label class="block text-xs text-secondary mb-1.5">Logo 图片</label>
-        <ImageUploader v-model="siteLogo.url" />
+        <div class="flex items-end gap-3">
+          <ImageUploader v-model="siteLogo.url" />
+          <button
+            v-if="siteLogo.url"
+            type="button"
+            @click="openLogoCropper"
+            class="text-xs text-accent hover:underline shrink-0 pb-1"
+          >裁剪调整</button>
+        </div>
       </div>
 
-      <div v-if="siteLogo.url" class="mt-4 px-4 py-3 bg-surface rounded-lg">
-        <p class="text-xs text-secondary mb-2">预览</p>
-        <img :src="siteLogo.url" alt="Logo preview" class="h-8 w-auto object-contain" />
+      <div v-if="siteLogo.url" class="mt-5 space-y-4">
+        <div>
+          <label class="block text-xs text-secondary mb-1.5">前台显示高度：{{ siteLogo.height }}px</label>
+          <div class="flex items-center gap-3">
+            <input
+              v-model.number="siteLogo.height"
+              type="range"
+              min="20"
+              max="80"
+              step="1"
+              class="flex-1 accent-primary"
+            />
+            <input
+              v-model.number="siteLogo.height"
+              type="number"
+              min="20"
+              max="80"
+              class="w-16 px-2 py-1 border border-gray-200 rounded-lg text-sm text-center focus:border-accent focus:outline-none"
+            />
+          </div>
+          <p class="text-[11px] text-gray-400 mt-1">后台侧栏高度将自动限制在 40px 以内</p>
+        </div>
+
+        <div class="px-4 py-3 bg-surface rounded-lg">
+          <p class="text-xs text-secondary mb-3">实时预览</p>
+          <div class="flex items-center gap-6">
+            <div>
+              <p class="text-[10px] text-gray-400 mb-1">前台 Header</p>
+              <div class="bg-white px-4 py-2 rounded border border-gray-100 inline-block">
+                <img :src="siteLogo.url" alt="Logo" class="w-auto object-contain" :style="{ height: siteLogo.height + 'px' }" />
+              </div>
+            </div>
+            <div>
+              <p class="text-[10px] text-gray-400 mb-1">后台侧栏</p>
+              <div class="bg-white px-4 py-2 rounded border border-gray-100 inline-block">
+                <img :src="siteLogo.url" alt="Logo" class="w-auto object-contain" :style="{ height: Math.min(siteLogo.height, 40) + 'px' }" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <ImageCropper
+        v-model:show="logoCropperShow"
+        :image-src="logoCropperSrc"
+        :aspect-ratio="0"
+        @cropped="onLogoCropped"
+      />
 
       <div class="mt-6">
         <button
@@ -854,9 +906,19 @@ const contact = reactive<{ items: ContactItem[]; hours: string[] }>({
 const savingContact = ref(false)
 const contactSaved = ref(false)
 
-const siteLogo = reactive({ url: '', show: false })
+const siteLogo = reactive({ url: '', show: false, height: 32 })
 const savingLogo = ref(false)
 const logoSaved = ref(false)
+const logoCropperShow = ref(false)
+const logoCropperSrc = ref('')
+
+function openLogoCropper() {
+  logoCropperSrc.value = siteLogo.url
+  logoCropperShow.value = true
+}
+function onLogoCropped(url: string) {
+  siteLogo.url = url
+}
 
 const brand = reactive({ primary: '', accent: '' })
 const savingBrand = ref(false)
@@ -1007,6 +1069,7 @@ onMounted(async () => {
     if (parsedLogo) {
       siteLogo.url = parsedLogo.url || ''
       siteLogo.show = !!parsedLogo.show
+      siteLogo.height = parsedLogo.height || 32
     }
   } catch {}
 
@@ -1284,7 +1347,7 @@ async function saveLogo() {
   try {
     await authFetch('/api/content/site_logo', {
       method: 'PUT',
-      body: { content: JSON.stringify({ url: siteLogo.url, show: siteLogo.show }) },
+      body: { content: JSON.stringify({ url: siteLogo.url, show: siteLogo.show, height: siteLogo.height }) },
     })
     logoSaved.value = true
     setTimeout(() => { logoSaved.value = false }, 3000)

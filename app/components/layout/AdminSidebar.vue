@@ -2,7 +2,7 @@
   <aside class="fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-gray-100 flex flex-col z-40">
     <div class="h-16 flex items-center px-6 border-b border-gray-100">
       <NuxtLink to="/" class="flex items-center gap-2 text-lg font-light tracking-wider">
-        <img v-if="logo.show && logo.url" :src="logo.url" alt="Logo" class="h-7 w-auto object-contain" />
+        <img v-if="logo.show && logo.url" :src="logo.url" alt="Logo" class="w-auto object-contain" :style="{ height: Math.min(logo.height, 40) + 'px' }" />
         <template v-else>
           {{ brand.primary }}<span class="text-accent">{{ brand.accent }}</span>
         </template>
