@@ -23,9 +23,9 @@
         <div>
           <h4 class="text-white text-sm font-medium mb-4 tracking-wide">关于品牌</h4>
           <ul class="space-y-2 text-sm">
-            <li><NuxtLink to="/about" class="hover:text-white transition-colors">品牌故事</NuxtLink></li>
-            <li><NuxtLink to="/news" class="hover:text-white transition-colors">新闻动态</NuxtLink></li>
-            <li><NuxtLink to="/contact" class="hover:text-white transition-colors">联系我们</NuxtLink></li>
+            <li><NuxtLink to="/about" class="hover:text-white transition-colors">{{ navLabel('/about', '品牌故事') }}</NuxtLink></li>
+            <li><NuxtLink to="/news" class="hover:text-white transition-colors">{{ navLabel('/news', '新闻动态') }}</NuxtLink></li>
+            <li><NuxtLink to="/contact" class="hover:text-white transition-colors">{{ navLabel('/contact', '联系我们') }}</NuxtLink></li>
           </ul>
         </div>
 
@@ -54,7 +54,12 @@
 const brandRef = await useBrandName()
 const taglineRef = await useFooterTagline()
 const contactInfoRef = await useContactInfo()
+const navRef = await useNavItems()
 const brand = computed(() => brandRef.value)
 const tagline = computed(() => taglineRef.value)
 const contactInfo = computed(() => contactInfoRef.value)
+
+function navLabel(path: string, fallback: string) {
+  return navRef.value.find(n => n.path === path)?.label || fallback
+}
 </script>

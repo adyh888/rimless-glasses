@@ -151,7 +151,7 @@
     <section class="py-24 md:py-32 bg-white">
       <div class="max-w-7xl mx-auto px-6">
         <ScrollReveal>
-          <SectionTitle title="新闻动态" :subtitle="`了解${siteName}的最新资讯`" />
+          <SectionTitle :title="navLabel('/news', '新闻动态')" :subtitle="navSubtitle('/news', `了解${siteName}的最新资讯`)" />
         </ScrollReveal>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -271,6 +271,14 @@ const latestArticles = computed(() => (articlesData.value as any)?.items || [])
 
 const brandRef = await useBrandName()
 const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
+
+const navRef = await useNavItems()
+function navLabel(path: string, fallback: string) {
+  return navRef.value.find(n => n.path === path)?.label || fallback
+}
+function navSubtitle(path: string, fallback: string) {
+  return navRef.value.find(n => n.path === path)?.subtitle || fallback
+}
 
 function formatDate(dateStr: string) {
   if (!dateStr) return ''
