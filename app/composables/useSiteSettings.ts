@@ -99,6 +99,39 @@ export async function useAboutImage() {
   return computed<string>(() => data.value?.content || DEFAULT_ABOUT_IMAGE)
 }
 
+export type SocialLink = {
+  platform: string
+  label: string
+  value: string
+  qrcode: string
+  is_active: boolean
+}
+
+const DEFAULT_SOCIAL_LINKS: SocialLink[] = [
+  { platform: 'wechat', label: '微信', value: '', qrcode: '', is_active: false },
+  { platform: 'wechat_official', label: '微信公众号', value: '', qrcode: '', is_active: false },
+  { platform: 'weibo', label: '微博', value: '', qrcode: '', is_active: false },
+  { platform: 'xiaohongshu', label: '小红书', value: '', qrcode: '', is_active: false },
+  { platform: 'douyin', label: '抖音', value: '', qrcode: '', is_active: false },
+]
+
+export async function useSocialLinks() {
+  const { data } = await useFetch<{ key: string; content: string }>('/api/content/social_links', {
+    key: 'site-social-links',
+  })
+  return computed<SocialLink[]>(() => {
+    const raw = data.value?.content
+    if (!raw) return DEFAULT_SOCIAL_LINKS
+    try {
+      const parsed = JSON.parse(raw)
+      if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_SOCIAL_LINKS
+      return parsed
+    } catch {
+      return DEFAULT_SOCIAL_LINKS
+    }
+  })
+}
+
 export type FooterTagline = { line1: string; line2: string }
 
 export async function useFooterTagline() {

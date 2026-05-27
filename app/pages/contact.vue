@@ -79,6 +79,29 @@
               </div>
             </div>
 
+            <!-- Social Links -->
+            <div v-if="activeSocialLinks.length" class="mt-12">
+              <h3 class="text-sm font-medium text-primary mb-4">社交媒体</h3>
+              <div class="space-y-4">
+                <div v-for="link in activeSocialLinks" :key="link.platform" class="flex items-start gap-4">
+                  <div class="w-10 h-10 rounded-full bg-surface flex items-center justify-center shrink-0">
+                    <span class="text-lg" v-html="socialIcons[link.platform] || '🔗'" />
+                  </div>
+                  <div class="min-w-0">
+                    <h4 class="text-sm font-medium text-primary">{{ link.label }}</h4>
+                    <p v-if="link.value" class="text-sm text-secondary mt-0.5">{{ link.value }}</p>
+                    <img
+                      v-if="link.qrcode"
+                      :src="link.qrcode"
+                      :alt="link.label + ' 二维码'"
+                      class="mt-2 w-28 h-28 rounded-lg border border-gray-100 object-contain cursor-pointer hover:opacity-80 transition-opacity"
+                      @click="openQrPreview(link.qrcode, link.label)"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div v-if="contactInfo.hours.length" class="mt-12 p-8 bg-surface rounded-2xl">
               <h3 class="text-sm font-medium text-primary mb-2">营业时间</h3>
               <p v-for="(line, idx) in contactInfo.hours" :key="idx" class="text-secondary text-sm">
@@ -89,6 +112,30 @@
         </div>
       </div>
     </section>
+    <!-- QR Code Preview -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div
+          v-if="qrPreview.show"
+          class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90"
+          @click.self="qrPreview.show = false"
+        >
+          <button
+            type="button"
+            @click="qrPreview.show = false"
+            class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-white/70 hover:text-white text-3xl z-10"
+          >&times;</button>
+          <div class="text-center" @click.stop>
+            <img
+              :src="qrPreview.src"
+              :alt="qrPreview.label"
+              class="max-w-[85vw] max-h-[75vh] object-contain rounded-lg"
+            />
+            <p class="mt-4 text-white/70 text-sm">{{ qrPreview.label }}</p>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -102,6 +149,23 @@ const formTouched = ref(false)
 
 const contactInfoRef = await useContactInfo()
 const contactInfo = computed(() => contactInfoRef.value)
+
+const qrPreview = reactive({ show: false, src: '', label: '' })
+function openQrPreview(src: string, label: string) {
+  qrPreview.src = src
+  qrPreview.label = label
+  qrPreview.show = true
+}
+
+const socialLinksRef = await useSocialLinks()
+const activeSocialLinks = computed(() => socialLinksRef.value.filter(l => l.is_active))
+const socialIcons: Record<string, string> = {
+  wechat: '💬',
+  wechat_official: '📢',
+  weibo: '🌐',
+  xiaohongshu: '📕',
+  douyin: '🎵',
+}
 
 const navRef = await useNavItems()
 const navItem = computed(() => navRef.value.find(n => n.path === '/contact'))
@@ -132,5 +196,20 @@ async function submitForm() {
   }
 }
 
+watch(() => qrPreview.show, (val) => {
+  document.body.style.overflow = val ? 'hidden' : ''
+})
+
 useHead({ title: computed(() => `联系我们 - ${siteName.value}`) })
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

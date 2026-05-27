@@ -389,6 +389,67 @@
       </div>
     </section>
 
+    <!-- 社交媒体 -->
+    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+      <h2 class="text-sm font-medium text-primary mb-1">社交媒体</h2>
+      <p class="text-xs text-secondary mb-5">在「联系我们」页面展示的社交媒体账号，可上传二维码图片</p>
+
+      <div class="space-y-4">
+        <div
+          v-for="(link, idx) in socialLinks"
+          :key="link.platform"
+          class="border border-gray-100 rounded-lg p-4"
+        >
+          <div class="flex items-center gap-3 mb-3">
+            <span class="text-lg">{{ socialPlatformIcons[link.platform] || '🔗' }}</span>
+            <span class="text-sm font-medium text-primary flex-1">{{ link.label }}</span>
+            <label class="inline-flex items-center gap-2 cursor-pointer select-none shrink-0">
+              <span class="relative inline-block w-9 h-5">
+                <input v-model="link.is_active" type="checkbox" class="peer sr-only" />
+                <span class="absolute inset-0 bg-gray-200 rounded-full peer-checked:bg-primary transition-colors" />
+                <span class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
+              </span>
+              <span class="text-xs text-secondary">{{ link.is_active ? '显示' : '隐藏' }}</span>
+            </label>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-secondary mb-1.5">账号/链接</label>
+              <input
+                v-model="link.value"
+                type="text"
+                :placeholder="socialPlaceholders[link.platform] || '账号或链接'"
+                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+              />
+            </div>
+            <div>
+              <label class="block text-xs text-secondary mb-1.5">二维码图片</label>
+              <div class="flex items-end gap-2">
+                <ImageUploader v-model="link.qrcode" />
+                <button
+                  v-if="link.qrcode"
+                  type="button"
+                  @click="openSocialPreview(link.qrcode, link.label)"
+                  class="text-xs text-accent hover:underline shrink-0 pb-1"
+                >预览</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <button
+          @click="saveSocialLinks"
+          :disabled="savingSocial"
+          class="px-5 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50"
+        >
+          {{ savingSocial ? '保存中...' : '保存社交媒体' }}
+        </button>
+        <span v-if="socialSaved" class="ml-3 text-sm text-green-600">已保存</span>
+      </div>
+    </section>
+
     <!-- 账户与密码 -->
     <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">账户与密码</h2>
@@ -448,8 +509,44 @@
         <span v-if="accountError" class="ml-3 text-sm text-red-500">{{ accountError }}</span>
       </div>
     </section>
+
+    <!-- Social QR Preview Lightbox -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div
+          v-if="socialPreview.show"
+          class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90"
+          @click.self="socialPreview.show = false"
+        >
+          <button
+            type="button"
+            @click="socialPreview.show = false"
+            class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-white/70 hover:text-white text-3xl z-10"
+          >&times;</button>
+          <div class="text-center" @click.stop>
+            <img
+              :src="socialPreview.src"
+              :alt="socialPreview.label"
+              class="max-w-[85vw] max-h-[75vh] object-contain rounded-lg"
+            />
+            <p class="mt-4 text-white/70 text-sm">{{ socialPreview.label }}</p>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
 
 <script setup lang="ts">
 definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
@@ -498,6 +595,31 @@ const tagline = reactive({ line1: '', line2: '' })
 const savingTagline = ref(false)
 const taglineSaved = ref(false)
 
+type SocialLink = { platform: string; label: string; value: string; qrcode: string; is_active: boolean }
+const socialLinks = reactive<SocialLink[]>([])
+const socialPreview = reactive({ show: false, src: '', label: '' })
+function openSocialPreview(src: string, label: string) {
+  socialPreview.src = src
+  socialPreview.label = label
+  socialPreview.show = true
+}
+const savingSocial = ref(false)
+const socialSaved = ref(false)
+const socialPlatformIcons: Record<string, string> = {
+  wechat: '💬',
+  wechat_official: '📢',
+  weibo: '🌐',
+  xiaohongshu: '📕',
+  douyin: '🎵',
+}
+const socialPlaceholders: Record<string, string> = {
+  wechat: '微信号',
+  wechat_official: '公众号名称',
+  weibo: '微博主页链接',
+  xiaohongshu: '小红书号或主页链接',
+  douyin: '抖音号或主页链接',
+}
+
 const account = reactive({
   newUsername: '',
   newPassword: '',
@@ -510,7 +632,7 @@ const accountError = ref('')
 const currentUsername = computed(() => user.value?.username || '—')
 
 onMounted(async () => {
-  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes] = await Promise.all([
+  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes, socialRes] = await Promise.all([
     $fetch<any>('/api/content/show_product_price'),
     $fetch<any>('/api/content/contact_info'),
     $fetch<any>('/api/content/brand_name_primary'),
@@ -523,6 +645,7 @@ onMounted(async () => {
     $fetch<any>('/api/content/banner_interval'),
     $fetch<any>('/api/content/nav_items'),
     $fetch<any>('/api/content/about_image'),
+    $fetch<any>('/api/content/social_links'),
   ])
   showPrice.value = (priceRes?.content ?? '1') !== '0'
   uploadMaxSize.value = uploadSizeRes?.content ? parseInt(uploadSizeRes.content, 10) : 5
@@ -571,6 +694,24 @@ onMounted(async () => {
   }
 
   aboutImage.value = aboutImageRes?.content || ''
+
+  const defaultSocial: SocialLink[] = [
+    { platform: 'wechat', label: '微信', value: '', qrcode: '', is_active: false },
+    { platform: 'wechat_official', label: '微信公众号', value: '', qrcode: '', is_active: false },
+    { platform: 'weibo', label: '微博', value: '', qrcode: '', is_active: false },
+    { platform: 'xiaohongshu', label: '小红书', value: '', qrcode: '', is_active: false },
+    { platform: 'douyin', label: '抖音', value: '', qrcode: '', is_active: false },
+  ]
+  try {
+    const parsedSocial = socialRes?.content ? JSON.parse(socialRes.content) : null
+    if (Array.isArray(parsedSocial) && parsedSocial.length > 0) {
+      socialLinks.splice(0, socialLinks.length, ...parsedSocial)
+    } else {
+      socialLinks.splice(0, socialLinks.length, ...defaultSocial)
+    }
+  } catch {
+    socialLinks.splice(0, socialLinks.length, ...defaultSocial)
+  }
 
   // 同步当前用户名（authFetch /api/auth/me）
   if (!user.value && token.value) {
@@ -745,6 +886,23 @@ async function saveContact() {
     alert(e?.data?.statusMessage || '保存失败')
   } finally {
     savingContact.value = false
+  }
+}
+
+async function saveSocialLinks() {
+  savingSocial.value = true
+  socialSaved.value = false
+  try {
+    await authFetch('/api/content/social_links', {
+      method: 'PUT',
+      body: { content: JSON.stringify(socialLinks) },
+    })
+    socialSaved.value = true
+    setTimeout(() => { socialSaved.value = false }, 3000)
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '保存失败')
+  } finally {
+    savingSocial.value = false
   }
 }
 
