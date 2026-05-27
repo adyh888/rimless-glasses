@@ -1,5 +1,13 @@
 <template>
-  <div class="min-h-screen bg-surface flex items-center justify-center">
+  <div v-if="accessDenied" class="min-h-screen bg-white flex items-center justify-center">
+    <div class="text-center">
+      <h1 class="text-6xl font-light text-gray-300">404</h1>
+      <p class="mt-4 text-secondary text-sm">页面不存在</p>
+      <NuxtLink to="/" class="mt-6 inline-block text-sm text-accent hover:underline">返回首页</NuxtLink>
+    </div>
+  </div>
+
+  <div v-else class="min-h-screen bg-surface flex items-center justify-center">
     <div class="w-full max-w-sm mx-4">
       <div class="text-center mb-8">
         <h1 class="text-2xl font-light tracking-wider text-primary">{{ brand.primary }}<span class="text-accent">{{ brand.accent }}</span></h1>
@@ -43,6 +51,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: false })
 
+const route = useRoute()
 const brandRef = await useBrandName()
 const brand = computed(() => brandRef.value)
 
@@ -51,6 +60,25 @@ const username = ref('')
 const password = ref('')
 const loading = ref(false)
 const error = ref('')
+const accessDenied = ref(false)
+
+onMounted(async () => {
+  const accessCookie = useCookie('admin_access_granted')
+  const keyParam = route.query.key as string | undefined
+
+  try {
+    const res = await $fetch<{ valid: boolean }>('/api/admin/verify-key', {
+      params: { key: keyParam || accessCookie.value || '' },
+    })
+    if (!res.valid) {
+      accessDenied.value = true
+    } else if (keyParam) {
+      accessCookie.value = keyParam
+    }
+  } catch {
+    accessDenied.value = true
+  }
+})
 
 async function handleLogin() {
   loading.value = true

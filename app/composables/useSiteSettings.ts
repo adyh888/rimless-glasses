@@ -148,8 +148,9 @@ const DEFAULT_ADMIN_MENU: AdminMenuItem[] = [
   { label: '产品管理', path: '/admin/products', icon: '📦', sort_order: 3, is_active: true },
   { label: '文章管理', path: '/admin/articles', icon: '📝', sort_order: 4, is_active: true },
   { label: '留言管理', path: '/admin/messages', icon: '✉️', sort_order: 5, is_active: true },
-  { label: '内容管理', path: '/admin/content', icon: '📄', sort_order: 6, is_active: true },
-  { label: '站点设置', path: '/admin/settings', icon: '⚙️', sort_order: 7, is_active: true },
+  { label: '素材库', path: '/admin/media', icon: '🖼️', sort_order: 6, is_active: true },
+  { label: '内容管理', path: '/admin/content', icon: '📄', sort_order: 7, is_active: true },
+  { label: '站点设置', path: '/admin/settings', icon: '⚙️', sort_order: 8, is_active: true },
 ]
 
 export { DEFAULT_ADMIN_MENU }
@@ -164,11 +165,35 @@ export async function useAdminMenu() {
     try {
       const parsed = JSON.parse(raw)
       if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_ADMIN_MENU
-      return [...parsed]
+      const savedPaths = new Set(parsed.map((i: AdminMenuItem) => i.path))
+      const missing = DEFAULT_ADMIN_MENU.filter(d => !savedPaths.has(d.path))
+      const merged = [...parsed]
+      for (const item of missing) {
+        merged.push({ ...item, sort_order: merged.length })
+      }
+      return merged
         .filter((item: AdminMenuItem) => item.is_active !== false)
         .sort((a: AdminMenuItem, b: AdminMenuItem) => a.sort_order - b.sort_order)
     } catch {
       return DEFAULT_ADMIN_MENU
+    }
+  })
+}
+
+export type SiteLogo = { url: string; show: boolean }
+
+export async function useSiteLogo() {
+  const { data } = await useFetch<{ key: string; content: string }>('/api/content/site_logo', {
+    key: 'site-logo',
+  })
+  return computed<SiteLogo>(() => {
+    const raw = data.value?.content
+    if (!raw) return { url: '', show: false }
+    try {
+      const parsed = JSON.parse(raw)
+      return { url: parsed.url || '', show: !!parsed.show }
+    } catch {
+      return { url: '', show: false }
     }
   })
 }

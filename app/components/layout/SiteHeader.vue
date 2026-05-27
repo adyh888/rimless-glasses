@@ -4,8 +4,11 @@
     :class="scrolled ? 'glass shadow-sm' : 'bg-transparent'"
   >
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-      <NuxtLink to="/" class="text-xl font-light tracking-wider">
-        <span class="text-primary">{{ brand.primary }}</span><span class="text-accent">{{ brand.accent }}</span>
+      <NuxtLink to="/" class="flex items-center gap-2 text-xl font-light tracking-wider">
+        <img v-if="logo.show && logo.url" :src="logo.url" alt="Logo" class="h-8 w-auto object-contain" />
+        <template v-else>
+          <span class="text-primary">{{ brand.primary }}</span><span class="text-accent">{{ brand.accent }}</span>
+        </template>
       </NuxtLink>
 
       <nav class="hidden md:flex items-center gap-8">
@@ -48,6 +51,9 @@
 <script setup lang="ts">
 const brandRef = await useBrandName()
 const brand = computed(() => brandRef.value)
+
+const logoRef = await useSiteLogo()
+const logo = computed(() => logoRef.value)
 
 const navItemsRef = await useNavItems()
 const navItems = computed(() => navItemsRef.value.filter(item => item.is_active))

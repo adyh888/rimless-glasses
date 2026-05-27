@@ -1,9 +1,25 @@
 <template>
   <div class="space-y-8">
-    <h1 class="text-2xl font-light text-primary">站点设置</h1>
+    <div>
+      <h1 class="text-2xl font-light text-primary">站点设置</h1>
+      <p class="text-xs text-secondary mt-1">管理网站基本信息、内容、上传、联系方式与系统安全</p>
+    </div>
+
+    <div class="sticky top-0 z-10 bg-white/80 backdrop-blur-sm -mx-8 px-8 border-b border-gray-100">
+      <div class="flex gap-1 overflow-x-auto">
+        <button
+          v-for="tab in tabs"
+          :key="tab.key"
+          type="button"
+          @click="activeTab = tab.key"
+          class="px-4 py-3 text-sm whitespace-nowrap border-b-2 transition-all"
+          :class="activeTab === tab.key ? 'border-primary text-primary font-medium' : 'border-transparent text-secondary hover:text-primary'"
+        >{{ tab.label }}</button>
+      </div>
+    </div>
 
     <!-- 产品价格显示开关 -->
-    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+    <section v-show="activeTab === 'content'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">产品中心价格显示</h2>
       <p class="text-xs text-secondary mb-5">关闭后，前台产品卡片和详情页将不显示价格（后台始终可见）</p>
 
@@ -29,7 +45,7 @@
     </section>
 
     <!-- 上传设置 -->
-    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+    <section v-show="activeTab === 'upload'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">上传设置</h2>
       <p class="text-xs text-secondary mb-5">限制图片上传文件大小（单位：MB）</p>
 
@@ -57,7 +73,7 @@
     </section>
 
     <!-- 视频上传设置 -->
-    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+    <section v-show="activeTab === 'upload'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">视频上传设置</h2>
       <p class="text-xs text-secondary mb-5">配置允许上传的视频格式和最大文件大小</p>
 
@@ -96,7 +112,7 @@
     </section>
 
     <!-- 轮播设置 -->
-    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+    <section v-show="activeTab === 'content'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">轮播设置</h2>
       <p class="text-xs text-secondary mb-5">设置首页轮播图自动切换的时间间隔</p>
 
@@ -124,7 +140,7 @@
     </section>
 
     <!-- 导航菜单设置 -->
-    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+    <section v-show="activeTab === 'basic'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">导航菜单设置</h2>
       <p class="text-xs text-secondary mb-5">管理前台顶部导航栏的菜单项、显示顺序和页面副标题</p>
 
@@ -206,7 +222,7 @@
     </section>
 
     <!-- 关于我们页面图片 -->
-    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+    <section v-show="activeTab === 'content'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">关于我们页面图片</h2>
       <p class="text-xs text-secondary mb-3">「关于我们」页面顶部展示的大图</p>
       <p class="text-xs text-accent bg-accent/5 inline-block px-3 py-1.5 rounded-md mb-5">推荐尺寸 1920 × 600 像素（宽高比 3.2 : 1），图片将以全宽展示，高度为屏幕的 50%</p>
@@ -259,8 +275,44 @@
       </div>
     </section>
 
+    <!-- Logo 设置 -->
+    <section v-show="activeTab === 'basic'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+      <h2 class="text-sm font-medium text-primary mb-1">Logo 设置</h2>
+      <p class="text-xs text-secondary mb-5">上传 Logo 图片后，前台 Header 和后台侧栏将显示 Logo 替代文字品牌名。关闭开关则恢复文字显示。</p>
+
+      <label class="inline-flex items-center gap-3 cursor-pointer select-none mb-5">
+        <span class="relative inline-block w-11 h-6">
+          <input v-model="siteLogo.show" type="checkbox" class="peer sr-only" />
+          <span class="absolute inset-0 bg-gray-200 rounded-full peer-checked:bg-primary transition-colors" />
+          <span class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5" />
+        </span>
+        <span class="text-sm text-primary">{{ siteLogo.show ? '显示 Logo' : '显示文字品牌名' }}</span>
+      </label>
+
+      <div>
+        <label class="block text-xs text-secondary mb-1.5">Logo 图片</label>
+        <ImageUploader v-model="siteLogo.url" />
+      </div>
+
+      <div v-if="siteLogo.url" class="mt-4 px-4 py-3 bg-surface rounded-lg">
+        <p class="text-xs text-secondary mb-2">预览</p>
+        <img :src="siteLogo.url" alt="Logo preview" class="h-8 w-auto object-contain" />
+      </div>
+
+      <div class="mt-6">
+        <button
+          @click="saveLogo"
+          :disabled="savingLogo"
+          class="px-5 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50"
+        >
+          {{ savingLogo ? '保存中...' : '保存 Logo' }}
+        </button>
+        <span v-if="logoSaved" class="ml-3 text-sm text-green-600">已保存</span>
+      </div>
+    </section>
+
     <!-- 品牌名称 -->
-    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+    <section v-show="activeTab === 'basic'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">品牌名称</h2>
       <p class="text-xs text-secondary mb-5">显示在前台 Header、Footer 以及后台侧栏 / 登录页。前半部分使用主色，后半部分使用强调色（香槟金）。</p>
 
@@ -303,7 +355,7 @@
     </section>
 
     <!-- 页脚标语 -->
-    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+    <section v-show="activeTab === 'basic'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">页脚标语</h2>
       <p class="text-xs text-secondary mb-5">显示在前台 Footer 左侧品牌下方，共两行</p>
 
@@ -341,7 +393,7 @@
     </section>
 
     <!-- 联系方式 -->
-    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+    <section v-show="activeTab === 'contact'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">联系方式</h2>
       <p class="text-xs text-secondary mb-5">在「联系我们」页面展示的联系方式与营业时间</p>
 
@@ -425,7 +477,7 @@
     </section>
 
     <!-- 社交媒体 -->
-    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+    <section v-show="activeTab === 'contact'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">社交媒体</h2>
       <p class="text-xs text-secondary mb-5">在「联系我们」页面展示的社交媒体账号，可上传二维码图片</p>
 
@@ -501,8 +553,48 @@
       </div>
     </section>
 
+    <!-- 访问密钥 -->
+    <section v-show="activeTab === 'system'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+      <h2 class="text-sm font-medium text-primary mb-1">后台访问密钥</h2>
+      <p class="text-xs text-secondary mb-5">设置后，直接访问 /admin/login 将显示 404 页面。需通过 /admin/login?key=你的密钥 才能访问登录页。留空则不启用此功能。</p>
+
+      <div>
+        <label class="block text-xs text-secondary mb-1.5">访问密钥</label>
+        <div class="flex items-center gap-3">
+          <input
+            v-model="accessKey"
+            :type="showAccessKey ? 'text' : 'password'"
+            placeholder="留空表示不启用访问密钥"
+            class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+          />
+          <button type="button" @click="showAccessKey = !showAccessKey" class="text-xs text-secondary hover:text-primary">
+            {{ showAccessKey ? '隐藏' : '显示' }}
+          </button>
+          <button type="button" @click="generateAccessKey" class="text-xs text-accent hover:underline">
+            随机生成
+          </button>
+        </div>
+      </div>
+
+      <div v-if="accessKey" class="mt-4 p-3 bg-surface rounded-lg">
+        <p class="text-xs text-secondary mb-1">登录链接预览：</p>
+        <code class="text-xs text-primary break-all">{{ loginUrlPreview }}</code>
+      </div>
+
+      <div class="mt-6">
+        <button
+          @click="saveAccessKey"
+          :disabled="savingAccessKey"
+          class="px-5 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50"
+        >
+          {{ savingAccessKey ? '保存中...' : '保存密钥' }}
+        </button>
+        <span v-if="accessKeySaved" class="ml-3 text-sm text-green-600">已保存</span>
+      </div>
+    </section>
+
     <!-- 后台侧栏菜单 -->
-    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+    <section v-show="activeTab === 'system'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">后台侧栏菜单</h2>
       <p class="text-xs text-secondary mb-5">管理后台左侧导航菜单的项目、图标、顺序和显示状态</p>
 
@@ -576,7 +668,7 @@
     </section>
 
     <!-- 账户与密码 -->
-    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+    <section v-show="activeTab === 'system'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">账户与密码</h2>
       <p class="text-xs text-secondary mb-5">
         当前登录账号：<span class="text-primary">{{ currentUsername }}</span>。
@@ -678,6 +770,15 @@ definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
 const { authFetch, user, token, logout } = useAuth()
 
+const tabs = [
+  { key: 'basic', label: '基本设置' },
+  { key: 'content', label: '内容设置' },
+  { key: 'upload', label: '上传设置' },
+  { key: 'contact', label: '联系与社交' },
+  { key: 'system', label: '安全与系统' },
+]
+const activeTab = ref('basic')
+
 const showPrice = ref(true)
 const savingPrice = ref(false)
 const priceSaved = ref(false)
@@ -753,6 +854,10 @@ const contact = reactive<{ items: ContactItem[]; hours: string[] }>({
 const savingContact = ref(false)
 const contactSaved = ref(false)
 
+const siteLogo = reactive({ url: '', show: false })
+const savingLogo = ref(false)
+const logoSaved = ref(false)
+
 const brand = reactive({ primary: '', accent: '' })
 const savingBrand = ref(false)
 const brandSaved = ref(false)
@@ -778,6 +883,24 @@ function addSocial() {
 function removeSocial(idx: number) {
   if (!window.confirm('确定删除此社交媒体？')) return
   socialLinks.splice(idx, 1)
+}
+
+const accessKey = ref('')
+const showAccessKey = ref(false)
+const savingAccessKey = ref(false)
+const accessKeySaved = ref(false)
+const loginUrlPreview = computed(() => {
+  const origin = import.meta.client ? window.location.origin : ''
+  return `${origin}/admin/login?key=${accessKey.value}`
+})
+
+function generateAccessKey() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
+  let result = ''
+  for (let i = 0; i < 16; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  accessKey.value = result
 }
 
 type AdminMenuItem = { label: string; path: string; icon: string; sort_order: number; is_active: boolean }
@@ -812,7 +935,7 @@ const accountError = ref('')
 const currentUsername = computed(() => user.value?.username || '—')
 
 onMounted(async () => {
-  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes, socialRes, adminMenuRes] = await Promise.all([
+  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes, socialRes, adminMenuRes, logoRes, accessKeyRes] = await Promise.all([
     $fetch<any>('/api/content/show_product_price'),
     $fetch<any>('/api/content/contact_info'),
     $fetch<any>('/api/content/brand_name_primary'),
@@ -827,6 +950,8 @@ onMounted(async () => {
     $fetch<any>('/api/content/about_image'),
     $fetch<any>('/api/content/social_links'),
     $fetch<any>('/api/content/admin_menu_items'),
+    $fetch<any>('/api/content/site_logo'),
+    $fetch<any>('/api/content/admin_access_key'),
   ])
   showPrice.value = (priceRes?.content ?? '1') !== '0'
   uploadMaxSize.value = uploadSizeRes?.content ? parseInt(uploadSizeRes.content, 10) : 5
@@ -837,6 +962,7 @@ onMounted(async () => {
   videoFormats.mov = enabledFormats.includes('mov')
   videoMaxSize.value = videoSizeRes?.content ? parseInt(videoSizeRes.content, 10) : 50
   bannerInterval.value = bannerIntervalRes?.content ? parseInt(bannerIntervalRes.content, 10) : 5
+  accessKey.value = accessKeyRes?.content || ''
 
   let parsed: any = {}
   try {
@@ -876,6 +1002,14 @@ onMounted(async () => {
 
   aboutImage.value = aboutImageRes?.content || ''
 
+  try {
+    const parsedLogo = logoRes?.content ? JSON.parse(logoRes.content) : null
+    if (parsedLogo) {
+      siteLogo.url = parsedLogo.url || ''
+      siteLogo.show = !!parsedLogo.show
+    }
+  } catch {}
+
   const defaultSocial: SocialLink[] = [
     { platform: 'wechat', label: '微信', icon: '💬', value: '', qrcode: '', is_active: false },
     { platform: 'wechat_official', label: '微信公众号', icon: '📢', value: '', qrcode: '', is_active: false },
@@ -901,8 +1035,9 @@ onMounted(async () => {
     { label: '产品管理', path: '/admin/products', icon: '📦', sort_order: 3, is_active: true },
     { label: '文章管理', path: '/admin/articles', icon: '📝', sort_order: 4, is_active: true },
     { label: '留言管理', path: '/admin/messages', icon: '✉️', sort_order: 5, is_active: true },
-    { label: '内容管理', path: '/admin/content', icon: '📄', sort_order: 6, is_active: true },
-    { label: '站点设置', path: '/admin/settings', icon: '⚙️', sort_order: 7, is_active: true },
+    { label: '素材库', path: '/admin/media', icon: '🖼️', sort_order: 6, is_active: true },
+    { label: '内容管理', path: '/admin/content', icon: '📄', sort_order: 7, is_active: true },
+    { label: '站点设置', path: '/admin/settings', icon: '⚙️', sort_order: 8, is_active: true },
   ]
   try {
     const parsedMenu = adminMenuRes?.content ? JSON.parse(adminMenuRes.content) : null
@@ -1123,6 +1258,40 @@ async function saveAdminMenu() {
     alert(e?.data?.statusMessage || '保存失败')
   } finally {
     savingAdminMenu.value = false
+  }
+}
+
+async function saveAccessKey() {
+  savingAccessKey.value = true
+  accessKeySaved.value = false
+  try {
+    await authFetch('/api/content/admin_access_key', {
+      method: 'PUT',
+      body: { content: accessKey.value.trim() },
+    })
+    accessKeySaved.value = true
+    setTimeout(() => { accessKeySaved.value = false }, 3000)
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '保存失败')
+  } finally {
+    savingAccessKey.value = false
+  }
+}
+
+async function saveLogo() {
+  savingLogo.value = true
+  logoSaved.value = false
+  try {
+    await authFetch('/api/content/site_logo', {
+      method: 'PUT',
+      body: { content: JSON.stringify({ url: siteLogo.url, show: siteLogo.show }) },
+    })
+    logoSaved.value = true
+    setTimeout(() => { logoSaved.value = false }, 3000)
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '保存失败')
+  } finally {
+    savingLogo.value = false
   }
 }
 

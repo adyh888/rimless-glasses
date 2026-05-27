@@ -71,15 +71,16 @@ async function uploadFile(file: File): Promise<string | null> {
 
 async function handleFiles(files: FileList | null) {
   if (!files?.length) return
+  const fileArray = Array.from(files)
 
   uploading.value = true
-  totalCount.value = files.length
+  totalCount.value = fileArray.length
   uploadedCount.value = 0
 
   const newUrls: string[] = []
 
-  for (let i = 0; i < files.length; i++) {
-    const url = await uploadFile(files[i]!)
+  for (const file of fileArray) {
+    const url = await uploadFile(file)
     if (url) {
       newUrls.push(url)
     }

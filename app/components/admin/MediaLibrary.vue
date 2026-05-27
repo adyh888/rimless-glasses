@@ -14,14 +14,13 @@
           <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
             <h2 class="text-base font-medium text-primary">素材库</h2>
             <div class="flex items-center gap-3">
-              <!-- Filter -->
               <div class="flex gap-1 text-xs">
                 <button
                   v-for="f in filters"
                   :key="f.value"
                   class="px-2.5 py-1 rounded-full transition-colors"
                   :class="filter === f.value ? 'bg-primary text-white' : 'bg-gray-100 text-secondary hover:bg-gray-200'"
-                  @click="filter = f.value"
+                  @click="filter = f.value; currentPage = 1; loadMedia()"
                 >{{ f.label }}</button>
               </div>
               <button @click="close" class="w-8 h-8 flex items-center justify-center text-secondary hover:text-primary text-lg">&times;</button>
@@ -52,28 +51,26 @@
 
           <!-- Media grid -->
           <div class="flex-1 overflow-y-auto p-6">
-            <div v-if="filteredItems.length" class="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3">
+            <div v-if="items.length" class="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3">
               <div
-                v-for="item in filteredItems"
+                v-for="item in items"
                 :key="item.url"
                 class="relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all group"
                 :class="selectedUrls.has(item.url) ? 'border-accent ring-2 ring-accent/30' : 'border-transparent hover:border-gray-300'"
                 @click="toggleSelect(item)"
               >
-                <!-- Image thumbnail -->
                 <img
                   v-if="item.type === 'image'"
                   :src="item.url"
                   class="w-full h-full object-cover"
+                  loading="lazy"
                 />
-                <!-- Video thumbnail -->
                 <VideoThumbnail
                   v-else
                   :src="item.url"
                   container-class="w-full h-full"
                   canvas-class="object-cover"
                 />
-                <!-- Selected check -->
                 <div
                   v-if="selectedUrls.has(item.url)"
                   class="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-accent flex items-center justify-center"
@@ -82,18 +79,15 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
                   </svg>
                 </div>
-                <!-- Unselected circle -->
                 <div
                   v-else
                   class="absolute top-1.5 left-1.5 w-5 h-5 rounded-full border-2 border-white/70 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"
                 />
-                <!-- Single delete button on hover -->
                 <button
                   type="button"
                   class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 text-white text-xs items-center justify-center hover:bg-red-500 transition-colors hidden group-hover:flex"
                   @click.stop="singleDelete(item)"
                 >&times;</button>
-                <!-- File size -->
                 <div class="absolute bottom-1 left-1 text-[10px] bg-black/50 text-white px-1 rounded">
                   {{ formatSize(item.size) }}
                 </div>
@@ -102,18 +96,33 @@
             <div v-else class="text-center py-12 text-secondary text-sm">暂无素材</div>
           </div>
 
+          <!-- Pagination -->
+          <div v-if="totalPages > 1" class="flex items-center justify-center gap-2 px-6 py-2 border-t border-gray-50">
+            <button
+              :disabled="currentPage <= 1"
+              @click="currentPage--; loadMedia()"
+              class="px-2 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-30"
+            >上一页</button>
+            <span class="text-xs text-secondary">{{ currentPage }} / {{ totalPages }}</span>
+            <button
+              :disabled="currentPage >= totalPages"
+              @click="currentPage++; loadMedia()"
+              class="px-2 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-30"
+            >下一页</button>
+          </div>
+
           <!-- Footer -->
           <div class="flex items-center justify-between px-6 py-4 border-t border-gray-100">
             <div class="flex items-center gap-2 text-xs text-secondary">
-              <span>已选 {{ selectedUrls.size }} / {{ filteredItems.length }} 项</span>
-              <template v-if="filteredItems.length">
+              <span>已选 {{ selectedUrls.size }} / {{ total }} 项</span>
+              <template v-if="items.length">
                 <span class="mx-0.5">·</span>
                 <button
-                  v-if="selectedUrls.size < filteredItems.length"
+                  v-if="selectedUrls.size < items.length"
                   type="button"
                   class="text-accent hover:underline"
                   @click="selectAll"
-                >全选</button>
+                >全选本页</button>
                 <button
                   v-else
                   type="button"
@@ -163,11 +172,14 @@ const props = defineProps<{
 const emit = defineEmits(['update:modelValue', 'select'])
 const { authHeaders } = useAuth()
 
+const PAGE_SIZE = 24
 const overlayRef = ref<HTMLElement>()
 const uploadInput = ref<HTMLInputElement>()
 const uploading = ref(false)
 const deleting = ref(false)
 const items = ref<MediaItem[]>([])
+const total = ref(0)
+const currentPage = ref(1)
 const selectedUrls = ref(new Set<string>())
 const filter = ref('all')
 
@@ -177,14 +189,13 @@ const filters = [
   { label: '视频', value: 'video' },
 ]
 
-const filteredItems = computed(() => {
-  if (filter.value === 'all') return items.value
-  return items.value.filter(i => i.type === filter.value)
-})
+const totalPages = computed(() => Math.ceil(total.value / PAGE_SIZE))
 
 watch(() => props.modelValue, async (val) => {
   if (val) {
     selectedUrls.value = new Set()
+    currentPage.value = 1
+    filter.value = 'all'
     document.body.style.overflow = 'hidden'
     await loadMedia()
     nextTick(() => overlayRef.value?.focus())
@@ -199,9 +210,18 @@ onUnmounted(() => {
 
 async function loadMedia() {
   try {
-    items.value = await $fetch<MediaItem[]>('/api/media')
+    const res = await $fetch<{ items: MediaItem[]; total: number }>('/api/media', {
+      params: {
+        page: currentPage.value,
+        limit: PAGE_SIZE,
+        type: filter.value,
+      },
+    })
+    items.value = res.items
+    total.value = res.total
   } catch {
     items.value = []
+    total.value = 0
   }
 }
 
@@ -217,8 +237,8 @@ function toggleSelect(item: MediaItem) {
 }
 
 function selectAll() {
-  const s = new Set<string>()
-  for (const item of filteredItems.value) {
+  const s = new Set(selectedUrls.value)
+  for (const item of items.value) {
     s.add(item.url)
   }
   selectedUrls.value = s
@@ -240,10 +260,10 @@ async function singleDelete(item: MediaItem) {
   try {
     const path = item.url.replace('/uploads/', '')
     await $fetch(`/uploads/${path}`, { method: 'DELETE', headers: authHeaders() })
-    items.value = items.value.filter(i => i.url !== item.url)
     const s = new Set(selectedUrls.value)
     s.delete(item.url)
     selectedUrls.value = s
+    await loadMedia()
   } catch {
     alert('删除失败')
   }
@@ -257,18 +277,15 @@ async function batchDelete() {
 
   deleting.value = true
   const urls = Array.from(selectedUrls.value)
-  const failed = new Set<string>()
   for (const url of urls) {
     try {
       const path = url.replace('/uploads/', '')
       await $fetch(`/uploads/${path}`, { method: 'DELETE', headers: authHeaders() })
-      items.value = items.value.filter(i => i.url !== url)
-    } catch {
-      failed.add(url)
-    }
+    } catch {}
   }
   deleting.value = false
-  selectedUrls.value = failed.size > 0 ? failed : new Set()
+  selectedUrls.value = new Set()
+  await loadMedia()
 }
 
 function close() {
@@ -299,11 +316,13 @@ async function uploadFile(file: File): Promise<string | null> {
 
 async function handleFiles(files: FileList | null) {
   if (!files?.length) return
+  const fileArray = Array.from(files)
   uploading.value = true
-  for (let i = 0; i < files.length; i++) {
-    await uploadFile(files[i]!)
+  for (const file of fileArray) {
+    await uploadFile(file)
   }
   uploading.value = false
+  currentPage.value = 1
   await loadMedia()
 }
 

@@ -200,6 +200,7 @@ declare global {
   const useServerSeoMeta: typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/head').useServerSeoMeta
   const useShadowRoot: typeof import('vue').useShadowRoot
   const useShowPrice: typeof import('../../app/composables/useSiteSettings').useShowPrice
+  const useSiteLogo: typeof import('../../app/composables/useSiteSettings').useSiteLogo
   const useSlots: typeof import('vue').useSlots
   const useSocialLinks: typeof import('../../app/composables/useSiteSettings').useSocialLinks
   const useSpring: typeof import('../../node_modules/.pnpm/@vueuse+motion@3.0.3_magicast@0.5.3_vue@3.5.34/node_modules/@vueuse/motion/dist/nuxt/runtime/composables/index').useSpring
@@ -230,7 +231,7 @@ declare global {
   export type { HomepageBlock } from '../../app/composables/useHomepageSections'
   import('../../app/composables/useHomepageSections')
   // @ts-ignore
-  export type { ContactInfo, BrandName, NavItem, SocialLink, AdminMenuItem, FooterTagline } from '../../app/composables/useSiteSettings'
+  export type { ContactInfo, BrandName, NavItem, SocialLink, AdminMenuItem, SiteLogo, FooterTagline } from '../../app/composables/useSiteSettings'
   import('../../app/composables/useSiteSettings')
 }
 // for vue template auto import
@@ -436,6 +437,7 @@ declare module 'vue' {
     readonly useServerSeoMeta: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/head')['useServerSeoMeta']>
     readonly useShadowRoot: UnwrapRef<typeof import('vue')['useShadowRoot']>
     readonly useShowPrice: UnwrapRef<typeof import('../../app/composables/useSiteSettings')['useShowPrice']>
+    readonly useSiteLogo: UnwrapRef<typeof import('../../app/composables/useSiteSettings')['useSiteLogo']>
     readonly useSlots: UnwrapRef<typeof import('vue')['useSlots']>
     readonly useSocialLinks: UnwrapRef<typeof import('../../app/composables/useSiteSettings')['useSocialLinks']>
     readonly useSpring: UnwrapRef<typeof import('../../node_modules/.pnpm/@vueuse+motion@3.0.3_magicast@0.5.3_vue@3.5.34/node_modules/@vueuse/motion/dist/nuxt/runtime/composables/index')['useSpring']>

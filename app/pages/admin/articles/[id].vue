@@ -2,6 +2,27 @@
   <div>
     <h1 class="text-2xl font-light text-primary mb-8">{{ isNew ? '新增文章' : '编辑文章' }}</h1>
 
+    <!-- Import from URL -->
+    <div v-if="isNew" class="bg-white rounded-xl shadow-sm p-6 max-w-4xl mb-6">
+      <div class="flex items-center gap-3">
+        <input
+          v-model="importUrl"
+          type="url"
+          placeholder="输入文章链接，从外部网页导入内容..."
+          class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+          @keydown.enter.prevent="importFromUrl"
+        />
+        <button
+          type="button"
+          :disabled="importing || !importUrl.trim()"
+          @click="importFromUrl"
+          class="px-5 py-2.5 bg-accent text-white text-sm rounded-lg hover:bg-accent/90 transition-all disabled:opacity-50 whitespace-nowrap"
+        >{{ importing ? '导入中...' : '从链接导入' }}</button>
+      </div>
+      <p v-if="importing" class="text-xs text-secondary mt-2">正在抓取页面内容并下载图片/视频到素材库，请稍候...</p>
+      <p v-if="importError" class="text-red-500 text-xs mt-2">{{ importError }}</p>
+    </div>
+
     <form @submit.prevent="save" class="bg-white rounded-xl shadow-sm p-8 max-w-4xl space-y-6">
       <div>
         <label class="block text-sm text-secondary mb-1.5">文章标题</label>
@@ -57,6 +78,9 @@ const { authFetch } = useAuth()
 const isNew = route.params.id === 'new'
 const saving = ref(false)
 const originalCoverImage = ref('')
+const importUrl = ref('')
+const importing = ref(false)
+const importError = ref('')
 
 const form = reactive({
   title: '',
@@ -80,6 +104,28 @@ if (!isNew) {
     })
     originalCoverImage.value = data.cover_image || ''
   })
+}
+
+async function importFromUrl() {
+  const url = importUrl.value.trim()
+  if (!url) return
+  if (form.title || form.content) {
+    if (!window.confirm('导入将覆盖当前标题和内容，确定继续？')) return
+  }
+  importing.value = true
+  importError.value = ''
+  try {
+    const res = await authFetch<{ title: string; content: string }>('/api/articles/import', {
+      method: 'POST',
+      body: { url },
+    })
+    form.title = res.title || form.title
+    form.content = res.content || form.content
+  } catch (e: any) {
+    importError.value = e?.data?.statusMessage || '导入失败，请检查链接是否可访问'
+  } finally {
+    importing.value = false
+  }
 }
 
 async function deleteUploadFile(url: string) {

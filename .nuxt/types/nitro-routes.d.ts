@@ -3,10 +3,16 @@ import type { Serialize, Simplify } from "nitropack/types";
 declare module "nitropack/types" {
   type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T
   interface InternalApi {
+    '/api/admin/verify-key': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/verify-key.get').default>>>>
+    }
     '/api/articles/:id': {
       'delete': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/articles/[id].delete').default>>>>
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/articles/[id].get').default>>>>
       'put': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/articles/[id].put').default>>>>
+    }
+    '/api/articles/import': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/articles/import.post').default>>>>
     }
     '/api/articles': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/articles/index.get').default>>>>
@@ -39,6 +45,9 @@ declare module "nitropack/types" {
     }
     '/api/media': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/media.get').default>>>>
+    }
+    '/api/media/:name': {
+      'put': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/media/[name].put').default>>>>
     }
     '/api/messages/:id': {
       'delete': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/messages/[id].delete').default>>>>
