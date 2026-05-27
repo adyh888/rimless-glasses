@@ -37,6 +37,7 @@ const menuItems = [
   { label: '轮播管理', path: '/admin/banners', icon: '&#9654;' },
   { label: '产品管理', path: '/admin/products', icon: '&#9670;' },
   { label: '文章管理', path: '/admin/articles', icon: '&#9998;' },
+  { label: '留言管理', path: '/admin/messages', icon: '&#9993;' },
   { label: '内容管理', path: '/admin/content', icon: '&#9776;' },
   { label: '站点设置', path: '/admin/settings', icon: '&#9881;' },
 ]

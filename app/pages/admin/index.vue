@@ -50,6 +50,7 @@ const quickActions = [
   { label: '+ 添加新产品', path: '/admin/products/new' },
   { label: '+ 发布新文章', path: '/admin/articles/new' },
   { label: '+ 添加轮播图', path: '/admin/banners/new' },
+  { label: '查看客户留言', path: '/admin/messages' },
   { label: '编辑品牌故事', path: '/admin/content' },
 ]
 </script>

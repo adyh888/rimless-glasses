@@ -26,25 +26,27 @@
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label class="block text-sm text-secondary mb-2">邮箱 *</label>
+                  <label class="block text-sm text-secondary mb-2">邮箱 <span class="text-xs text-gray-400">（邮箱和电话至少填一项）</span></label>
                   <input
                     v-model="form.email"
                     type="email"
-                    required
-                    class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:border-accent focus:outline-none transition-colors text-sm"
+                    class="w-full px-4 py-3 border rounded-lg focus:border-accent focus:outline-none transition-colors text-sm"
+                    :class="contactError ? 'border-red-300' : 'border-gray-200'"
                     placeholder="your@email.com"
                   />
                 </div>
                 <div>
-                  <label class="block text-sm text-secondary mb-2">电话</label>
+                  <label class="block text-sm text-secondary mb-2">电话 <span class="text-xs text-gray-400">（邮箱和电话至少填一项）</span></label>
                   <input
                     v-model="form.phone"
                     type="tel"
-                    class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:border-accent focus:outline-none transition-colors text-sm"
+                    class="w-full px-4 py-3 border rounded-lg focus:border-accent focus:outline-none transition-colors text-sm"
+                    :class="contactError ? 'border-red-300' : 'border-gray-200'"
                     placeholder="138-0000-0000"
                   />
                 </div>
               </div>
+              <p v-if="contactError" class="text-red-500 text-xs -mt-4">请至少填写邮箱或电话其中一项</p>
               <div>
                 <label class="block text-sm text-secondary mb-2">留言内容 *</label>
                 <textarea
@@ -95,6 +97,8 @@ const form = reactive({ name: '', email: '', phone: '', message: '' })
 const submitting = ref(false)
 const submitSuccess = ref('')
 const submitError = ref('')
+const contactError = computed(() => !form.email && !form.phone && formTouched.value)
+const formTouched = ref(false)
 
 const contactInfoRef = await useContactInfo()
 const contactInfo = computed(() => contactInfoRef.value)
@@ -103,6 +107,8 @@ const brandRef = await useBrandName()
 const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
 
 async function submitForm() {
+  formTouched.value = true
+  if (!form.email && !form.phone) return
   submitting.value = true
   submitSuccess.value = ''
   submitError.value = ''
@@ -113,6 +119,7 @@ async function submitForm() {
     form.email = ''
     form.phone = ''
     form.message = ''
+    formTouched.value = false
   } catch (e: any) {
     submitError.value = e?.data?.statusMessage || '发送失败，请稍后重试'
   } finally {
