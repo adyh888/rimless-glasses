@@ -17,7 +17,9 @@ interface _GlobalComponents {
   ImagePreview: typeof import("../../app/components/admin/ImagePreview.vue")['default']
   ImageUploader: typeof import("../../app/components/admin/ImageUploader.vue")['default']
   ImageUploaderMultiple: typeof import("../../app/components/admin/ImageUploaderMultiple.vue")['default']
+  MediaLibrary: typeof import("../../app/components/admin/MediaLibrary.vue")['default']
   RichTextEditor: typeof import("../../app/components/admin/RichTextEditor.vue")['default']
+  VideoThumbnail: typeof import("../../app/components/admin/VideoThumbnail.vue")['default']
   AdminSidebar: typeof import("../../app/components/layout/AdminSidebar.vue")['default']
   SiteFooter: typeof import("../../app/components/layout/SiteFooter.vue")['default']
   SiteHeader: typeof import("../../app/components/layout/SiteHeader.vue")['default']
@@ -53,7 +55,9 @@ interface _GlobalComponents {
   LazyImagePreview: LazyComponent<typeof import("../../app/components/admin/ImagePreview.vue")['default']>
   LazyImageUploader: LazyComponent<typeof import("../../app/components/admin/ImageUploader.vue")['default']>
   LazyImageUploaderMultiple: LazyComponent<typeof import("../../app/components/admin/ImageUploaderMultiple.vue")['default']>
+  LazyMediaLibrary: LazyComponent<typeof import("../../app/components/admin/MediaLibrary.vue")['default']>
   LazyRichTextEditor: LazyComponent<typeof import("../../app/components/admin/RichTextEditor.vue")['default']>
+  LazyVideoThumbnail: LazyComponent<typeof import("../../app/components/admin/VideoThumbnail.vue")['default']>
   LazyAdminSidebar: LazyComponent<typeof import("../../app/components/layout/AdminSidebar.vue")['default']>
   LazySiteFooter: LazyComponent<typeof import("../../app/components/layout/SiteFooter.vue")['default']>
   LazySiteHeader: LazyComponent<typeof import("../../app/components/layout/SiteHeader.vue")['default']>

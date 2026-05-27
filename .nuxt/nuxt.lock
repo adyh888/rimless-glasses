@@ -1,9 +1,0 @@
-{
-  "pid": 72274,
-  "startedAt": 1779778000945,
-  "command": "dev",
-  "cwd": "/Users/liqian/Desktop/Demo/2026-05",
-  "port": 3000,
-  "hostname": "127.0.0.1",
-  "url": "http://127.0.0.1:3000"
-}

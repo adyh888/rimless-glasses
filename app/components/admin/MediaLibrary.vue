@@ -14,13 +14,6 @@
           <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
             <h2 class="text-base font-medium text-primary">素材库</h2>
             <div class="flex items-center gap-3">
-              <!-- Mode toggle -->
-              <button
-                type="button"
-                class="px-2.5 py-1 rounded-full text-xs transition-colors"
-                :class="deleteMode ? 'bg-red-50 text-red-500' : 'bg-gray-100 text-secondary hover:bg-gray-200'"
-                @click="toggleDeleteMode"
-              >{{ deleteMode ? '退出管理' : '管理素材' }}</button>
               <!-- Filter -->
               <div class="flex gap-1 text-xs">
                 <button
@@ -83,13 +76,23 @@
                 <!-- Selected check -->
                 <div
                   v-if="selectedUrls.has(item.url)"
-                  class="absolute top-1.5 right-1.5 w-5 h-5 rounded-full flex items-center justify-center"
-                  :class="deleteMode ? 'bg-red-500' : 'bg-accent'"
+                  class="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-accent flex items-center justify-center"
                 >
                   <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
                   </svg>
                 </div>
+                <!-- Unselected circle -->
+                <div
+                  v-else
+                  class="absolute top-1.5 left-1.5 w-5 h-5 rounded-full border-2 border-white/70 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                />
+                <!-- Single delete button on hover -->
+                <button
+                  type="button"
+                  class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 text-white text-xs items-center justify-center hover:bg-red-500 transition-colors hidden group-hover:flex"
+                  @click.stop="singleDelete(item)"
+                >&times;</button>
                 <!-- File size -->
                 <div class="absolute bottom-1 left-1 text-[10px] bg-black/50 text-white px-1 rounded">
                   {{ formatSize(item.size) }}
@@ -101,28 +104,36 @@
 
           <!-- Footer -->
           <div class="flex items-center justify-between px-6 py-4 border-t border-gray-100">
-            <p class="text-xs text-secondary">
-              已选 {{ selectedUrls.size }} 项
-              <template v-if="deleteMode && filteredItems.length">
-                <span class="mx-1">·</span>
-                <button type="button" class="text-accent hover:underline" @click="selectAll">全选</button>
+            <div class="flex items-center gap-2 text-xs text-secondary">
+              <span>已选 {{ selectedUrls.size }} / {{ filteredItems.length }} 项</span>
+              <template v-if="filteredItems.length">
+                <span class="mx-0.5">·</span>
+                <button
+                  v-if="selectedUrls.size < filteredItems.length"
+                  type="button"
+                  class="text-accent hover:underline"
+                  @click="selectAll"
+                >全选</button>
+                <button
+                  v-else
+                  type="button"
+                  class="text-accent hover:underline"
+                  @click="clearSelection"
+                >取消全选</button>
               </template>
-            </p>
+            </div>
             <div class="flex gap-3">
+              <button
+                v-if="selectedUrls.size > 0"
+                @click="batchDelete"
+                :disabled="deleting"
+                class="px-4 py-2 text-sm text-white bg-red-500 rounded-lg hover:bg-red-600 disabled:opacity-50"
+              >{{ deleting ? '删除中...' : `删除选中 (${selectedUrls.size})` }}</button>
               <button
                 @click="close"
                 class="px-4 py-2 text-sm text-secondary border border-gray-200 rounded-lg hover:bg-gray-50"
               >取消</button>
-              <!-- Delete mode: batch delete -->
               <button
-                v-if="deleteMode"
-                @click="batchDelete"
-                :disabled="selectedUrls.size === 0 || deleting"
-                class="px-4 py-2 text-sm text-white bg-red-500 rounded-lg hover:bg-red-600 disabled:opacity-50"
-              >{{ deleting ? '删除中...' : `删除选中 (${selectedUrls.size})` }}</button>
-              <!-- Normal mode: use selected -->
-              <button
-                v-else
                 @click="confirmSelect"
                 :disabled="selectedUrls.size === 0"
                 class="px-4 py-2 text-sm text-white bg-primary rounded-lg hover:bg-primary/90 disabled:opacity-50"
@@ -159,7 +170,6 @@ const deleting = ref(false)
 const items = ref<MediaItem[]>([])
 const selectedUrls = ref(new Set<string>())
 const filter = ref('all')
-const deleteMode = ref(false)
 
 const filters = [
   { label: '全部', value: 'all' },
@@ -175,7 +185,6 @@ const filteredItems = computed(() => {
 watch(() => props.modelValue, async (val) => {
   if (val) {
     selectedUrls.value = new Set()
-    deleteMode.value = false
     document.body.style.overflow = 'hidden'
     await loadMedia()
     nextTick(() => overlayRef.value?.focus())
@@ -196,17 +205,12 @@ async function loadMedia() {
   }
 }
 
-function toggleDeleteMode() {
-  deleteMode.value = !deleteMode.value
-  selectedUrls.value = new Set()
-}
-
 function toggleSelect(item: MediaItem) {
   const s = new Set(selectedUrls.value)
   if (s.has(item.url)) {
     s.delete(item.url)
   } else {
-    if (!deleteMode.value && !props.multiple) s.clear()
+    if (!props.multiple) s.clear()
     s.add(item.url)
   }
   selectedUrls.value = s
@@ -220,10 +224,30 @@ function selectAll() {
   selectedUrls.value = s
 }
 
+function clearSelection() {
+  selectedUrls.value = new Set()
+}
+
 function confirmSelect() {
   const urls = Array.from(selectedUrls.value)
   emit('select', urls)
   close()
+}
+
+async function singleDelete(item: MediaItem) {
+  if (!window.confirm(`确定删除「${item.name}」？删除后不可恢复。`)) return
+  deleting.value = true
+  try {
+    const path = item.url.replace('/uploads/', '')
+    await $fetch(`/uploads/${path}`, { method: 'DELETE', headers: authHeaders() })
+    items.value = items.value.filter(i => i.url !== item.url)
+    const s = new Set(selectedUrls.value)
+    s.delete(item.url)
+    selectedUrls.value = s
+  } catch {
+    alert('删除失败')
+  }
+  deleting.value = false
 }
 
 async function batchDelete() {
@@ -233,16 +257,18 @@ async function batchDelete() {
 
   deleting.value = true
   const urls = Array.from(selectedUrls.value)
+  const failed = new Set<string>()
   for (const url of urls) {
     try {
       const path = url.replace('/uploads/', '')
       await $fetch(`/uploads/${path}`, { method: 'DELETE', headers: authHeaders() })
       items.value = items.value.filter(i => i.url !== url)
-      selectedUrls.value.delete(url)
-    } catch { /* skip failed items */ }
+    } catch {
+      failed.add(url)
+    }
   }
   deleting.value = false
-  selectedUrls.value = new Set()
+  selectedUrls.value = failed.size > 0 ? failed : new Set()
 }
 
 function close() {

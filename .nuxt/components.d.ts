@@ -17,7 +17,9 @@ type LazyComponent<T> = DefineComponent<HydrationStrategies, {}, {}, {}, {}, {},
 export const ImagePreview: typeof import("../app/components/admin/ImagePreview.vue")['default']
 export const ImageUploader: typeof import("../app/components/admin/ImageUploader.vue")['default']
 export const ImageUploaderMultiple: typeof import("../app/components/admin/ImageUploaderMultiple.vue")['default']
+export const MediaLibrary: typeof import("../app/components/admin/MediaLibrary.vue")['default']
 export const RichTextEditor: typeof import("../app/components/admin/RichTextEditor.vue")['default']
+export const VideoThumbnail: typeof import("../app/components/admin/VideoThumbnail.vue")['default']
 export const AdminSidebar: typeof import("../app/components/layout/AdminSidebar.vue")['default']
 export const SiteFooter: typeof import("../app/components/layout/SiteFooter.vue")['default']
 export const SiteHeader: typeof import("../app/components/layout/SiteHeader.vue")['default']
@@ -53,7 +55,9 @@ export const NuxtIsland: typeof import("../node_modules/.pnpm/nuxt@4.4.6_@babel+
 export const LazyImagePreview: LazyComponent<typeof import("../app/components/admin/ImagePreview.vue")['default']>
 export const LazyImageUploader: LazyComponent<typeof import("../app/components/admin/ImageUploader.vue")['default']>
 export const LazyImageUploaderMultiple: LazyComponent<typeof import("../app/components/admin/ImageUploaderMultiple.vue")['default']>
+export const LazyMediaLibrary: LazyComponent<typeof import("../app/components/admin/MediaLibrary.vue")['default']>
 export const LazyRichTextEditor: LazyComponent<typeof import("../app/components/admin/RichTextEditor.vue")['default']>
+export const LazyVideoThumbnail: LazyComponent<typeof import("../app/components/admin/VideoThumbnail.vue")['default']>
 export const LazyAdminSidebar: LazyComponent<typeof import("../app/components/layout/AdminSidebar.vue")['default']>
 export const LazySiteFooter: LazyComponent<typeof import("../app/components/layout/SiteFooter.vue")['default']>
 export const LazySiteHeader: LazyComponent<typeof import("../app/components/layout/SiteHeader.vue")['default']>
