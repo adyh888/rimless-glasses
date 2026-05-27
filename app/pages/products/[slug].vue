@@ -14,7 +14,10 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
           <!-- Images -->
           <div>
-            <div class="overflow-hidden rounded-2xl bg-surface aspect-square">
+            <div
+              class="relative overflow-hidden rounded-2xl bg-surface aspect-square cursor-pointer"
+              @click="openPreview(currentImageIdx)"
+            >
               <video
                 v-if="isVideoUrl(currentImage)"
                 :key="currentImage"
@@ -31,6 +34,13 @@
                 :alt="product.name"
                 class="w-full h-full object-cover"
               />
+              <div class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                <div class="w-10 h-10 rounded-full bg-black/30 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
+                  </svg>
+                </div>
+              </div>
             </div>
             <div v-if="images.length > 1" class="mt-4 flex gap-3">
               <button
@@ -90,6 +100,63 @@
         </div>
       </div>
     </section>
+
+    <!-- Lightbox preview -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div
+          v-if="showPreview"
+          class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90"
+          @click.self="showPreview = false"
+          @keydown.esc="showPreview = false"
+          @keydown.left="previewPrev"
+          @keydown.right="previewNext"
+          tabindex="0"
+          ref="previewOverlay"
+        >
+          <button
+            type="button"
+            @click="showPreview = false"
+            class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-white/70 hover:text-white text-3xl z-10"
+          >&times;</button>
+          <!-- Prev -->
+          <button
+            v-if="images.length > 1"
+            type="button"
+            @click="previewPrev"
+            class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-xl z-10"
+          >&lsaquo;</button>
+          <!-- Next -->
+          <button
+            v-if="images.length > 1"
+            type="button"
+            @click="previewNext"
+            class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-xl z-10"
+          >&rsaquo;</button>
+          <!-- Content -->
+          <video
+            v-if="isVideoUrl(previewSrc)"
+            :key="previewSrc"
+            :src="previewSrc"
+            class="max-w-[90vw] max-h-[85vh] object-contain rounded-lg"
+            autoplay
+            controls
+            playsinline
+            @click.stop
+          />
+          <img
+            v-else
+            :src="previewSrc"
+            class="max-w-[90vw] max-h-[85vh] object-contain rounded-lg"
+            @click.stop
+          />
+          <!-- Counter -->
+          <div class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm">
+            {{ previewIdx + 1 }} / {{ images.length }}
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -123,6 +190,29 @@ const specs = computed(() => {
 const currentImageIdx = ref(0)
 const currentImage = computed(() => images.value[currentImageIdx.value] || 'https://via.placeholder.com/800')
 
+const showPreview = ref(false)
+const previewIdx = ref(0)
+const previewSrc = computed(() => images.value[previewIdx.value] || '')
+const previewOverlay = ref<HTMLElement>()
+
+function openPreview(idx: number) {
+  previewIdx.value = idx
+  showPreview.value = true
+  nextTick(() => previewOverlay.value?.focus())
+}
+function previewPrev() {
+  const len = images.value.length
+  previewIdx.value = (previewIdx.value - 1 + len) % len
+}
+function previewNext() {
+  const len = images.value.length
+  previewIdx.value = (previewIdx.value + 1) % len
+}
+
+watch(showPreview, (val) => {
+  document.body.style.overflow = val ? 'hidden' : ''
+})
+
 const brandRef = await useBrandName()
 const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
 
@@ -130,3 +220,14 @@ useHead({
   title: computed(() => product.value ? `${product.value.name} - ${siteName.value}` : `产品详情 - ${siteName.value}`),
 })
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

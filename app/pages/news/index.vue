@@ -2,7 +2,7 @@
   <div>
     <section class="pt-32 pb-16 bg-surface">
       <div class="max-w-7xl mx-auto px-6 text-center">
-        <h1 class="text-4xl md:text-5xl font-light tracking-tight text-primary">新闻动态</h1>
+        <h1 class="text-4xl md:text-5xl font-light tracking-tight text-primary">{{ pageTitle }}</h1>
         <p class="mt-4 text-secondary">{{ pageSubtitle }}</p>
       </div>
     </section>
@@ -47,10 +47,9 @@ const brandRef = await useBrandName()
 const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
 
 const navRef = await useNavItems()
-const pageSubtitle = computed(() => {
-  const item = navRef.value.find(n => n.path === '/news')
-  return item?.subtitle || `了解${siteName.value}的最新资讯与行业洞察`
-})
+const navItem = computed(() => navRef.value.find(n => n.path === '/news'))
+const pageTitle = computed(() => navItem.value?.label || '新闻动态')
+const pageSubtitle = computed(() => navItem.value?.subtitle || `了解${siteName.value}的最新资讯与行业洞察`)
 
 function formatDate(dateStr: string) {
   if (!dateStr) return ''

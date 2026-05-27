@@ -4,7 +4,7 @@
       <div class="max-w-7xl mx-auto px-6 text-center">
         <ScrollReveal>
           <p class="text-accent text-sm tracking-widest uppercase mb-4">ABOUT US</p>
-          <h1 class="text-4xl md:text-5xl font-light tracking-tight text-primary">关于{{ siteName }}</h1>
+          <h1 class="text-4xl md:text-5xl font-light tracking-tight text-primary">{{ pageTitle }}</h1>
           <p class="mt-4 text-secondary">{{ pageSubtitle }}</p>
         </ScrollReveal>
       </div>
@@ -59,10 +59,9 @@ const brandRef = await useBrandName()
 const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
 
 const navRef = await useNavItems()
-const pageSubtitle = computed(() => {
-  const item = navRef.value.find(n => n.path === '/about')
-  return item?.subtitle || '以极简设计重新定义视觉体验'
-})
+const navItem = computed(() => navRef.value.find(n => n.path === '/about'))
+const pageTitle = computed(() => navItem.value?.label || '关于我们')
+const pageSubtitle = computed(() => navItem.value?.subtitle || '以极简设计重新定义视觉体验')
 
 const aboutImageRef = await useAboutImage()
 const aboutImage = computed(() => aboutImageRef.value)
