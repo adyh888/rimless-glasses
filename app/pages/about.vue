@@ -5,7 +5,7 @@
         <ScrollReveal>
           <p class="text-accent text-sm tracking-widest uppercase mb-4">ABOUT US</p>
           <h1 class="text-4xl md:text-5xl font-light tracking-tight text-primary">关于{{ siteName }}</h1>
-          <p class="mt-4 text-secondary">以极简设计重新定义视觉体验</p>
+          <p class="mt-4 text-secondary">{{ pageSubtitle }}</p>
         </ScrollReveal>
       </div>
     </section>
@@ -13,7 +13,7 @@
     <!-- Brand Image -->
     <section class="relative h-[50vh] overflow-hidden">
       <img
-        src="https://images.unsplash.com/photo-1509695507497-903c140c43b0?w=1920&q=80"
+        :src="aboutImage"
         :alt="siteName"
         class="w-full h-full object-cover"
       />
@@ -57,6 +57,15 @@ const content = computed(() => (data.value as any)?.content || '')
 
 const brandRef = await useBrandName()
 const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
+
+const navRef = await useNavItems()
+const pageSubtitle = computed(() => {
+  const item = navRef.value.find(n => n.path === '/about')
+  return item?.subtitle || '以极简设计重新定义视觉体验'
+})
+
+const aboutImageRef = await useAboutImage()
+const aboutImage = computed(() => aboutImageRef.value)
 
 const values = [
   { icon: '✦', title: '极简美学', desc: '摒弃一切多余的装饰，让设计回归本质。无框，即是最好的框。' },

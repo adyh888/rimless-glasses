@@ -49,16 +49,11 @@
 const brandRef = await useBrandName()
 const brand = computed(() => brandRef.value)
 
+const navItemsRef = await useNavItems()
+const navItems = computed(() => navItemsRef.value.filter(item => item.is_active))
+
 const scrolled = ref(false)
 const mobileOpen = ref(false)
-
-const navItems = [
-  { label: '首页', path: '/' },
-  { label: '产品中心', path: '/products' },
-  { label: '关于我们', path: '/about' },
-  { label: '新闻动态', path: '/news' },
-  { label: '联系我们', path: '/contact' },
-]
 
 onMounted(() => {
   window.addEventListener('scroll', () => {

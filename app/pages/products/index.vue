@@ -4,7 +4,7 @@
     <section class="pt-32 pb-16 bg-surface">
       <div class="max-w-7xl mx-auto px-6 text-center">
         <h1 class="text-4xl md:text-5xl font-light tracking-tight text-primary">产品中心</h1>
-        <p class="mt-4 text-secondary">每一副无框眼镜，都是对极简美学的极致诠释</p>
+        <p class="mt-4 text-secondary">{{ pageSubtitle }}</p>
       </div>
     </section>
 
@@ -60,6 +60,12 @@
 </template>
 
 <script setup lang="ts">
+const navRef = await useNavItems()
+const pageSubtitle = computed(() => {
+  const item = navRef.value.find(n => n.path === '/products')
+  return item?.subtitle || '每一副无框眼镜，都是对极简美学的极致诠释'
+})
+
 const { data } = await useFetch('/api/products', {
   query: { active_only: 'true', limit: 50 },
 })

@@ -123,6 +123,107 @@
       </div>
     </section>
 
+    <!-- 导航菜单设置 -->
+    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+      <h2 class="text-sm font-medium text-primary mb-1">导航菜单设置</h2>
+      <p class="text-xs text-secondary mb-5">管理前台顶部导航栏的菜单项、显示顺序和页面副标题</p>
+
+      <div class="space-y-4">
+        <div
+          v-for="(item, idx) in navItems"
+          :key="idx"
+          class="border border-gray-100 rounded-lg p-4"
+        >
+          <div class="flex items-center gap-3 mb-3">
+            <div class="flex flex-col gap-1">
+              <button
+                type="button"
+                :disabled="idx === 0"
+                @click="moveNav(idx, -1)"
+                class="text-xs text-secondary hover:text-primary disabled:opacity-30"
+              >&uarr;</button>
+              <button
+                type="button"
+                :disabled="idx === navItems.length - 1"
+                @click="moveNav(idx, 1)"
+                class="text-xs text-secondary hover:text-primary disabled:opacity-30"
+              >&darr;</button>
+            </div>
+            <span class="text-xs text-gray-400 w-5 text-center">{{ idx + 1 }}</span>
+            <input
+              v-model="item.label"
+              type="text"
+              placeholder="显示名称"
+              class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+            />
+            <input
+              v-model="item.path"
+              type="text"
+              placeholder="链接路径 如 /products"
+              class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+            />
+            <label class="inline-flex items-center gap-2 cursor-pointer select-none shrink-0">
+              <span class="relative inline-block w-9 h-5">
+                <input v-model="item.is_active" type="checkbox" class="peer sr-only" />
+                <span class="absolute inset-0 bg-gray-200 rounded-full peer-checked:bg-primary transition-colors" />
+                <span class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
+              </span>
+              <span class="text-xs text-secondary">{{ item.is_active ? '显示' : '隐藏' }}</span>
+            </label>
+            <button
+              type="button"
+              @click="removeNav(idx)"
+              class="text-xs text-red-500 hover:underline shrink-0"
+            >删除</button>
+          </div>
+          <div>
+            <input
+              v-model="item.subtitle"
+              type="text"
+              placeholder="页面副标题（如：每一副无框眼镜，都是对极简美学的极致诠释）"
+              class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+            />
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        @click="addNav"
+        class="mt-4 text-xs text-accent hover:underline"
+      >+ 添加导航项</button>
+
+      <div class="mt-6">
+        <button
+          @click="saveNav"
+          :disabled="savingNav"
+          class="px-5 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50"
+        >
+          {{ savingNav ? '保存中...' : '保存导航设置' }}
+        </button>
+        <span v-if="navSaved" class="ml-3 text-sm text-green-600">已保存</span>
+      </div>
+    </section>
+
+    <!-- 关于我们页面图片 -->
+    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+      <h2 class="text-sm font-medium text-primary mb-1">关于我们页面图片</h2>
+      <p class="text-xs text-secondary mb-5">「关于我们」页面顶部展示的大图</p>
+
+      <ImageUploader v-model="aboutImage" />
+
+      <div class="mt-6">
+        <button
+          @click="saveAboutImage"
+          :disabled="savingAboutImage"
+          class="px-5 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50"
+        >
+          {{ savingAboutImage ? '保存中...' : '保存图片' }}
+        </button>
+        <span v-if="aboutImageSaved" class="ml-3 text-sm text-green-600">已保存</span>
+      </div>
+    </section>
+
     <!-- 品牌名称 -->
     <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">品牌名称</h2>
@@ -372,6 +473,15 @@ const bannerInterval = ref(5)
 const savingBannerInterval = ref(false)
 const bannerIntervalSaved = ref(false)
 
+type NavItem = { label: string; path: string; subtitle: string; sort_order: number; is_active: boolean }
+const navItems = reactive<NavItem[]>([])
+const savingNav = ref(false)
+const navSaved = ref(false)
+
+const aboutImage = ref('')
+const savingAboutImage = ref(false)
+const aboutImageSaved = ref(false)
+
 type ContactItem = { label: string; value: string }
 const contact = reactive<{ items: ContactItem[]; hours: string[] }>({
   items: [],
@@ -400,7 +510,7 @@ const accountError = ref('')
 const currentUsername = computed(() => user.value?.username || '—')
 
 onMounted(async () => {
-  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes] = await Promise.all([
+  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes] = await Promise.all([
     $fetch<any>('/api/content/show_product_price'),
     $fetch<any>('/api/content/contact_info'),
     $fetch<any>('/api/content/brand_name_primary'),
@@ -411,6 +521,8 @@ onMounted(async () => {
     $fetch<any>('/api/content/video_allowed_formats'),
     $fetch<any>('/api/content/video_max_size'),
     $fetch<any>('/api/content/banner_interval'),
+    $fetch<any>('/api/content/nav_items'),
+    $fetch<any>('/api/content/about_image'),
   ])
   showPrice.value = (priceRes?.content ?? '1') !== '0'
   uploadMaxSize.value = uploadSizeRes?.content ? parseInt(uploadSizeRes.content, 10) : 5
@@ -440,6 +552,26 @@ onMounted(async () => {
   tagline.line1 = tag1?.content || '以极简设计重新定义视觉体验'
   tagline.line2 = tag2?.content || '让框架消失，让世界更清晰'
 
+  const defaultNav: NavItem[] = [
+    { label: '首页', path: '/', subtitle: '', sort_order: 0, is_active: true },
+    { label: '产品中心', path: '/products', subtitle: '每一副无框眼镜，都是对极简美学的极致诠释', sort_order: 1, is_active: true },
+    { label: '关于我们', path: '/about', subtitle: '以极简设计重新定义视觉体验', sort_order: 2, is_active: true },
+    { label: '新闻动态', path: '/news', subtitle: '了解最新资讯与行业洞察', sort_order: 3, is_active: true },
+    { label: '联系我们', path: '/contact', subtitle: '期待与您的每一次对话', sort_order: 4, is_active: true },
+  ]
+  try {
+    const parsedNav = navRes?.content ? JSON.parse(navRes.content) : null
+    if (Array.isArray(parsedNav) && parsedNav.length > 0) {
+      navItems.splice(0, navItems.length, ...parsedNav.sort((a: NavItem, b: NavItem) => a.sort_order - b.sort_order))
+    } else {
+      navItems.splice(0, navItems.length, ...defaultNav)
+    }
+  } catch {
+    navItems.splice(0, navItems.length, ...defaultNav)
+  }
+
+  aboutImage.value = aboutImageRes?.content || ''
+
   // 同步当前用户名（authFetch /api/auth/me）
   if (!user.value && token.value) {
     try {
@@ -465,6 +597,55 @@ function removeHour(idx: number) {
 }
 function updateHour(idx: number, value: string) {
   contact.hours[idx] = value
+}
+
+function addNav() {
+  navItems.push({ label: '', path: '/', subtitle: '', sort_order: navItems.length, is_active: true })
+}
+function removeNav(idx: number) {
+  navItems.splice(idx, 1)
+}
+function moveNav(idx: number, dir: number) {
+  const target = idx + dir
+  if (target < 0 || target >= navItems.length) return
+  const temp = navItems[idx]
+  navItems[idx] = navItems[target]
+  navItems[target] = temp
+}
+
+async function saveNav() {
+  savingNav.value = true
+  navSaved.value = false
+  const payload = navItems.map((item, idx) => ({ ...item, sort_order: idx }))
+  try {
+    await authFetch('/api/content/nav_items', {
+      method: 'PUT',
+      body: { content: JSON.stringify(payload) },
+    })
+    navSaved.value = true
+    setTimeout(() => { navSaved.value = false }, 3000)
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '保存失败')
+  } finally {
+    savingNav.value = false
+  }
+}
+
+async function saveAboutImage() {
+  savingAboutImage.value = true
+  aboutImageSaved.value = false
+  try {
+    await authFetch('/api/content/about_image', {
+      method: 'PUT',
+      body: { content: aboutImage.value },
+    })
+    aboutImageSaved.value = true
+    setTimeout(() => { aboutImageSaved.value = false }, 3000)
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '保存失败')
+  } finally {
+    savingAboutImage.value = false
+  }
 }
 
 async function savePriceFlag() {

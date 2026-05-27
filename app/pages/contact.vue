@@ -3,7 +3,7 @@
     <section class="pt-32 pb-16 bg-surface">
       <div class="max-w-7xl mx-auto px-6 text-center">
         <h1 class="text-4xl md:text-5xl font-light tracking-tight text-primary">联系我们</h1>
-        <p class="mt-4 text-secondary">期待与您的每一次对话</p>
+        <p class="mt-4 text-secondary">{{ pageSubtitle }}</p>
       </div>
     </section>
 
@@ -102,6 +102,12 @@ const formTouched = ref(false)
 
 const contactInfoRef = await useContactInfo()
 const contactInfo = computed(() => contactInfoRef.value)
+
+const navRef = await useNavItems()
+const pageSubtitle = computed(() => {
+  const item = navRef.value.find(n => n.path === '/contact')
+  return item?.subtitle || '期待与您的每一次对话'
+})
 
 const brandRef = await useBrandName()
 const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
