@@ -7,11 +7,25 @@
       @dragover.prevent
       @drop.prevent="onDrop"
     >
-      <p class="text-sm text-secondary">点击或拖拽上传图片</p>
-      <p class="text-xs text-gray-400 mt-1">支持 JPG/PNG/WebP/GIF，最大 5MB</p>
+      <p class="text-sm text-secondary">点击或拖拽上传图片/视频</p>
+      <p class="text-xs text-gray-400 mt-1">支持 JPG/PNG/WebP/GIF/MP4/WebM/MOV</p>
+      <button
+        type="button"
+        class="mt-3 text-xs text-accent hover:underline"
+        @click.stop="showLibrary = true"
+      >从素材库选择</button>
     </div>
     <div v-else class="relative inline-block">
-      <img :src="modelValue" class="h-32 object-cover rounded-lg" />
+      <video
+        v-if="isVideoUrl(modelValue)"
+        :src="modelValue"
+        class="h-32 object-cover rounded-lg"
+        muted
+        autoplay
+        loop
+        playsinline
+      />
+      <img v-else :src="modelValue" class="h-32 object-cover rounded-lg" />
       <button
         type="button"
         @click="$emit('update:modelValue', '')"
@@ -20,8 +34,10 @@
         &times;
       </button>
     </div>
-    <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFileSelect" />
+    <input ref="fileInput" type="file" accept="image/*,video/mp4,video/webm,video/quicktime" class="hidden" @change="onFileSelect" />
     <p v-if="uploading" class="text-xs text-secondary mt-2">上传中...</p>
+
+    <MediaLibrary v-model="showLibrary" @select="onLibrarySelect" />
   </div>
 </template>
 
@@ -32,9 +48,16 @@ const { authHeaders } = useAuth()
 
 const fileInput = ref<HTMLInputElement>()
 const uploading = ref(false)
+const showLibrary = ref(false)
 
 function triggerInput() {
   fileInput.value?.click()
+}
+
+function onLibrarySelect(urls: string[]) {
+  if (urls.length > 0) {
+    emit('update:modelValue', urls[0])
+  }
 }
 
 async function uploadFile(file: File) {

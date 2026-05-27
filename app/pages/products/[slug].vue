@@ -15,7 +15,18 @@
           <!-- Images -->
           <div>
             <div class="overflow-hidden rounded-2xl bg-surface aspect-square">
+              <video
+                v-if="isVideoUrl(currentImage)"
+                :key="currentImage"
+                :src="currentImage"
+                class="w-full h-full object-cover"
+                autoplay
+                muted
+                loop
+                playsinline
+              />
               <img
+                v-else
                 :src="currentImage"
                 :alt="product.name"
                 class="w-full h-full object-cover"
@@ -23,13 +34,18 @@
             </div>
             <div v-if="images.length > 1" class="mt-4 flex gap-3">
               <button
-                v-for="(img, idx) in images"
+                v-for="(media, idx) in images"
                 :key="idx"
                 class="w-20 h-20 rounded-lg overflow-hidden border-2 transition-all"
                 :class="currentImageIdx === idx ? 'border-accent' : 'border-transparent'"
                 @click="currentImageIdx = idx"
               >
-                <img :src="img" class="w-full h-full object-cover" />
+                <div v-if="isVideoUrl(media)" class="w-full h-full bg-gray-100 flex items-center justify-center">
+                  <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                </div>
+                <img v-else :src="media" class="w-full h-full object-cover" />
               </button>
             </div>
           </div>

@@ -33,4 +33,6 @@ export { definePageMeta, PageMeta } from '#app/composables/pages';
 export { defineLazyHydrationComponent } from '#app/composables/lazy-hydration';
 export { useAuth } from '../app/composables/useAuth';
 export { useContactInfo, useShowPrice, useBrandName, useFooterTagline, ContactInfo, BrandName, FooterTagline } from '../app/composables/useSiteSettings';
+export { useSwipe } from '../app/composables/useSwipe';
+export { isVideoUrl } from '../app/utils/media';
 export { reactiveStyle, reactiveTransform, useElementStyle, useElementTransform, useMotion, useMotionControls, useMotionProperties, useMotions, useMotionTransitions, useMotionVariants, useSpring, useReducedMotion } from '../node_modules/.pnpm/@vueuse+motion@3.0.3_magicast@0.5.3_vue@3.5.34/node_modules/@vueuse/motion/dist/nuxt/runtime/composables/index';

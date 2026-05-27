@@ -22,7 +22,7 @@
         </div>
       </div>
       <div>
-        <label class="block text-sm text-secondary mb-1.5">背景图片</label>
+        <label class="block text-sm text-secondary mb-1.5">背景媒体（图片/视频）</label>
         <ImageUploader v-model="form.image_url" />
         <button
           v-if="form.image_url"

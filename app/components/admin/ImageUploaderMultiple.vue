@@ -6,19 +6,26 @@
       @dragover.prevent
       @drop.prevent="onDrop"
     >
-      <p class="text-sm text-secondary">点击或拖拽上传图片（支持多选）</p>
-      <p class="text-xs text-gray-400 mt-1">支持 JPG/PNG/WebP/GIF</p>
+      <p class="text-sm text-secondary">点击或拖拽上传图片/视频（支持多选）</p>
+      <p class="text-xs text-gray-400 mt-1">支持 JPG/PNG/WebP/GIF/MP4/WebM/MOV</p>
+      <button
+        type="button"
+        class="mt-3 text-xs text-accent hover:underline"
+        @click.stop="showLibrary = true"
+      >从素材库选择</button>
     </div>
     <input
       ref="fileInput"
       type="file"
-      accept="image/*"
+      accept="image/*,video/mp4,video/webm,video/quicktime"
       multiple
       class="hidden"
       @change="onFileSelect"
     />
 
     <div v-if="uploading" class="mt-3 text-sm text-secondary">上传中... {{ uploadedCount }} / {{ totalCount }}</div>
+
+    <MediaLibrary v-model="showLibrary" multiple @select="onLibrarySelect" />
   </div>
 </template>
 
@@ -34,9 +41,16 @@ const fileInput = ref<HTMLInputElement>()
 const uploading = ref(false)
 const uploadedCount = ref(0)
 const totalCount = ref(0)
+const showLibrary = ref(false)
 
 function triggerInput() {
   fileInput.value?.click()
+}
+
+function onLibrarySelect(urls: string[]) {
+  if (urls.length > 0) {
+    emit('update:modelValue', [...(props.modelValue || []), ...urls])
+  }
 }
 
 async function uploadFile(file: File): Promise<string | null> {
@@ -65,7 +79,7 @@ async function handleFiles(files: FileList | null) {
   const newUrls: string[] = []
 
   for (let i = 0; i < files.length; i++) {
-    const url = await uploadFile(files[i])
+    const url = await uploadFile(files[i]!)
     if (url) {
       newUrls.push(url)
     }
@@ -89,7 +103,6 @@ function onFileSelect(e: Event) {
 
 function onDrop(e: DragEvent) {
   const files = e.dataTransfer?.files
-  handleFiles(files)
+  handleFiles(files ?? null)
 }
-
 </script>

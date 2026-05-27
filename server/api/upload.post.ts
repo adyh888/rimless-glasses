@@ -2,23 +2,47 @@ import { writeFileSync } from 'fs'
 import { resolve } from 'path'
 import { v4 as uuidv4 } from 'uuid'
 import db from '../utils/db'
+import { VIDEO_MIME_MAP } from '../utils/media'
+
+const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 
 export default defineEventHandler(async (event) => {
   const formData = await readMultipartFormData(event)
   if (!formData || formData.length === 0) {
     throw createError({ statusCode: 400, statusMessage: '请选择文件' })
   }
-  const file = formData[0]
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-  if (!allowedTypes.includes(file.type || '')) {
-    throw createError({ statusCode: 400, statusMessage: '仅支持 JPG/PNG/WebP/GIF 格式' })
+  const file = formData[0]!
+  const mimeType = file.type || ''
+
+  const isImage = IMAGE_TYPES.includes(mimeType)
+  const isVideo = Object.values(VIDEO_MIME_MAP).includes(mimeType)
+
+  if (!isImage && !isVideo) {
+    throw createError({ statusCode: 400, statusMessage: '不支持的文件格式' })
   }
 
-  const maxSizeRow = db.prepare('SELECT content FROM site_content WHERE key = ?').get('upload_max_size') as { content: string } | undefined
-  const maxSizeMB = maxSizeRow?.content ? parseInt(maxSizeRow.content, 10) : 5
-  const maxSizeBytes = maxSizeMB * 1024 * 1024
-  if (file.data.length > maxSizeBytes) {
-    throw createError({ statusCode: 400, statusMessage: `文件大小不能超过 ${maxSizeMB}MB` })
+  if (isVideo) {
+    const formatsRow = db.prepare('SELECT content FROM site_content WHERE key = ?').get('video_allowed_formats') as { content: string } | undefined
+    const allowedFormats = (formatsRow?.content || 'mp4,webm').split(',').map(f => f.trim()).filter(Boolean)
+    const allowedMimes = allowedFormats.map(f => VIDEO_MIME_MAP[f]).filter(Boolean)
+
+    if (!allowedMimes.includes(mimeType)) {
+      throw createError({ statusCode: 400, statusMessage: `不支持的视频格式，当前允许：${allowedFormats.join('、')}` })
+    }
+
+    const videoSizeRow = db.prepare('SELECT content FROM site_content WHERE key = ?').get('video_max_size') as { content: string } | undefined
+    const maxSizeMB = videoSizeRow?.content ? parseInt(videoSizeRow.content, 10) : 50
+    const maxSizeBytes = maxSizeMB * 1024 * 1024
+    if (file.data.length > maxSizeBytes) {
+      throw createError({ statusCode: 400, statusMessage: `视频文件大小不能超过 ${maxSizeMB}MB` })
+    }
+  } else {
+    const maxSizeRow = db.prepare('SELECT content FROM site_content WHERE key = ?').get('upload_max_size') as { content: string } | undefined
+    const maxSizeMB = maxSizeRow?.content ? parseInt(maxSizeRow.content, 10) : 5
+    const maxSizeBytes = maxSizeMB * 1024 * 1024
+    if (file.data.length > maxSizeBytes) {
+      throw createError({ statusCode: 400, statusMessage: `图片文件大小不能超过 ${maxSizeMB}MB` })
+    }
   }
 
   const ext = (file.filename || 'file').split('.').pop() || 'jpg'

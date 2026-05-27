@@ -16,7 +16,19 @@
         >
           &times;
         </button>
+        <video
+          v-if="isVideoUrl(src)"
+          :src="src"
+          class="max-w-[90vw] max-h-[90vh] object-contain rounded-lg"
+          autoplay
+          muted
+          loop
+          playsinline
+          controls
+          @click.stop
+        />
         <img
+          v-else
           :src="src"
           class="max-w-[90vw] max-h-[90vh] object-contain rounded-lg"
           @click.stop

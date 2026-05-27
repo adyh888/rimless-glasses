@@ -48,7 +48,7 @@
 
       <!-- Images -->
       <div>
-        <label class="block text-sm text-secondary mb-1.5">产品图片 <span class="text-xs text-gray-400">（拖拽可调节顺序）</span></label>
+        <label class="block text-sm text-secondary mb-1.5">产品媒体（图片/视频） <span class="text-xs text-gray-400">（拖拽可调节顺序）</span></label>
         <div class="flex flex-wrap gap-3 mb-3">
           <div
             v-for="(img, idx) in form.images"
@@ -61,16 +61,26 @@
             @drop.prevent="onDrop"
             @dragend="onDragEnd"
           >
-            <img
-              :src="img"
-              class="w-24 h-24 object-cover rounded-lg"
-              @click.stop="previewSrc = img; showPreview = true"
-            />
-            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-all flex items-center justify-center" @click.stop="previewSrc = img; showPreview = true">
-              <svg class="w-5 h-5 text-white opacity-0 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
-              </svg>
-            </div>
+            <template v-if="isVideoUrl(img)">
+              <VideoThumbnail
+                :src="img"
+                container-class="w-24 h-24"
+                canvas-class="rounded-lg"
+                @click.stop="previewSrc = img; showPreview = true"
+              />
+            </template>
+            <template v-else>
+              <img
+                :src="img"
+                class="w-24 h-24 object-cover rounded-lg"
+                @click.stop="previewSrc = img; showPreview = true"
+              />
+              <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-all flex items-center justify-center" @click.stop="previewSrc = img; showPreview = true">
+                <svg class="w-5 h-5 text-white opacity-0 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
+                </svg>
+              </div>
+            </template>
             <button type="button" @click.stop="form.images.splice(idx, 1)"
               class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600">
               &times;

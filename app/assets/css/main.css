@@ -102,6 +102,11 @@ body {
   border-radius: 0.5rem;
   margin: 1.5rem 0;
 }
+.prose-content video {
+  max-width: 100%;
+  border-radius: 0.5rem;
+  margin: 1.5rem 0;
+}
 .prose-content blockquote {
   border-left: 3px solid var(--color-accent);
   padding-left: 1rem;

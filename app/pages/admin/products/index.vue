@@ -11,7 +11,7 @@
       <table class="w-full">
         <thead class="bg-gray-50 border-b border-gray-100">
           <tr>
-            <th class="text-left px-6 py-3 text-xs font-medium text-secondary">图片</th>
+            <th class="text-left px-6 py-3 text-xs font-medium text-secondary">媒体</th>
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">名称</th>
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">分类</th>
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">价格</th>
@@ -22,7 +22,12 @@
         <tbody>
           <tr v-for="product in products" :key="product.id" class="border-b border-gray-50 hover:bg-gray-50/50">
             <td class="px-6 py-3">
-              <img :src="getFirstImage(product)" class="w-16 h-12 object-cover rounded" />
+              <VideoThumbnail
+                v-if="isVideoUrl(getFirstMedia(product))"
+                :src="getFirstMedia(product)"
+                container-class="w-16 h-12"
+              />
+              <img v-else :src="getFirstMedia(product)" class="w-16 h-12 object-cover rounded" />
             </td>
             <td class="px-6 py-3">
               <div class="text-sm text-primary">{{ product.name }}</div>
@@ -53,7 +58,7 @@ definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 const { authFetch } = useAuth()
 const products = ref<any[]>([])
 
-function getFirstImage(product: any) {
+function getFirstMedia(product: any) {
   try {
     const images = JSON.parse(product.images_json || '[]')
     return images[0] || 'https://via.placeholder.com/100x75'

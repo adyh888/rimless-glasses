@@ -1,6 +1,7 @@
 declare global {
   const H3Error: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').H3Error
   const H3Event: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').H3Event
+  const VIDEO_MIME_MAP: typeof import('../../server/utils/media').VIDEO_MIME_MAP
   const __buildAssetsURL: typeof import('../../node_modules/.pnpm/@nuxt+nitro-server@4.4.6_@babel+plugin-syntax-typescript@7.29.7_@babel+core@7.29.7__bet_7c0987fa8668e44f5aa819aff9cb10a5/node_modules/@nuxt/nitro-server/dist/runtime/utils/paths').buildAssetsURL
   const __publicAssetsURL: typeof import('../../node_modules/.pnpm/@nuxt+nitro-server@4.4.6_@babel+plugin-syntax-typescript@7.29.7_@babel+core@7.29.7__bet_7c0987fa8668e44f5aa819aff9cb10a5/node_modules/@nuxt/nitro-server/dist/runtime/utils/paths').publicAssetsURL
   const appendCorsHeaders: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').appendCorsHeaders
@@ -82,6 +83,7 @@ declare global {
   const isMethod: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').isMethod
   const isPreflightRequest: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').isPreflightRequest
   const isStream: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').isStream
+  const isVideoUrl: typeof import('../../server/utils/media').isVideoUrl
   const isWebResponse: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').isWebResponse
   const lazyEventHandler: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').lazyEventHandler
   const nitroPlugin: typeof import('../../node_modules/.pnpm/nitropack@2.13.4_better-sqlite3@12.10.0_oxc-parser@0.131.0_srvx@0.11.16/node_modules/nitropack/dist/runtime/internal/plugin').nitroPlugin
@@ -155,3 +157,4 @@ export { buildAssetsURL as __buildAssetsURL, publicAssetsURL as __publicAssetsUR
 export { defineAppConfig } from '/Users/liqian/Desktop/Demo/2026-05/glasses/node_modules/.pnpm/@nuxt+nitro-server@4.4.6_@babel+plugin-syntax-typescript@7.29.7_@babel+core@7.29.7__bet_7c0987fa8668e44f5aa819aff9cb10a5/node_modules/@nuxt/nitro-server/dist/runtime/utils/config';
 export { hashPassword, verifyPassword, signToken, verifyToken, getAuthUser } from '/Users/liqian/Desktop/Demo/2026-05/glasses/server/utils/auth';
 export { db } from '/Users/liqian/Desktop/Demo/2026-05/glasses/server/utils/db';
+export { isVideoUrl, VIDEO_MIME_MAP } from '/Users/liqian/Desktop/Demo/2026-05/glasses/server/utils/media';

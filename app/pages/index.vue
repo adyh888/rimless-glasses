@@ -1,10 +1,21 @@
 <template>
   <div>
     <!-- Hero Banner -->
-    <section class="relative h-screen overflow-hidden">
+    <section ref="carouselRef" class="relative h-screen overflow-hidden" style="touch-action: pan-y;">
       <Transition name="fade" mode="out-in">
         <div :key="currentBanner" class="absolute inset-0">
+          <video
+            v-if="isVideoUrl(banners[currentBanner]?.image_url)"
+            :key="'video-' + currentBanner"
+            :src="banners[currentBanner]?.image_url"
+            class="absolute inset-0 w-full h-full object-cover"
+            autoplay
+            muted
+            loop
+            playsinline
+          />
           <div
+            v-else
             class="absolute inset-0 bg-cover bg-center"
             :style="{ backgroundImage: `url(${banners[currentBanner]?.image_url})` }"
           />
@@ -36,6 +47,26 @@
         </div>
       </div>
 
+      <!-- Arrow Navigation -->
+      <template v-if="banners.length > 1">
+        <button
+          @click="goPrev"
+          class="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-black/15 text-white/70 hover:bg-black/30 hover:text-white backdrop-blur-sm transition-all"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button
+          @click="goNext"
+          class="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-black/15 text-white/70 hover:bg-black/30 hover:text-white backdrop-blur-sm transition-all"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </template>
+
       <!-- Indicators -->
       <div v-if="banners.length > 1" class="absolute bottom-12 left-1/2 -translate-x-1/2 z-10 flex gap-3">
         <button
@@ -43,7 +74,7 @@
           :key="idx"
           class="w-8 h-0.5 transition-all duration-500"
           :class="idx === currentBanner ? 'bg-primary w-12' : 'bg-primary/30'"
-          @click="currentBanner = idx"
+          @click="goTo(idx)"
         />
       </div>
     </section>
@@ -177,15 +208,53 @@
 const { data: bannerData } = await useFetch('/api/banners', { query: { active_only: 'true' } })
 const banners = computed(() => (bannerData.value as any[]) || [])
 
+const { data: intervalData } = await useFetch('/api/content/banner_interval')
+const bannerIntervalMs = computed(() => {
+  const sec = parseInt((intervalData.value as any)?.content, 10)
+  return (sec > 0 ? sec : 5) * 1000
+})
+
 const currentBanner = ref(0)
+const carouselRef = ref<HTMLElement>()
 let bannerTimer: ReturnType<typeof setInterval>
 
-onMounted(() => {
+function startTimer() {
   bannerTimer = setInterval(() => {
     if (banners.value.length > 1) {
       currentBanner.value = (currentBanner.value + 1) % banners.value.length
     }
-  }, 5000)
+  }, bannerIntervalMs.value)
+}
+
+function resetTimer() {
+  clearInterval(bannerTimer)
+  startTimer()
+}
+
+function goNext() {
+  if (banners.value.length <= 1) return
+  currentBanner.value = (currentBanner.value + 1) % banners.value.length
+  resetTimer()
+}
+
+function goPrev() {
+  if (banners.value.length <= 1) return
+  currentBanner.value = (currentBanner.value - 1 + banners.value.length) % banners.value.length
+  resetTimer()
+}
+
+function goTo(idx: number) {
+  currentBanner.value = idx
+  resetTimer()
+}
+
+useSwipe(carouselRef, {
+  onSwipeLeft: goNext,
+  onSwipeRight: goPrev,
+})
+
+onMounted(() => {
+  startTimer()
 })
 
 onUnmounted(() => clearInterval(bannerTimer))

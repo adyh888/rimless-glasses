@@ -56,6 +56,73 @@
       </div>
     </section>
 
+    <!-- 视频上传设置 -->
+    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+      <h2 class="text-sm font-medium text-primary mb-1">视频上传设置</h2>
+      <p class="text-xs text-secondary mb-5">配置允许上传的视频格式和最大文件大小</p>
+
+      <div class="mb-4">
+        <label class="block text-xs text-secondary mb-2">允许的视频格式</label>
+        <div class="flex gap-6">
+          <label v-for="fmt in ['mp4', 'webm', 'mov']" :key="fmt" class="inline-flex items-center gap-2 cursor-pointer select-none">
+            <input v-model="videoFormats[fmt]" type="checkbox" class="w-4 h-4 accent-primary" />
+            <span class="text-sm text-primary uppercase">{{ fmt }}</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <label class="text-xs text-secondary">视频最大文件大小</label>
+        <input
+          v-model.number="videoMaxSize"
+          type="number"
+          min="1"
+          max="500"
+          class="w-24 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+        />
+        <span class="text-sm text-secondary">MB</span>
+      </div>
+
+      <div class="mt-6">
+        <button
+          @click="saveVideoSettings"
+          :disabled="savingVideo"
+          class="px-5 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50"
+        >
+          {{ savingVideo ? '保存中...' : '保存' }}
+        </button>
+        <span v-if="videoSaved" class="ml-3 text-sm text-green-600">已保存</span>
+      </div>
+    </section>
+
+    <!-- 轮播设置 -->
+    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+      <h2 class="text-sm font-medium text-primary mb-1">轮播设置</h2>
+      <p class="text-xs text-secondary mb-5">设置首页轮播图自动切换的时间间隔</p>
+
+      <div class="flex items-center gap-4">
+        <input
+          v-model.number="bannerInterval"
+          type="number"
+          min="1"
+          max="60"
+          class="w-24 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+        />
+        <span class="text-sm text-secondary">秒</span>
+      </div>
+
+      <div class="mt-6">
+        <button
+          @click="saveBannerInterval"
+          :disabled="savingBannerInterval"
+          class="px-5 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50"
+        >
+          {{ savingBannerInterval ? '保存中...' : '保存' }}
+        </button>
+        <span v-if="bannerIntervalSaved" class="ml-3 text-sm text-green-600">已保存</span>
+      </div>
+    </section>
+
     <!-- 品牌名称 -->
     <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">品牌名称</h2>
@@ -296,6 +363,15 @@ const uploadMaxSize = ref(5)
 const savingUploadMaxSize = ref(false)
 const uploadMaxSizeSaved = ref(false)
 
+const videoFormats = reactive<Record<string, boolean>>({ mp4: true, webm: true, mov: false })
+const videoMaxSize = ref(50)
+const savingVideo = ref(false)
+const videoSaved = ref(false)
+
+const bannerInterval = ref(5)
+const savingBannerInterval = ref(false)
+const bannerIntervalSaved = ref(false)
+
 type ContactItem = { label: string; value: string }
 const contact = reactive<{ items: ContactItem[]; hours: string[] }>({
   items: [],
@@ -324,7 +400,7 @@ const accountError = ref('')
 const currentUsername = computed(() => user.value?.username || '—')
 
 onMounted(async () => {
-  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes] = await Promise.all([
+  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes] = await Promise.all([
     $fetch<any>('/api/content/show_product_price'),
     $fetch<any>('/api/content/contact_info'),
     $fetch<any>('/api/content/brand_name_primary'),
@@ -332,9 +408,19 @@ onMounted(async () => {
     $fetch<any>('/api/content/footer_tagline_line1'),
     $fetch<any>('/api/content/footer_tagline_line2'),
     $fetch<any>('/api/content/upload_max_size'),
+    $fetch<any>('/api/content/video_allowed_formats'),
+    $fetch<any>('/api/content/video_max_size'),
+    $fetch<any>('/api/content/banner_interval'),
   ])
   showPrice.value = (priceRes?.content ?? '1') !== '0'
   uploadMaxSize.value = uploadSizeRes?.content ? parseInt(uploadSizeRes.content, 10) : 5
+
+  const enabledFormats = (videoFormatsRes?.content || 'mp4,webm').split(',').map((s: string) => s.trim())
+  videoFormats.mp4 = enabledFormats.includes('mp4')
+  videoFormats.webm = enabledFormats.includes('webm')
+  videoFormats.mov = enabledFormats.includes('mov')
+  videoMaxSize.value = videoSizeRes?.content ? parseInt(videoSizeRes.content, 10) : 50
+  bannerInterval.value = bannerIntervalRes?.content ? parseInt(bannerIntervalRes.content, 10) : 5
 
   let parsed: any = {}
   try {
@@ -412,6 +498,51 @@ async function saveUploadMaxSize() {
     alert(e?.data?.statusMessage || '保存失败')
   } finally {
     savingUploadMaxSize.value = false
+  }
+}
+
+async function saveBannerInterval() {
+  savingBannerInterval.value = true
+  bannerIntervalSaved.value = false
+  try {
+    await authFetch('/api/content/banner_interval', {
+      method: 'PUT',
+      body: { content: String(bannerInterval.value) },
+    })
+    bannerIntervalSaved.value = true
+    setTimeout(() => { bannerIntervalSaved.value = false }, 3000)
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '保存失败')
+  } finally {
+    savingBannerInterval.value = false
+  }
+}
+
+async function saveVideoSettings() {
+  const formats = ['mp4', 'webm', 'mov'].filter(f => videoFormats[f]).join(',')
+  if (!formats) {
+    alert('请至少选择一种视频格式')
+    return
+  }
+  savingVideo.value = true
+  videoSaved.value = false
+  try {
+    await Promise.all([
+      authFetch('/api/content/video_allowed_formats', {
+        method: 'PUT',
+        body: { content: formats },
+      }),
+      authFetch('/api/content/video_max_size', {
+        method: 'PUT',
+        body: { content: String(videoMaxSize.value) },
+      }),
+    ])
+    videoSaved.value = true
+    setTimeout(() => { videoSaved.value = false }, 3000)
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '保存失败')
+  } finally {
+    savingVideo.value = false
   }
 }
 

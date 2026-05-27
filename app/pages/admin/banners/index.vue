@@ -14,7 +14,7 @@
       <table class="w-full">
         <thead class="bg-gray-50 border-b border-gray-100">
           <tr>
-            <th class="text-left px-6 py-3 text-xs font-medium text-secondary">图片</th>
+            <th class="text-left px-6 py-3 text-xs font-medium text-secondary">媒体</th>
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">标题</th>
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">排序</th>
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">状态</th>
@@ -24,7 +24,12 @@
         <tbody>
           <tr v-for="banner in banners" :key="banner.id" class="border-b border-gray-50 hover:bg-gray-50/50">
             <td class="px-6 py-3">
-              <img :src="banner.image_url" class="w-20 h-12 object-cover rounded" />
+              <VideoThumbnail
+                v-if="isVideoUrl(banner.image_url)"
+                :src="banner.image_url"
+                container-class="w-20 h-12"
+              />
+              <img v-else :src="banner.image_url" class="w-20 h-12 object-cover rounded" />
             </td>
             <td class="px-6 py-3 text-sm text-primary">{{ banner.title }}</td>
             <td class="px-6 py-3 text-sm text-secondary">{{ banner.sort_order }}</td>

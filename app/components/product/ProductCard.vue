@@ -27,7 +27,7 @@ const showPrice = computed(() => showPriceRef.value)
 const firstImage = computed(() => {
   try {
     const images = JSON.parse(props.product.images_json || '[]')
-    return images[0] || 'https://via.placeholder.com/600x450?text=No+Image'
+    return images.find((url: string) => !isVideoUrl(url)) || images[0] || 'https://via.placeholder.com/600x450?text=No+Image'
   } catch {
     return 'https://via.placeholder.com/600x450?text=No+Image'
   }
