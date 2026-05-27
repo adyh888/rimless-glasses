@@ -33,7 +33,7 @@
               <div class="text-sm text-primary">{{ product.name }}</div>
               <div v-if="product.is_featured" class="text-xs text-accent">推荐</div>
             </td>
-            <td class="px-6 py-3 text-sm text-secondary">{{ product.category }}</td>
+            <td class="px-6 py-3 text-sm text-secondary">{{ product.category }}{{ product.sub_category ? ' / ' + product.sub_category : '' }}</td>
             <td class="px-6 py-3 text-sm text-primary">&yen;{{ Number(product.price).toLocaleString() }}</td>
             <td class="px-6 py-3">
               <span class="text-xs px-2 py-1 rounded-full" :class="product.is_active ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'">

@@ -17,6 +17,10 @@ export default defineEventHandler((event) => {
     sql += ' AND category = ?'
     params.push(query.category)
   }
+  if (query.sub_category) {
+    sql += ' AND sub_category = ?'
+    params.push(query.sub_category)
+  }
   sql += ' ORDER BY sort_order ASC'
   const page = parseInt(query.page as string) || 1
   const limit = parseInt(query.limit as string) || 50

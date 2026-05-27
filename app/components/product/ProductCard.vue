@@ -9,7 +9,7 @@
       <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500" />
     </div>
     <div class="mt-4 space-y-1">
-      <p class="text-xs text-accent tracking-wider uppercase">{{ product.category }}</p>
+      <p class="text-xs text-accent tracking-wider uppercase">{{ product.category }}<span v-if="product.sub_category"> · {{ product.sub_category }}</span></p>
       <h3 class="text-base font-medium text-primary group-hover:text-accent transition-colors duration-300">
         {{ product.name }}
       </h3>

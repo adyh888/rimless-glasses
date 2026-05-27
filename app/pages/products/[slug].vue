@@ -52,7 +52,7 @@
 
           <!-- Info -->
           <div>
-            <p class="text-accent text-sm tracking-widest uppercase">{{ product.category }}</p>
+            <p class="text-accent text-sm tracking-widest uppercase">{{ product.category }}<span v-if="product.sub_category"> · {{ product.sub_category }}</span></p>
             <h1 class="mt-2 text-3xl md:text-4xl font-light tracking-tight text-primary">
               {{ product.name }}
             </h1>

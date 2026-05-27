@@ -70,5 +70,8 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `)
+
+try { db.exec(`ALTER TABLE products ADD COLUMN sub_category TEXT DEFAULT ''`) } catch {}
+
 export default db
 export { db }

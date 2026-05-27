@@ -14,10 +14,14 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div>
           <label class="block text-sm text-secondary mb-1.5">分类</label>
           <input v-model="form.category" type="text" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none" placeholder="例：经典系列" />
+        </div>
+        <div>
+          <label class="block text-sm text-secondary mb-1.5">子分类</label>
+          <input v-model="form.sub_category" type="text" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none" placeholder="例：男 / 女" />
         </div>
         <div>
           <label class="block text-sm text-secondary mb-1.5">价格（元）</label>
@@ -143,6 +147,7 @@ const form = reactive({
   name: '',
   slug: '',
   category: '',
+  sub_category: '',
   price: 0,
   sort_order: 0,
   is_featured: 0,
@@ -158,6 +163,7 @@ if (!isNew) {
     form.name = data.name
     form.slug = data.slug
     form.category = data.category
+    form.sub_category = data.sub_category || ''
     form.price = data.price
     form.sort_order = data.sort_order
     form.is_featured = data.is_featured
@@ -223,6 +229,7 @@ async function save() {
     name: form.name,
     slug: form.slug || `product-${Date.now()}`,
     category: form.category,
+    sub_category: form.sub_category,
     price: form.price,
     sort_order: form.sort_order,
     is_featured: form.is_featured,
