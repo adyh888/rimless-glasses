@@ -102,17 +102,18 @@ export async function useAboutImage() {
 export type SocialLink = {
   platform: string
   label: string
+  icon: string
   value: string
   qrcode: string
   is_active: boolean
 }
 
 const DEFAULT_SOCIAL_LINKS: SocialLink[] = [
-  { platform: 'wechat', label: '微信', value: '', qrcode: '', is_active: false },
-  { platform: 'wechat_official', label: '微信公众号', value: '', qrcode: '', is_active: false },
-  { platform: 'weibo', label: '微博', value: '', qrcode: '', is_active: false },
-  { platform: 'xiaohongshu', label: '小红书', value: '', qrcode: '', is_active: false },
-  { platform: 'douyin', label: '抖音', value: '', qrcode: '', is_active: false },
+  { platform: 'wechat', label: '微信', icon: '💬', value: '', qrcode: '', is_active: false },
+  { platform: 'wechat_official', label: '微信公众号', icon: '📢', value: '', qrcode: '', is_active: false },
+  { platform: 'weibo', label: '微博', icon: '🌐', value: '', qrcode: '', is_active: false },
+  { platform: 'xiaohongshu', label: '小红书', icon: '📕', value: '', qrcode: '', is_active: false },
+  { platform: 'douyin', label: '抖音', icon: '🎵', value: '', qrcode: '', is_active: false },
 ]
 
 export async function useSocialLinks() {
@@ -128,6 +129,46 @@ export async function useSocialLinks() {
       return parsed
     } catch {
       return DEFAULT_SOCIAL_LINKS
+    }
+  })
+}
+
+export type AdminMenuItem = {
+  label: string
+  path: string
+  icon: string
+  sort_order: number
+  is_active: boolean
+}
+
+const DEFAULT_ADMIN_MENU: AdminMenuItem[] = [
+  { label: '仪表盘', path: '/admin', icon: '📊', sort_order: 0, is_active: true },
+  { label: '首页管理', path: '/admin/homepage', icon: '🏠', sort_order: 1, is_active: true },
+  { label: '轮播管理', path: '/admin/banners', icon: '🎠', sort_order: 2, is_active: true },
+  { label: '产品管理', path: '/admin/products', icon: '📦', sort_order: 3, is_active: true },
+  { label: '文章管理', path: '/admin/articles', icon: '📝', sort_order: 4, is_active: true },
+  { label: '留言管理', path: '/admin/messages', icon: '✉️', sort_order: 5, is_active: true },
+  { label: '内容管理', path: '/admin/content', icon: '📄', sort_order: 6, is_active: true },
+  { label: '站点设置', path: '/admin/settings', icon: '⚙️', sort_order: 7, is_active: true },
+]
+
+export { DEFAULT_ADMIN_MENU }
+
+export async function useAdminMenu() {
+  const { data } = await useFetch<{ key: string; content: string }>('/api/content/admin_menu_items', {
+    key: 'site-admin-menu',
+  })
+  return computed<AdminMenuItem[]>(() => {
+    const raw = data.value?.content
+    if (!raw) return DEFAULT_ADMIN_MENU
+    try {
+      const parsed = JSON.parse(raw)
+      if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_ADMIN_MENU
+      return [...parsed]
+        .filter((item: AdminMenuItem) => item.is_active !== false)
+        .sort((a: AdminMenuItem, b: AdminMenuItem) => a.sort_order - b.sort_order)
+    } catch {
+      return DEFAULT_ADMIN_MENU
     }
   })
 }

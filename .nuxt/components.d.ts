@@ -14,16 +14,25 @@ type HydrationStrategies = {
 type LazyComponent<T> = DefineComponent<HydrationStrategies, {}, {}, {}, {}, {}, {}, { hydrated: () => void }> & T
 
 
+export const IconPicker: typeof import("../app/components/admin/IconPicker.vue")['default']
+export const ImageCropper: typeof import("../app/components/admin/ImageCropper.vue")['default']
 export const ImagePreview: typeof import("../app/components/admin/ImagePreview.vue")['default']
 export const ImageUploader: typeof import("../app/components/admin/ImageUploader.vue")['default']
 export const ImageUploaderMultiple: typeof import("../app/components/admin/ImageUploaderMultiple.vue")['default']
 export const MediaLibrary: typeof import("../app/components/admin/MediaLibrary.vue")['default']
 export const RichTextEditor: typeof import("../app/components/admin/RichTextEditor.vue")['default']
 export const VideoThumbnail: typeof import("../app/components/admin/VideoThumbnail.vue")['default']
+export const HomeBanner: typeof import("../app/components/home/HomeBanner.vue")['default']
+export const HomeCta: typeof import("../app/components/home/HomeCta.vue")['default']
+export const HomeImageText: typeof import("../app/components/home/HomeImageText.vue")['default']
+export const HomeNews: typeof import("../app/components/home/HomeNews.vue")['default']
+export const HomeProducts: typeof import("../app/components/home/HomeProducts.vue")['default']
+export const HomeRichtext: typeof import("../app/components/home/HomeRichtext.vue")['default']
 export const AdminSidebar: typeof import("../app/components/layout/AdminSidebar.vue")['default']
 export const SiteFooter: typeof import("../app/components/layout/SiteFooter.vue")['default']
 export const SiteHeader: typeof import("../app/components/layout/SiteHeader.vue")['default']
 export const ProductCard: typeof import("../app/components/product/ProductCard.vue")['default']
+export const DynamicIcon: typeof import("../app/components/shared/DynamicIcon.vue")['default']
 export const ScrollReveal: typeof import("../app/components/shared/ScrollReveal.vue")['default']
 export const SectionTitle: typeof import("../app/components/shared/SectionTitle.vue")['default']
 export const NuxtWelcome: typeof import("../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/components/welcome.vue")['default']
@@ -52,16 +61,25 @@ export const Head: typeof import("../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin
 export const Html: typeof import("../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/head/runtime/components")['Html']
 export const Body: typeof import("../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/head/runtime/components")['Body']
 export const NuxtIsland: typeof import("../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/components/nuxt-island")['default']
+export const LazyIconPicker: LazyComponent<typeof import("../app/components/admin/IconPicker.vue")['default']>
+export const LazyImageCropper: LazyComponent<typeof import("../app/components/admin/ImageCropper.vue")['default']>
 export const LazyImagePreview: LazyComponent<typeof import("../app/components/admin/ImagePreview.vue")['default']>
 export const LazyImageUploader: LazyComponent<typeof import("../app/components/admin/ImageUploader.vue")['default']>
 export const LazyImageUploaderMultiple: LazyComponent<typeof import("../app/components/admin/ImageUploaderMultiple.vue")['default']>
 export const LazyMediaLibrary: LazyComponent<typeof import("../app/components/admin/MediaLibrary.vue")['default']>
 export const LazyRichTextEditor: LazyComponent<typeof import("../app/components/admin/RichTextEditor.vue")['default']>
 export const LazyVideoThumbnail: LazyComponent<typeof import("../app/components/admin/VideoThumbnail.vue")['default']>
+export const LazyHomeBanner: LazyComponent<typeof import("../app/components/home/HomeBanner.vue")['default']>
+export const LazyHomeCta: LazyComponent<typeof import("../app/components/home/HomeCta.vue")['default']>
+export const LazyHomeImageText: LazyComponent<typeof import("../app/components/home/HomeImageText.vue")['default']>
+export const LazyHomeNews: LazyComponent<typeof import("../app/components/home/HomeNews.vue")['default']>
+export const LazyHomeProducts: LazyComponent<typeof import("../app/components/home/HomeProducts.vue")['default']>
+export const LazyHomeRichtext: LazyComponent<typeof import("../app/components/home/HomeRichtext.vue")['default']>
 export const LazyAdminSidebar: LazyComponent<typeof import("../app/components/layout/AdminSidebar.vue")['default']>
 export const LazySiteFooter: LazyComponent<typeof import("../app/components/layout/SiteFooter.vue")['default']>
 export const LazySiteHeader: LazyComponent<typeof import("../app/components/layout/SiteHeader.vue")['default']>
 export const LazyProductCard: LazyComponent<typeof import("../app/components/product/ProductCard.vue")['default']>
+export const LazyDynamicIcon: LazyComponent<typeof import("../app/components/shared/DynamicIcon.vue")['default']>
 export const LazyScrollReveal: LazyComponent<typeof import("../app/components/shared/ScrollReveal.vue")['default']>
 export const LazySectionTitle: LazyComponent<typeof import("../app/components/shared/SectionTitle.vue")['default']>
 export const LazyNuxtWelcome: LazyComponent<typeof import("../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/components/welcome.vue")['default']>

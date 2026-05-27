@@ -14,7 +14,7 @@
         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 mb-1"
         :class="isActive(item.path) ? 'bg-primary/5 text-primary font-medium' : 'text-secondary hover:bg-gray-50 hover:text-primary'"
       >
-        <span class="text-base" v-html="item.icon" />
+        <DynamicIcon :icon="item.icon" icon-class="text-base w-5 h-5" />
         {{ item.label }}
       </NuxtLink>
     </nav>
@@ -32,15 +32,8 @@ const route = useRoute()
 const brandRef = await useBrandName()
 const brand = computed(() => brandRef.value)
 
-const menuItems = [
-  { label: '仪表盘', path: '/admin', icon: '&#9634;' },
-  { label: '轮播管理', path: '/admin/banners', icon: '&#9654;' },
-  { label: '产品管理', path: '/admin/products', icon: '&#9670;' },
-  { label: '文章管理', path: '/admin/articles', icon: '&#9998;' },
-  { label: '留言管理', path: '/admin/messages', icon: '&#9993;' },
-  { label: '内容管理', path: '/admin/content', icon: '&#9776;' },
-  { label: '站点设置', path: '/admin/settings', icon: '&#9881;' },
-]
+const menuRef = await useAdminMenu()
+const menuItems = computed(() => menuRef.value)
 
 function isActive(path: string) {
   if (path === '/admin') return route.path === '/admin'

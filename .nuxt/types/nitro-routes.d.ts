@@ -40,6 +40,13 @@ declare module "nitropack/types" {
     '/api/media': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/media.get').default>>>>
     }
+    '/api/messages/:id': {
+      'delete': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/messages/[id].delete').default>>>>
+      'put': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/messages/[id].put').default>>>>
+    }
+    '/api/messages': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/messages/index.get').default>>>>
+    }
     '/api/products/:id': {
       'delete': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/products/[id].delete').default>>>>
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/products/[id].get').default>>>>

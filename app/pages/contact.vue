@@ -85,7 +85,7 @@
               <div class="space-y-4">
                 <div v-for="link in activeSocialLinks" :key="link.platform" class="flex items-start gap-4">
                   <div class="w-10 h-10 rounded-full bg-surface flex items-center justify-center shrink-0">
-                    <span class="text-lg" v-html="socialIcons[link.platform] || '🔗'" />
+                    <DynamicIcon :icon="link.icon || '🔗'" icon-class="text-lg w-5 h-5" />
                   </div>
                   <div class="min-w-0">
                     <h4 class="text-sm font-medium text-primary">{{ link.label }}</h4>
@@ -159,13 +159,6 @@ function openQrPreview(src: string, label: string) {
 
 const socialLinksRef = await useSocialLinks()
 const activeSocialLinks = computed(() => socialLinksRef.value.filter(l => l.is_active))
-const socialIcons: Record<string, string> = {
-  wechat: '💬',
-  wechat_official: '📢',
-  weibo: '🌐',
-  xiaohongshu: '📕',
-  douyin: '🎵',
-}
 
 const navRef = await useNavItems()
 const navItem = computed(() => navRef.value.find(n => n.path === '/contact'))

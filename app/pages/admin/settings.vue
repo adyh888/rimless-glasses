@@ -432,12 +432,17 @@
       <div class="space-y-4">
         <div
           v-for="(link, idx) in socialLinks"
-          :key="link.platform"
+          :key="idx"
           class="border border-gray-100 rounded-lg p-4"
         >
           <div class="flex items-center gap-3 mb-3">
-            <span class="text-lg">{{ socialPlatformIcons[link.platform] || '🔗' }}</span>
-            <span class="text-sm font-medium text-primary flex-1">{{ link.label }}</span>
+            <IconPicker v-model="link.icon" />
+            <input
+              v-model="link.label"
+              type="text"
+              placeholder="平台名称"
+              class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+            />
             <label class="inline-flex items-center gap-2 cursor-pointer select-none shrink-0">
               <span class="relative inline-block w-9 h-5">
                 <input v-model="link.is_active" type="checkbox" class="peer sr-only" />
@@ -446,6 +451,11 @@
               </span>
               <span class="text-xs text-secondary">{{ link.is_active ? '显示' : '隐藏' }}</span>
             </label>
+            <button
+              type="button"
+              @click="removeSocial(idx)"
+              class="text-xs text-red-500 hover:underline shrink-0"
+            >删除</button>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
@@ -453,7 +463,7 @@
               <input
                 v-model="link.value"
                 type="text"
-                :placeholder="socialPlaceholders[link.platform] || '账号或链接'"
+                placeholder="账号或链接"
                 class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
               />
             </div>
@@ -473,6 +483,12 @@
         </div>
       </div>
 
+      <button
+        type="button"
+        @click="addSocial"
+        class="mt-4 text-xs text-accent hover:underline"
+      >+ 添加社交媒体</button>
+
       <div class="mt-6">
         <button
           @click="saveSocialLinks"
@@ -482,6 +498,80 @@
           {{ savingSocial ? '保存中...' : '保存社交媒体' }}
         </button>
         <span v-if="socialSaved" class="ml-3 text-sm text-green-600">已保存</span>
+      </div>
+    </section>
+
+    <!-- 后台侧栏菜单 -->
+    <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+      <h2 class="text-sm font-medium text-primary mb-1">后台侧栏菜单</h2>
+      <p class="text-xs text-secondary mb-5">管理后台左侧导航菜单的项目、图标、顺序和显示状态</p>
+
+      <div class="space-y-3">
+        <div
+          v-for="(item, idx) in adminMenuItems"
+          :key="idx"
+          class="border border-gray-100 rounded-lg p-4"
+        >
+          <div class="flex items-center gap-3">
+            <div class="flex flex-col gap-1">
+              <button
+                type="button"
+                :disabled="idx === 0"
+                @click="moveAdminMenu(idx, -1)"
+                class="text-xs text-secondary hover:text-primary disabled:opacity-30"
+              >&uarr;</button>
+              <button
+                type="button"
+                :disabled="idx === adminMenuItems.length - 1"
+                @click="moveAdminMenu(idx, 1)"
+                class="text-xs text-secondary hover:text-primary disabled:opacity-30"
+              >&darr;</button>
+            </div>
+            <IconPicker v-model="item.icon" />
+            <input
+              v-model="item.label"
+              type="text"
+              placeholder="菜单名称"
+              class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+            />
+            <input
+              v-model="item.path"
+              type="text"
+              placeholder="路径 如 /admin/products"
+              class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+            />
+            <label class="inline-flex items-center gap-2 cursor-pointer select-none shrink-0">
+              <span class="relative inline-block w-9 h-5">
+                <input v-model="item.is_active" type="checkbox" class="peer sr-only" />
+                <span class="absolute inset-0 bg-gray-200 rounded-full peer-checked:bg-primary transition-colors" />
+                <span class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
+              </span>
+              <span class="text-xs text-secondary">{{ item.is_active ? '显示' : '隐藏' }}</span>
+            </label>
+            <button
+              type="button"
+              @click="removeAdminMenu(idx)"
+              class="text-xs text-red-500 hover:underline shrink-0"
+            >删除</button>
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        @click="addAdminMenu"
+        class="mt-4 text-xs text-accent hover:underline"
+      >+ 添加菜单项</button>
+
+      <div class="mt-6">
+        <button
+          @click="saveAdminMenu"
+          :disabled="savingAdminMenu"
+          class="px-5 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50"
+        >
+          {{ savingAdminMenu ? '保存中...' : '保存菜单设置' }}
+        </button>
+        <span v-if="adminMenuSaved" class="ml-3 text-sm text-green-600">已保存（刷新页面后生效）</span>
       </div>
     </section>
 
@@ -671,7 +761,7 @@ const tagline = reactive({ line1: '', line2: '' })
 const savingTagline = ref(false)
 const taglineSaved = ref(false)
 
-type SocialLink = { platform: string; label: string; value: string; qrcode: string; is_active: boolean }
+type SocialLink = { platform: string; label: string; icon: string; value: string; qrcode: string; is_active: boolean }
 const socialLinks = reactive<SocialLink[]>([])
 const socialPreview = reactive({ show: false, src: '', label: '' })
 function openSocialPreview(src: string, label: string) {
@@ -681,19 +771,33 @@ function openSocialPreview(src: string, label: string) {
 }
 const savingSocial = ref(false)
 const socialSaved = ref(false)
-const socialPlatformIcons: Record<string, string> = {
-  wechat: '💬',
-  wechat_official: '📢',
-  weibo: '🌐',
-  xiaohongshu: '📕',
-  douyin: '🎵',
+
+function addSocial() {
+  socialLinks.push({ platform: `custom_${Date.now()}`, label: '', icon: '🔗', value: '', qrcode: '', is_active: true })
 }
-const socialPlaceholders: Record<string, string> = {
-  wechat: '微信号',
-  wechat_official: '公众号名称',
-  weibo: '微博主页链接',
-  xiaohongshu: '小红书号或主页链接',
-  douyin: '抖音号或主页链接',
+function removeSocial(idx: number) {
+  if (!window.confirm('确定删除此社交媒体？')) return
+  socialLinks.splice(idx, 1)
+}
+
+type AdminMenuItem = { label: string; path: string; icon: string; sort_order: number; is_active: boolean }
+const adminMenuItems = reactive<AdminMenuItem[]>([])
+const savingAdminMenu = ref(false)
+const adminMenuSaved = ref(false)
+
+function addAdminMenu() {
+  adminMenuItems.push({ label: '', path: '/admin/', icon: '📄', sort_order: adminMenuItems.length, is_active: true })
+}
+function removeAdminMenu(idx: number) {
+  if (!window.confirm('确定删除此菜单项？')) return
+  adminMenuItems.splice(idx, 1)
+}
+function moveAdminMenu(idx: number, dir: number) {
+  const target = idx + dir
+  if (target < 0 || target >= adminMenuItems.length) return
+  const temp = adminMenuItems[idx]
+  adminMenuItems[idx] = adminMenuItems[target]
+  adminMenuItems[target] = temp
 }
 
 const account = reactive({
@@ -708,7 +812,7 @@ const accountError = ref('')
 const currentUsername = computed(() => user.value?.username || '—')
 
 onMounted(async () => {
-  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes, socialRes] = await Promise.all([
+  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes, socialRes, adminMenuRes] = await Promise.all([
     $fetch<any>('/api/content/show_product_price'),
     $fetch<any>('/api/content/contact_info'),
     $fetch<any>('/api/content/brand_name_primary'),
@@ -722,6 +826,7 @@ onMounted(async () => {
     $fetch<any>('/api/content/nav_items'),
     $fetch<any>('/api/content/about_image'),
     $fetch<any>('/api/content/social_links'),
+    $fetch<any>('/api/content/admin_menu_items'),
   ])
   showPrice.value = (priceRes?.content ?? '1') !== '0'
   uploadMaxSize.value = uploadSizeRes?.content ? parseInt(uploadSizeRes.content, 10) : 5
@@ -772,11 +877,11 @@ onMounted(async () => {
   aboutImage.value = aboutImageRes?.content || ''
 
   const defaultSocial: SocialLink[] = [
-    { platform: 'wechat', label: '微信', value: '', qrcode: '', is_active: false },
-    { platform: 'wechat_official', label: '微信公众号', value: '', qrcode: '', is_active: false },
-    { platform: 'weibo', label: '微博', value: '', qrcode: '', is_active: false },
-    { platform: 'xiaohongshu', label: '小红书', value: '', qrcode: '', is_active: false },
-    { platform: 'douyin', label: '抖音', value: '', qrcode: '', is_active: false },
+    { platform: 'wechat', label: '微信', icon: '💬', value: '', qrcode: '', is_active: false },
+    { platform: 'wechat_official', label: '微信公众号', icon: '📢', value: '', qrcode: '', is_active: false },
+    { platform: 'weibo', label: '微博', icon: '🌐', value: '', qrcode: '', is_active: false },
+    { platform: 'xiaohongshu', label: '小红书', icon: '📕', value: '', qrcode: '', is_active: false },
+    { platform: 'douyin', label: '抖音', icon: '🎵', value: '', qrcode: '', is_active: false },
   ]
   try {
     const parsedSocial = socialRes?.content ? JSON.parse(socialRes.content) : null
@@ -787,6 +892,27 @@ onMounted(async () => {
     }
   } catch {
     socialLinks.splice(0, socialLinks.length, ...defaultSocial)
+  }
+
+  const defaultAdminMenu: AdminMenuItem[] = [
+    { label: '仪表盘', path: '/admin', icon: '📊', sort_order: 0, is_active: true },
+    { label: '首页管理', path: '/admin/homepage', icon: '🏠', sort_order: 1, is_active: true },
+    { label: '轮播管理', path: '/admin/banners', icon: '🎠', sort_order: 2, is_active: true },
+    { label: '产品管理', path: '/admin/products', icon: '📦', sort_order: 3, is_active: true },
+    { label: '文章管理', path: '/admin/articles', icon: '📝', sort_order: 4, is_active: true },
+    { label: '留言管理', path: '/admin/messages', icon: '✉️', sort_order: 5, is_active: true },
+    { label: '内容管理', path: '/admin/content', icon: '📄', sort_order: 6, is_active: true },
+    { label: '站点设置', path: '/admin/settings', icon: '⚙️', sort_order: 7, is_active: true },
+  ]
+  try {
+    const parsedMenu = adminMenuRes?.content ? JSON.parse(adminMenuRes.content) : null
+    if (Array.isArray(parsedMenu) && parsedMenu.length > 0) {
+      adminMenuItems.splice(0, adminMenuItems.length, ...parsedMenu.sort((a: AdminMenuItem, b: AdminMenuItem) => a.sort_order - b.sort_order))
+    } else {
+      adminMenuItems.splice(0, adminMenuItems.length, ...defaultAdminMenu)
+    }
+  } catch {
+    adminMenuItems.splice(0, adminMenuItems.length, ...defaultAdminMenu)
   }
 
   // 同步当前用户名（authFetch /api/auth/me）
@@ -979,6 +1105,24 @@ async function saveSocialLinks() {
     alert(e?.data?.statusMessage || '保存失败')
   } finally {
     savingSocial.value = false
+  }
+}
+
+async function saveAdminMenu() {
+  savingAdminMenu.value = true
+  adminMenuSaved.value = false
+  const payload = adminMenuItems.map((item, idx) => ({ ...item, sort_order: idx }))
+  try {
+    await authFetch('/api/content/admin_menu_items', {
+      method: 'PUT',
+      body: { content: JSON.stringify(payload) },
+    })
+    adminMenuSaved.value = true
+    setTimeout(() => { adminMenuSaved.value = false }, 3000)
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '保存失败')
+  } finally {
+    savingAdminMenu.value = false
   }
 }
 

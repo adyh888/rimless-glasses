@@ -14,16 +14,25 @@ type HydrationStrategies = {
 type LazyComponent<T> = DefineComponent<HydrationStrategies, {}, {}, {}, {}, {}, {}, { hydrated: () => void }> & T
 
 interface _GlobalComponents {
+  IconPicker: typeof import("../../app/components/admin/IconPicker.vue")['default']
+  ImageCropper: typeof import("../../app/components/admin/ImageCropper.vue")['default']
   ImagePreview: typeof import("../../app/components/admin/ImagePreview.vue")['default']
   ImageUploader: typeof import("../../app/components/admin/ImageUploader.vue")['default']
   ImageUploaderMultiple: typeof import("../../app/components/admin/ImageUploaderMultiple.vue")['default']
   MediaLibrary: typeof import("../../app/components/admin/MediaLibrary.vue")['default']
   RichTextEditor: typeof import("../../app/components/admin/RichTextEditor.vue")['default']
   VideoThumbnail: typeof import("../../app/components/admin/VideoThumbnail.vue")['default']
+  HomeBanner: typeof import("../../app/components/home/HomeBanner.vue")['default']
+  HomeCta: typeof import("../../app/components/home/HomeCta.vue")['default']
+  HomeImageText: typeof import("../../app/components/home/HomeImageText.vue")['default']
+  HomeNews: typeof import("../../app/components/home/HomeNews.vue")['default']
+  HomeProducts: typeof import("../../app/components/home/HomeProducts.vue")['default']
+  HomeRichtext: typeof import("../../app/components/home/HomeRichtext.vue")['default']
   AdminSidebar: typeof import("../../app/components/layout/AdminSidebar.vue")['default']
   SiteFooter: typeof import("../../app/components/layout/SiteFooter.vue")['default']
   SiteHeader: typeof import("../../app/components/layout/SiteHeader.vue")['default']
   ProductCard: typeof import("../../app/components/product/ProductCard.vue")['default']
+  DynamicIcon: typeof import("../../app/components/shared/DynamicIcon.vue")['default']
   ScrollReveal: typeof import("../../app/components/shared/ScrollReveal.vue")['default']
   SectionTitle: typeof import("../../app/components/shared/SectionTitle.vue")['default']
   NuxtWelcome: typeof import("../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/components/welcome.vue")['default']
@@ -52,16 +61,25 @@ interface _GlobalComponents {
   Html: typeof import("../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/head/runtime/components")['Html']
   Body: typeof import("../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/head/runtime/components")['Body']
   NuxtIsland: typeof import("../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/components/nuxt-island")['default']
+  LazyIconPicker: LazyComponent<typeof import("../../app/components/admin/IconPicker.vue")['default']>
+  LazyImageCropper: LazyComponent<typeof import("../../app/components/admin/ImageCropper.vue")['default']>
   LazyImagePreview: LazyComponent<typeof import("../../app/components/admin/ImagePreview.vue")['default']>
   LazyImageUploader: LazyComponent<typeof import("../../app/components/admin/ImageUploader.vue")['default']>
   LazyImageUploaderMultiple: LazyComponent<typeof import("../../app/components/admin/ImageUploaderMultiple.vue")['default']>
   LazyMediaLibrary: LazyComponent<typeof import("../../app/components/admin/MediaLibrary.vue")['default']>
   LazyRichTextEditor: LazyComponent<typeof import("../../app/components/admin/RichTextEditor.vue")['default']>
   LazyVideoThumbnail: LazyComponent<typeof import("../../app/components/admin/VideoThumbnail.vue")['default']>
+  LazyHomeBanner: LazyComponent<typeof import("../../app/components/home/HomeBanner.vue")['default']>
+  LazyHomeCta: LazyComponent<typeof import("../../app/components/home/HomeCta.vue")['default']>
+  LazyHomeImageText: LazyComponent<typeof import("../../app/components/home/HomeImageText.vue")['default']>
+  LazyHomeNews: LazyComponent<typeof import("../../app/components/home/HomeNews.vue")['default']>
+  LazyHomeProducts: LazyComponent<typeof import("../../app/components/home/HomeProducts.vue")['default']>
+  LazyHomeRichtext: LazyComponent<typeof import("../../app/components/home/HomeRichtext.vue")['default']>
   LazyAdminSidebar: LazyComponent<typeof import("../../app/components/layout/AdminSidebar.vue")['default']>
   LazySiteFooter: LazyComponent<typeof import("../../app/components/layout/SiteFooter.vue")['default']>
   LazySiteHeader: LazyComponent<typeof import("../../app/components/layout/SiteHeader.vue")['default']>
   LazyProductCard: LazyComponent<typeof import("../../app/components/product/ProductCard.vue")['default']>
+  LazyDynamicIcon: LazyComponent<typeof import("../../app/components/shared/DynamicIcon.vue")['default']>
   LazyScrollReveal: LazyComponent<typeof import("../../app/components/shared/ScrollReveal.vue")['default']>
   LazySectionTitle: LazyComponent<typeof import("../../app/components/shared/SectionTitle.vue")['default']>
   LazyNuxtWelcome: LazyComponent<typeof import("../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/components/welcome.vue")['default']>
