@@ -24,6 +24,7 @@
     "@vueuse/motion": "^3.0.3",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.10.0",
+    "cropperjs": "^1.6.2",
     "jsonwebtoken": "^9.0.3",
     "nuxt": "^4.4.6",
     "uuid": "^14.0.0",

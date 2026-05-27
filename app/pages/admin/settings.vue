@@ -208,9 +208,44 @@
     <!-- 关于我们页面图片 -->
     <section class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">关于我们页面图片</h2>
-      <p class="text-xs text-secondary mb-5">「关于我们」页面顶部展示的大图</p>
+      <p class="text-xs text-secondary mb-3">「关于我们」页面顶部展示的大图</p>
+      <p class="text-xs text-accent bg-accent/5 inline-block px-3 py-1.5 rounded-md mb-5">推荐尺寸 1920 × 600 像素（宽高比 3.2 : 1），图片将以全宽展示，高度为屏幕的 50%</p>
 
-      <ImageUploader v-model="aboutImage" />
+      <div v-if="aboutImage" class="space-y-3">
+        <div class="relative inline-block">
+          <img :src="aboutImage" class="h-36 max-w-full object-cover rounded-lg border border-gray-100" />
+          <button
+            type="button"
+            @click="aboutImage = ''"
+            class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
+          >&times;</button>
+        </div>
+        <div class="flex gap-3">
+          <button type="button" @click="triggerAboutFile" class="text-xs text-accent hover:underline">重新选择</button>
+          <button type="button" @click="openAboutCropper(aboutImage)" class="text-xs text-accent hover:underline">裁剪调整</button>
+        </div>
+      </div>
+      <div v-else>
+        <div
+          class="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center cursor-pointer hover:border-accent transition-colors"
+          @click="triggerAboutFile"
+          @dragover.prevent
+          @drop.prevent="onAboutDrop"
+        >
+          <p class="text-sm text-secondary">点击或拖拽上传图片</p>
+          <p class="text-xs text-gray-400 mt-1">支持 JPG / PNG / WebP，上传后可裁剪</p>
+          <button type="button" @click.stop="aboutLibrary = true" class="mt-3 text-xs text-accent hover:underline">从素材库选择</button>
+        </div>
+      </div>
+
+      <input ref="aboutFileInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="onAboutFileSelect" />
+      <MediaLibrary v-model="aboutLibrary" @select="onAboutLibrarySelect" />
+      <ImageCropper
+        v-model:show="cropperShow"
+        :image-src="cropperSrc"
+        :aspect-ratio="3.2"
+        @cropped="onAboutCropped"
+      />
 
       <div class="mt-6">
         <button
@@ -578,6 +613,47 @@ const navSaved = ref(false)
 const aboutImage = ref('')
 const savingAboutImage = ref(false)
 const aboutImageSaved = ref(false)
+const cropperShow = ref(false)
+const cropperSrc = ref('')
+const aboutFileInput = ref<HTMLInputElement>()
+const aboutLibrary = ref(false)
+
+function triggerAboutFile() {
+  aboutFileInput.value?.click()
+}
+function onAboutFileSelect(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = () => {
+    cropperSrc.value = reader.result as string
+    cropperShow.value = true
+  }
+  reader.readAsDataURL(file)
+  ;(e.target as HTMLInputElement).value = ''
+}
+function onAboutDrop(e: DragEvent) {
+  const file = e.dataTransfer?.files?.[0]
+  if (!file || !file.type.startsWith('image/')) return
+  const reader = new FileReader()
+  reader.onload = () => {
+    cropperSrc.value = reader.result as string
+    cropperShow.value = true
+  }
+  reader.readAsDataURL(file)
+}
+function onAboutLibrarySelect(urls: string[]) {
+  if (urls.length > 0) {
+    openAboutCropper(urls[0])
+  }
+}
+function openAboutCropper(src: string) {
+  cropperSrc.value = src
+  cropperShow.value = true
+}
+function onAboutCropped(url: string) {
+  aboutImage.value = url
+}
 
 type ContactItem = { label: string; value: string }
 const contact = reactive<{ items: ContactItem[]; hours: string[] }>({
