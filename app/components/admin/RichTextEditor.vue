@@ -153,13 +153,12 @@ async function onVideoFileSelect(e: Event) {
 
 function onLibrarySelect(urls: string[]) {
   if (!editor.value || !urls.length) return
-  for (const url of urls) {
-    if (isVideoUrl(url)) {
-      editor.value.chain().focus().insertContent({ type: 'video', attrs: { src: url } }).run()
-    } else {
-      editor.value.chain().focus().setImage({ src: url }).run()
-    }
-  }
+  const nodes = urls.map(url =>
+    isVideoUrl(url)
+      ? { type: 'video', attrs: { src: url } }
+      : { type: 'image', attrs: { src: url } },
+  )
+  editor.value.chain().focus().insertContent(nodes).run()
 }
 
 const toolbarButtons = computed(() => {
