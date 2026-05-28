@@ -69,7 +69,6 @@ const isNew = route.params.id === 'new'
 const saving = ref(false)
 const showPreview = ref(false)
 const previewSrc = ref('')
-const originalImageUrl = ref('')
 
 const form = reactive({
   title: '',
@@ -85,16 +84,7 @@ if (!isNew) {
   onMounted(async () => {
     const data = await $fetch<any>(`/api/banners/${route.params.id}`)
     Object.assign(form, data)
-    originalImageUrl.value = data.image_url || ''
   })
-}
-
-async function deleteUploadFile(url: string) {
-  if (!url) return
-  try {
-    const path = url.replace('/uploads/', '')
-    await $fetch(`/uploads/${path}`, { method: 'DELETE' })
-  } catch { /* ignore */ }
 }
 
 async function save() {
@@ -103,10 +93,6 @@ async function save() {
     if (isNew) {
       await authFetch('/api/banners', { method: 'POST', body: form })
     } else {
-      // 删除旧图片（如果更换或删除了图片）
-      if (originalImageUrl.value && originalImageUrl.value !== form.image_url) {
-        await deleteUploadFile(originalImageUrl.value)
-      }
       await authFetch(`/api/banners/${route.params.id}`, { method: 'PUT', body: form })
     }
     navigateTo('/admin/banners')
