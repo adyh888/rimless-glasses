@@ -42,21 +42,37 @@
           </div>
 
           <div class="border-t border-gray-100 pt-3">
-            <p class="text-xs text-secondary mb-2">或上传图标图片</p>
+            <p class="text-xs text-secondary mb-2">或上传/选择图标图片</p>
+            <p class="text-[10px] text-gray-400 mb-2">建议正方形图片，将按 1:1 裁剪显示</p>
             <div v-if="isImage" class="flex items-center gap-3 mb-2">
               <img :src="modelValue" class="w-8 h-8 object-contain rounded border border-gray-100" alt="" />
               <button type="button" @click="clearImage" class="text-xs text-red-500 hover:underline">移除</button>
             </div>
-            <button
-              type="button"
-              @click="triggerUpload"
-              class="text-xs text-accent hover:underline"
-            >{{ isImage ? '重新上传' : '选择图片' }}</button>
+            <div class="flex gap-3">
+              <button
+                type="button"
+                @click="triggerUpload"
+                class="text-xs text-accent hover:underline"
+              >{{ isImage ? '重新上传' : '上传图片' }}</button>
+              <button
+                type="button"
+                @click="showLibrary = true"
+                class="text-xs text-accent hover:underline"
+              >从素材库选择</button>
+            </div>
             <input ref="fileRef" type="file" accept="image/*" class="hidden" @change="onFileChange" />
           </div>
         </div>
       </div>
     </Teleport>
+
+    <MediaLibrary v-model="showLibrary" @select="onLibrarySelect" />
+    <ImageCropper
+      v-model:show="cropperShow"
+      :image-src="cropperSrc"
+      :aspect-ratio="1"
+      @cropped="onCropped"
+    />
   </div>
 </template>
 
@@ -73,6 +89,9 @@ const isOpen = ref(false)
 const triggerRef = ref<HTMLButtonElement>()
 const panelRef = ref<HTMLElement>()
 const fileRef = ref<HTMLInputElement>()
+const showLibrary = ref(false)
+const cropperShow = ref(false)
+const cropperSrc = ref('')
 
 const isImage = computed(() =>
   !!props.modelValue && (props.modelValue.startsWith('/uploads/') || props.modelValue.startsWith('http'))
@@ -120,19 +139,28 @@ function triggerUpload() {
   fileRef.value?.click()
 }
 
-async function onFileChange(e: Event) {
+function onFileChange(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
-  const formData = new FormData()
-  formData.append('file', file)
-  try {
-    const res = await $fetch<{ url: string }>('/api/upload', { method: 'POST', body: formData })
-    emit('update:modelValue', res.url)
-    isOpen.value = false
-  } catch (err: any) {
-    alert(err?.data?.statusMessage || '上传失败')
+  const reader = new FileReader()
+  reader.onload = () => {
+    cropperSrc.value = reader.result as string
+    cropperShow.value = true
   }
+  reader.readAsDataURL(file)
   ;(e.target as HTMLInputElement).value = ''
+}
+
+function onLibrarySelect(urls: string[]) {
+  if (urls.length > 0) {
+    cropperSrc.value = urls[0]
+    cropperShow.value = true
+  }
+}
+
+function onCropped(url: string) {
+  emit('update:modelValue', url)
+  isOpen.value = false
 }
 
 function onDocClick(e: Event) {
