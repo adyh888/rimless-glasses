@@ -80,23 +80,30 @@
         <tbody>
           <tr v-for="product in products" :key="product.id" class="border-b border-gray-50 hover:bg-gray-50/50">
             <td class="px-6 py-3">
-              <VideoThumbnail
-                v-if="isVideoUrl(getFirstMedia(product))"
-                :src="getFirstMedia(product)"
-                container-class="w-16 h-12"
-              />
-              <img v-else :src="getFirstMedia(product)" class="w-16 h-12 object-cover rounded" />
+              <div class="cursor-pointer" @click="openPreview(product)">
+                <VideoThumbnail
+                  v-if="isVideoUrl(getFirstMedia(product))"
+                  :src="getFirstMedia(product)"
+                  container-class="w-16 h-12"
+                />
+                <img v-else :src="getFirstMedia(product)" class="w-16 h-12 object-cover rounded hover:opacity-80 transition-opacity" />
+              </div>
             </td>
             <td class="px-6 py-3">
-              <div class="text-sm text-primary">{{ product.name }}</div>
+              <a :href="`/products/${product.slug}`" target="_blank" class="text-sm text-primary hover:text-accent hover:underline transition-colors">{{ product.name }}</a>
               <div v-if="product.is_featured" class="text-xs text-accent">推荐</div>
             </td>
             <td class="px-6 py-3 text-sm text-secondary">{{ product.category }}{{ product.sub_category ? ' / ' + product.sub_category : '' }}</td>
             <td class="px-6 py-3 text-sm text-primary">&yen;{{ Number(product.price).toLocaleString() }}</td>
             <td class="px-6 py-3">
-              <span class="text-xs px-2 py-1 rounded-full" :class="product.is_active ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'">
-                {{ product.is_active ? '上架' : '下架' }}
-              </span>
+              <button
+                @click="toggleStatus(product)"
+                :disabled="togglingId === product.id"
+                class="text-xs px-2 py-1 rounded-full cursor-pointer transition-all"
+                :class="product.is_active ? 'bg-green-50 text-green-600 hover:bg-red-50 hover:text-red-500' : 'bg-gray-100 text-gray-500 hover:bg-green-50 hover:text-green-600'"
+              >
+                {{ togglingId === product.id ? '切换中...' : (product.is_active ? '上架' : '下架') }}
+              </button>
             </td>
             <td class="px-6 py-3 text-right space-x-3">
               <NuxtLink :to="`/admin/products/${product.id}`" class="text-xs text-accent hover:underline">编辑</NuxtLink>
@@ -135,6 +142,58 @@
         class="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-30"
       >下一页</button>
     </div>
+
+    <!-- Media Preview Lightbox -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div
+          v-if="preview.show"
+          class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80"
+          @click.self="preview.show = false"
+          @keydown.esc="preview.show = false"
+          @keydown.left.prevent="previewPrev"
+          @keydown.right.prevent="previewNext"
+          tabindex="0"
+          ref="previewOverlayRef"
+        >
+          <button
+            @click="preview.show = false"
+            class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-white/70 hover:text-white text-3xl z-10"
+          >&times;</button>
+          <button
+            v-if="preview.index > 0"
+            @click.stop="previewPrev"
+            class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-black/50 text-white/70 hover:text-white hover:bg-black/70 transition-colors z-10"
+          >
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <button
+            v-if="preview.index < preview.items.length - 1"
+            @click.stop="previewNext"
+            class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-black/50 text-white/70 hover:text-white hover:bg-black/70 transition-colors z-10"
+          >
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+          <div class="text-center" @click.stop>
+            <video
+              v-if="isVideoUrl(preview.items[preview.index])"
+              :key="preview.items[preview.index]"
+              :src="preview.items[preview.index]"
+              controls
+              autoplay
+              class="max-w-[90vw] max-h-[80vh] rounded-lg"
+            />
+            <img
+              v-else
+              :key="preview.items[preview.index]"
+              :src="preview.items[preview.index]"
+              class="max-w-[90vw] max-h-[80vh] object-contain rounded-lg"
+            />
+            <p class="mt-3 text-white/70 text-sm">{{ preview.index + 1 }} / {{ preview.items.length }}</p>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -146,6 +205,9 @@ const products = ref<any[]>([])
 const total = ref(0)
 const currentPage = ref(1)
 const copying = ref<number | null>(null)
+const togglingId = ref<number | null>(null)
+const previewOverlayRef = ref<HTMLElement>()
+const preview = reactive({ show: false, items: [] as string[], index: 0 })
 
 const PAGESIZE_KEY = 'admin-products-pagesize'
 const pageSize = ref(20)
@@ -193,6 +255,47 @@ function getFirstMedia(product: any) {
     return images[0] || 'https://via.placeholder.com/100x75'
   } catch {
     return 'https://via.placeholder.com/100x75'
+  }
+}
+
+function getAllMedia(product: any): string[] {
+  try {
+    return JSON.parse(product.images_json || '[]')
+  } catch {
+    return []
+  }
+}
+
+function openPreview(product: any) {
+  const media = getAllMedia(product)
+  if (!media.length) return
+  preview.items = media
+  preview.index = 0
+  preview.show = true
+  nextTick(() => previewOverlayRef.value?.focus())
+}
+
+function previewPrev() {
+  if (preview.index > 0) preview.index--
+}
+
+function previewNext() {
+  if (preview.index < preview.items.length - 1) preview.index++
+}
+
+async function toggleStatus(product: any) {
+  togglingId.value = product.id
+  try {
+    const newStatus = product.is_active ? 0 : 1
+    await authFetch(`/api/products/${product.id}`, {
+      method: 'PUT',
+      body: { ...product, is_active: newStatus, images: getAllMedia(product), specs: JSON.parse(product.specs_json || '{}') },
+    })
+    product.is_active = newStatus
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '切换状态失败')
+  } finally {
+    togglingId.value = null
   }
 }
 
@@ -306,3 +409,14 @@ onMounted(async () => {
   await Promise.all([loadProducts(), loadCategories()])
 })
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
