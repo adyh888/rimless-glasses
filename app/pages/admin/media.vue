@@ -69,6 +69,22 @@
       <div class="flex-1" />
       <button
         v-if="selectedUrls.size > 0"
+        @click="clipboardCopy"
+        class="px-3 py-1.5 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-600"
+      >复制 ({{ selectedUrls.size }})</button>
+      <button
+        v-if="selectedUrls.size > 0"
+        @click="clipboardCut"
+        class="px-3 py-1.5 text-sm text-white bg-amber-500 rounded-lg hover:bg-amber-600"
+      >剪切 ({{ selectedUrls.size }})</button>
+      <button
+        v-if="clipboard.items.length > 0"
+        @click="clipboardPaste"
+        :disabled="pasting"
+        class="px-3 py-1.5 text-sm text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50"
+      >{{ pasting ? '粘贴中...' : `粘贴 (${clipboard.items.length})` }}</button>
+      <button
+        v-if="selectedUrls.size > 0"
         @click="batchDelete"
         :disabled="deleting"
         class="px-3 py-1.5 text-sm text-white bg-red-500 rounded-lg hover:bg-red-600 disabled:opacity-50"
@@ -87,6 +103,24 @@
         </select>
       </div>
       <span class="text-xs text-secondary">共 {{ total }} 项</span>
+    </div>
+
+    <!-- Clipboard status -->
+    <div
+      v-if="clipboard.items.length > 0"
+      class="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm"
+    >
+      <svg class="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+      </svg>
+      <span class="text-blue-700">
+        {{ clipboard.mode === 'copy' ? '已复制' : '已剪切' }} {{ clipboard.items.length }} 个文件
+      </span>
+      <span class="text-blue-400 text-xs">导航到目标文件夹后点击粘贴</span>
+      <button
+        @click="clipboardClear"
+        class="text-blue-500 hover:text-blue-700 underline text-xs ml-auto"
+      >取消</button>
     </div>
 
     <!-- Upload area (drag-drop) -->
@@ -152,7 +186,10 @@
         v-for="item in items"
         :key="item.url"
         class="relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all group bg-gray-50"
-        :class="selectedUrls.has(item.url) ? 'border-accent ring-2 ring-accent/30' : 'border-transparent hover:border-gray-300'"
+        :class="[
+          selectedUrls.has(item.url) ? 'border-accent ring-2 ring-accent/30' : 'border-transparent hover:border-gray-300',
+          cutUrls.has(item.url) ? 'opacity-50' : ''
+        ]"
         @click="toggleSelect(item)"
         @dblclick.stop="openPreview(item)"
       >
@@ -420,6 +457,13 @@ const renameModal = reactive({ show: false, oldName: '', newName: '', filePath: 
 const renameFolderModal = reactive({ show: false, folderPath: '', newName: '' })
 const preview = reactive({ show: false, url: '', name: '', type: '' })
 
+const clipboard = reactive({
+  items: [] as { url: string; name: string; sourcePath: string }[],
+  mode: '' as '' | 'copy' | 'cut',
+  sourceFolder: '',
+})
+const pasting = ref(false)
+
 const filters = [
   { label: '全部', value: 'all' },
   { label: '图片', value: 'image' },
@@ -547,6 +591,83 @@ async function batchDelete() {
   deleting.value = false
   await loadMedia()
 }
+
+function clipboardCopy() {
+  if (selectedUrls.value.size === 0) return
+  clipboard.items = items.value
+    .filter(i => selectedUrls.value.has(i.url))
+    .map(i => ({ url: i.url, name: i.name, sourcePath: i.url.replace('/uploads/', '') }))
+  clipboard.mode = 'copy'
+  clipboard.sourceFolder = currentFolder.value
+}
+
+function clipboardCut() {
+  if (selectedUrls.value.size === 0) return
+  clipboard.items = items.value
+    .filter(i => selectedUrls.value.has(i.url))
+    .map(i => ({ url: i.url, name: i.name, sourcePath: i.url.replace('/uploads/', '') }))
+  clipboard.mode = 'cut'
+  clipboard.sourceFolder = currentFolder.value
+}
+
+function clipboardClear() {
+  clipboard.items = []
+  clipboard.mode = ''
+  clipboard.sourceFolder = ''
+}
+
+async function clipboardPaste() {
+  if (!clipboard.items.length || pasting.value) return
+
+  if (clipboard.mode === 'cut' && clipboard.sourceFolder === currentFolder.value) {
+    alert('请先导航到目标文件夹再粘贴')
+    return
+  }
+
+  pasting.value = true
+  const errors: string[] = []
+
+  if (clipboard.mode === 'copy') {
+    try {
+      const res = await authFetch<{ results: Array<{ source: string; error?: string }> }>('/api/media/copy', {
+        method: 'POST',
+        body: {
+          files: clipboard.items.map(i => i.sourcePath),
+          targetFolder: currentFolder.value,
+        },
+      })
+      for (const r of res.results) {
+        if (r.error) errors.push(`${r.source}: ${r.error}`)
+      }
+    } catch (e: any) {
+      errors.push(e?.data?.statusMessage || '复制失败')
+    }
+  } else {
+    for (const item of clipboard.items) {
+      try {
+        await authFetch(`/api/media/${item.sourcePath}`, {
+          method: 'PUT',
+          body: { folder: currentFolder.value },
+        })
+      } catch (e: any) {
+        errors.push(`${item.name}: ${e?.data?.statusMessage || '移动失败'}`)
+      }
+    }
+  }
+
+  pasting.value = false
+  clipboardClear()
+  await loadMedia()
+
+  if (errors.length) {
+    alert('部分操作失败：\n' + errors.join('\n'))
+  }
+}
+
+const cutUrls = computed(() => {
+  if (clipboard.mode !== 'cut' || clipboard.sourceFolder !== currentFolder.value) return new Set<string>()
+  return new Set(clipboard.items.map(i => i.url))
+})
 
 function startRename(item: MediaItem) {
   const urlPath = item.url.replace('/uploads/', '')
@@ -777,7 +898,30 @@ async function onDrop(e: DragEvent) {
   handleFiles(dataTransfer.files)
 }
 
-onMounted(() => loadMedia())
+function handleKeyboard(e: KeyboardEvent) {
+  const tag = (e.target as HTMLElement)?.tagName
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+  const mod = e.metaKey || e.ctrlKey
+  if (mod && e.key === 'c') {
+    e.preventDefault()
+    if (selectedUrls.value.size > 0) clipboardCopy()
+  } else if (mod && e.key === 'x') {
+    e.preventDefault()
+    if (selectedUrls.value.size > 0) clipboardCut()
+  } else if (mod && e.key === 'v') {
+    e.preventDefault()
+    if (clipboard.items.length > 0) clipboardPaste()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeyboard)
+  loadMedia()
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyboard)
+})
 </script>
 
 <style scoped>

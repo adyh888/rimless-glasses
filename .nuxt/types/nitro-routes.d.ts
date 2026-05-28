@@ -56,6 +56,9 @@ declare module "nitropack/types" {
     '/api/media/**:path': {
       'put': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/media/[...path].put').default>>>>
     }
+    '/api/media/copy': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/media/copy.post').default>>>>
+    }
     '/api/messages/:id': {
       'delete': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/messages/[id].delete').default>>>>
       'put': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/messages/[id].put').default>>>>
