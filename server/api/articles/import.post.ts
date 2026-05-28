@@ -4,6 +4,16 @@ import { v4 as uuidv4 } from 'uuid'
 
 const UPLOAD_DIR = resolve(process.cwd(), 'public/uploads')
 
+function getArticleMediaDir(): { dir: string; folderPath: string } {
+  const now = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`
+  const folderPath = `文章内容/${timestamp}`
+  const dir = resolve(UPLOAD_DIR, folderPath)
+  mkdirSync(dir, { recursive: true })
+  return { dir, folderPath }
+}
+
 const MIME_TO_EXT: Record<string, string> = {
   'image/jpeg': '.jpg',
   'image/png': '.png',
@@ -55,12 +65,13 @@ export default defineEventHandler(async (event) => {
 
   const mediaUrls = extractMediaUrls(content)
   const urlMap = new Map<string, string>()
+  const mediaDir = mediaUrls.length > 0 ? getArticleMediaDir() : null
 
   for (const mediaUrl of mediaUrls) {
     const absoluteUrl = resolveUrl(mediaUrl, baseUrl)
     if (!absoluteUrl || urlMap.has(mediaUrl)) continue
     try {
-      const localUrl = await downloadMedia(absoluteUrl)
+      const localUrl = await downloadMedia(absoluteUrl, mediaDir!)
       if (localUrl) urlMap.set(mediaUrl, localUrl)
     } catch {}
   }
@@ -93,7 +104,7 @@ function resolveUrl(src: string, base: URL): string | null {
   }
 }
 
-async function downloadMedia(url: string): Promise<string | null> {
+async function downloadMedia(url: string, mediaDir: { dir: string; folderPath: string }): Promise<string | null> {
   try {
     const res = await fetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ArticleImporter/1.0)' },
@@ -117,8 +128,8 @@ async function downloadMedia(url: string): Promise<string | null> {
     }
 
     const filename = `${uuidv4()}${ext}`
-    writeFileSync(resolve(UPLOAD_DIR, filename), buffer)
-    return `/uploads/${filename}`
+    writeFileSync(resolve(mediaDir.dir, filename), buffer)
+    return `/uploads/${mediaDir.folderPath}/${filename}`
   } catch {
     return null
   }
