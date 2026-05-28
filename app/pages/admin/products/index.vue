@@ -35,18 +35,37 @@
       </div>
 
       <!-- Category pills -->
-      <div v-if="allCategories.length > 1" class="flex flex-wrap gap-2">
+      <div v-if="allCategories.length > 1" class="flex flex-wrap gap-2 items-center">
         <button
-          v-for="cat in allCategories"
-          :key="cat"
           class="px-4 py-1.5 text-xs rounded-full transition-colors"
-          :class="selectedCategory === cat
+          :class="selectedCategory === '全部'
             ? 'bg-primary text-white'
             : 'bg-gray-100 text-secondary hover:bg-gray-200'"
+          @click="selectCategory('全部')"
+        >
+          全部
+        </button>
+        <button
+          v-for="(cat, idx) in draggableCategories"
+          :key="cat"
+          draggable="true"
+          class="px-4 py-1.5 text-xs rounded-full transition-colors cursor-grab active:cursor-grabbing select-none"
+          :class="[
+            selectedCategory === cat
+              ? 'bg-primary text-white'
+              : 'bg-gray-100 text-secondary hover:bg-gray-200',
+            catDragIdx === idx ? 'opacity-50 ring-2 ring-accent' : '',
+            catDragOverIdx === idx && catDragIdx !== idx ? 'ring-2 ring-gray-300' : '',
+          ]"
           @click="selectCategory(cat)"
+          @dragstart="catDragIdx = idx"
+          @dragover.prevent="catDragOverIdx = idx"
+          @drop.prevent="onCatDrop"
+          @dragend="catDragIdx = -1; catDragOverIdx = -1"
         >
           {{ cat }}
         </button>
+        <span v-if="draggableCategories.length > 1" class="text-[10px] text-gray-300 ml-1">拖拽排序</span>
       </div>
 
       <!-- Sub-category pills -->
@@ -221,9 +240,12 @@ watch(pageSize, (v) => {
 
 const searchQuery = ref('')
 const allCategories = ref<string[]>([])
+const draggableCategories = ref<string[]>([])
 const categorySubMap = ref<Record<string, string[]>>({})
 const selectedCategory = ref('全部')
 const selectedSubCategory = ref('全部')
+const catDragIdx = ref(-1)
+const catDragOverIdx = ref(-1)
 
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
 
@@ -341,8 +363,11 @@ async function loadProducts() {
 }
 
 async function loadCategories() {
-  const data = await $fetch<any>('/api/products', { query: { limit: 9999 } })
-  const items = data.items || []
+  const [prodData, orderData] = await Promise.all([
+    $fetch<any>('/api/products', { query: { limit: 9999 } }),
+    $fetch<any>('/api/content/product_category_order'),
+  ])
+  const items = prodData.items || []
   const cats = new Set<string>()
   const map: Record<string, Set<string>> = {}
   for (const p of items) {
@@ -352,10 +377,35 @@ async function loadCategories() {
       if (p.sub_category) map[p.category].add(p.sub_category)
     }
   }
-  allCategories.value = ['全部', ...cats]
+
+  let savedOrder: string[] = []
+  try { savedOrder = JSON.parse(orderData.content || '[]') } catch {}
+
+  const allCats = [...cats]
+  const sorted = savedOrder.filter(c => allCats.includes(c))
+  const rest = allCats.filter(c => !sorted.includes(c))
+  const ordered = [...sorted, ...rest]
+
+  draggableCategories.value = ordered
+  allCategories.value = ['全部', ...ordered]
   categorySubMap.value = Object.fromEntries(
     Object.entries(map).map(([k, v]) => [k, [...v]])
   )
+}
+
+async function onCatDrop() {
+  if (catDragIdx.value === -1 || catDragOverIdx.value === -1 || catDragIdx.value === catDragOverIdx.value) return
+  const items = [...draggableCategories.value]
+  const [moved] = items.splice(catDragIdx.value, 1)
+  items.splice(catDragOverIdx.value, 0, moved)
+  draggableCategories.value = items
+  allCategories.value = ['全部', ...items]
+  catDragIdx.value = -1
+  catDragOverIdx.value = -1
+  await authFetch('/api/content/product_category_order', {
+    method: 'PUT',
+    body: { content: JSON.stringify(items) },
+  })
 }
 
 async function copyProduct(product: any) {

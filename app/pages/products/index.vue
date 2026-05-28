@@ -69,11 +69,17 @@ const { data } = await useFetch('/api/products', {
   query: { active_only: 'true', limit: 50 },
 })
 
+const { data: catOrderData } = await useFetch('/api/content/product_category_order')
+
 const allProducts = computed(() => (data.value as any)?.items || [])
 
 const categories = computed(() => {
-  const cats = ['全部', ...new Set(allProducts.value.map((p: any) => p.category).filter(Boolean))]
-  return cats
+  const rawCats = [...new Set(allProducts.value.map((p: any) => p.category).filter(Boolean))]
+  let savedOrder: string[] = []
+  try { savedOrder = JSON.parse((catOrderData.value as any)?.content || '[]') } catch {}
+  const sorted = savedOrder.filter((c: string) => rawCats.includes(c))
+  const rest = rawCats.filter((c: string) => !sorted.includes(c))
+  return ['全部', ...sorted, ...rest]
 })
 
 const selectedCategory = ref('全部')
