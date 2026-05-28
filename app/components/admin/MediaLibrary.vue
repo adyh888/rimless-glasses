@@ -27,8 +27,32 @@
             </div>
           </div>
 
+          <!-- Breadcrumb -->
+          <div class="flex items-center gap-1 text-xs px-6 pt-3">
+            <button
+              @click="navigateToFolder('')"
+              class="hover:text-accent transition-colors"
+              :class="currentFolder ? 'text-secondary' : 'text-primary font-medium'"
+            >
+              <svg class="w-3.5 h-3.5 inline -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/>
+              </svg>
+              根目录
+            </button>
+            <template v-for="(crumb, idx) in breadcrumbs" :key="crumb.path">
+              <svg class="w-2.5 h-2.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+              <button
+                @click="navigateToFolder(crumb.path)"
+                class="hover:text-accent transition-colors"
+                :class="idx === breadcrumbs.length - 1 ? 'text-primary font-medium' : 'text-secondary'"
+              >{{ crumb.name }}</button>
+            </template>
+          </div>
+
           <!-- Upload area -->
-          <div class="px-6 pt-4">
+          <div class="px-6 pt-3">
             <div
               class="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:border-accent transition-colors"
               @click="uploadInput?.click()"
@@ -51,7 +75,21 @@
 
           <!-- Media grid -->
           <div class="flex-1 overflow-y-auto p-6">
-            <div v-if="items.length" class="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3">
+            <div v-if="folders.length || items.length" class="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3">
+              <!-- Folders -->
+              <div
+                v-for="folder in folders"
+                :key="'folder-' + folder.path"
+                class="relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 border-transparent hover:border-amber-300 transition-all group bg-amber-50/50 flex flex-col items-center justify-center"
+                @click="navigateToFolder(folder.path)"
+              >
+                <svg class="w-10 h-10 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z"/>
+                </svg>
+                <p class="text-[10px] text-primary mt-1.5 truncate px-1 max-w-full text-center">{{ folder.name }}</p>
+              </div>
+
+              <!-- Files -->
               <div
                 v-for="item in items"
                 :key="item.url"
@@ -198,6 +236,11 @@ interface MediaItem {
   mtime: number
 }
 
+interface FolderItem {
+  name: string
+  path: string
+}
+
 const props = defineProps<{
   modelValue: boolean
   multiple?: boolean
@@ -211,9 +254,11 @@ const overlayRef = ref<HTMLElement>()
 const uploadInput = ref<HTMLInputElement>()
 const uploading = ref(false)
 const deleting = ref(false)
+const folders = ref<FolderItem[]>([])
 const items = ref<MediaItem[]>([])
 const total = ref(0)
 const currentPage = ref(1)
+const currentFolder = ref('')
 const selectedUrls = ref(new Set<string>())
 const filter = ref('all')
 const preview = reactive({ show: false, url: '', name: '', type: '' })
@@ -224,12 +269,22 @@ const filters = [
   { label: '视频', value: 'video' },
 ]
 
+const breadcrumbs = computed(() => {
+  if (!currentFolder.value) return []
+  const parts = currentFolder.value.split('/')
+  return parts.map((name, i) => ({
+    name,
+    path: parts.slice(0, i + 1).join('/'),
+  }))
+})
+
 const totalPages = computed(() => Math.ceil(total.value / PAGE_SIZE))
 
 watch(() => props.modelValue, async (val) => {
   if (val) {
     selectedUrls.value = new Set()
     currentPage.value = 1
+    currentFolder.value = ''
     filter.value = 'all'
     document.body.style.overflow = 'hidden'
     await loadMedia()
@@ -243,18 +298,28 @@ onUnmounted(() => {
   document.body.style.overflow = ''
 })
 
+function navigateToFolder(path: string) {
+  currentFolder.value = path
+  currentPage.value = 1
+  selectedUrls.value = new Set()
+  loadMedia()
+}
+
 async function loadMedia() {
   try {
-    const res = await $fetch<{ items: MediaItem[]; total: number }>('/api/media', {
+    const res = await $fetch<{ folders: FolderItem[]; items: MediaItem[]; total: number }>('/api/media', {
       params: {
+        folder: currentFolder.value,
         page: currentPage.value,
         limit: PAGE_SIZE,
         type: filter.value,
       },
     })
+    folders.value = res.folders
     items.value = res.items
     total.value = res.total
   } catch {
+    folders.value = []
     items.value = []
     total.value = 0
   }
@@ -348,6 +413,7 @@ async function uploadFile(file: File): Promise<string | null> {
       method: 'POST',
       body: formData,
       headers: authHeaders(),
+      params: currentFolder.value ? { folder: currentFolder.value } : undefined,
     })
     return res.url
   } catch (e: any) {

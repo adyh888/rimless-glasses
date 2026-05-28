@@ -1,10 +1,5 @@
 import { readFileSync, statSync, existsSync } from 'fs'
-import { resolve, normalize, sep } from 'path'
-
-// 运行时上传目录：
-// - 开发模式  process.cwd() = 项目根  →  <root>/public/uploads
-// - 生产/Docker  process.cwd() = /app  →  /app/public/uploads（entrypoint 已软链到 /app/uploads）
-const UPLOAD_ROOT = resolve(process.cwd(), 'public/uploads')
+import { safePath } from '../../utils/media'
 
 const MIME: Record<string, string> = {
   '.jpg': 'image/jpeg',
@@ -20,16 +15,8 @@ const MIME: Record<string, string> = {
 
 export default defineEventHandler((event) => {
   const path = getRouterParam(event, 'path') || ''
-  // 防穿越：不允许出现 .. 或绝对路径
-  const safe = normalize(path).replace(/^[/\\]+/, '')
-  if (safe.startsWith('..') || safe.includes(`..${sep}`)) {
-    throw createError({ statusCode: 400, statusMessage: 'invalid path' })
-  }
+  const full = safePath(path)
 
-  const full = resolve(UPLOAD_ROOT, safe)
-  if (!full.startsWith(UPLOAD_ROOT)) {
-    throw createError({ statusCode: 400, statusMessage: 'invalid path' })
-  }
   if (!existsSync(full)) {
     throw createError({ statusCode: 404, statusMessage: 'not found' })
   }

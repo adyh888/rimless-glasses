@@ -1,7 +1,6 @@
 import { readdirSync, statSync } from 'fs'
 import { resolve } from 'path'
-
-const UPLOAD_ROOT = resolve(process.cwd(), 'public/uploads')
+import { UPLOAD_ROOT, safePath } from '../utils/media'
 
 const EXT_TYPE: Record<string, string> = {
   '.jpg': 'image', '.jpeg': 'image', '.png': 'image',
@@ -16,26 +15,40 @@ export default defineEventHandler((event) => {
   const limit = limitRaw > 0 ? Math.min(100, limitRaw) : 0
   const search = String(query.search || '').toLowerCase()
   const type = String(query.type || '')
+  const folder = String(query.folder || '').trim()
 
-  let files: string[]
+  const dir = folder ? safePath(folder) : UPLOAD_ROOT
+  const folderPrefix = folder ? folder.replace(/\\/g, '/').replace(/\/+$/, '') : ''
+
+  let entries: import('fs').Dirent[]
   try {
-    files = readdirSync(UPLOAD_ROOT)
+    entries = readdirSync(dir, { withFileTypes: true })
   } catch {
-    return limit ? { items: [], total: 0, page, limit } : []
+    return { folders: [], items: [], total: 0, page, limit: limit || 24, currentFolder: folderPrefix }
   }
 
-  let items = files
-    .filter(f => {
-      const ext = f.slice(f.lastIndexOf('.')).toLowerCase()
+  const folders = entries
+    .filter(e => e.isDirectory() && !e.name.startsWith('.'))
+    .map(e => ({
+      name: e.name,
+      path: folderPrefix ? `${folderPrefix}/${e.name}` : e.name,
+    }))
+    .filter(f => !search || f.name.toLowerCase().includes(search))
+    .sort((a, b) => a.name.localeCompare(b.name))
+
+  let items = entries
+    .filter(e => {
+      if (!e.isFile()) return false
+      const ext = e.name.slice(e.name.lastIndexOf('.')).toLowerCase()
       return !!EXT_TYPE[ext]
     })
-    .map(f => {
-      const full = resolve(UPLOAD_ROOT, f)
+    .map(e => {
+      const full = resolve(dir, e.name)
       const stat = statSync(full)
-      const ext = f.slice(f.lastIndexOf('.')).toLowerCase()
+      const ext = e.name.slice(e.name.lastIndexOf('.')).toLowerCase()
       return {
-        url: `/uploads/${f}`,
-        name: f,
+        url: folderPrefix ? `/uploads/${folderPrefix}/${e.name}` : `/uploads/${e.name}`,
+        name: e.name,
         type: EXT_TYPE[ext] || 'image',
         size: stat.size,
         mtime: stat.mtimeMs,
@@ -50,9 +63,10 @@ export default defineEventHandler((event) => {
     items = items.filter(i => i.name.toLowerCase().includes(search))
   }
 
-  if (!limit) return items
-
   const total = items.length
-  const start = (page - 1) * limit
-  return { items: items.slice(start, start + limit), total, page, limit }
+  if (limit) {
+    const start = (page - 1) * limit
+    return { folders, items: items.slice(start, start + limit), total, page, limit, currentFolder: folderPrefix }
+  }
+  return { folders, items, total, page: 1, limit: 0, currentFolder: folderPrefix }
 })

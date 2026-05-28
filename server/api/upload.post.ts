@@ -1,9 +1,9 @@
-import { writeFileSync } from 'fs'
+import { writeFileSync, mkdirSync } from 'fs'
 import { resolve } from 'path'
 import { v4 as uuidv4 } from 'uuid'
 import sharp from 'sharp'
 import db from '../utils/db'
-import { VIDEO_MIME_MAP } from '../utils/media'
+import { UPLOAD_ROOT, VIDEO_MIME_MAP, safePath } from '../utils/media'
 
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 const MAX_IMAGE_WIDTH = 1920
@@ -16,6 +16,15 @@ export default defineEventHandler(async (event) => {
   }
   const file = formData[0]!
   const mimeType = file.type || ''
+
+  const query = getQuery(event)
+  const folder = String(query.folder || '').trim()
+  let uploadDir = UPLOAD_ROOT
+  if (folder) {
+    uploadDir = safePath(folder)
+    mkdirSync(uploadDir, { recursive: true })
+  }
+  const urlPrefix = folder ? `/uploads/${folder.replace(/\\/g, '/')}` : '/uploads'
 
   const isImage = IMAGE_TYPES.includes(mimeType)
   const isVideo = Object.values(VIDEO_MIME_MAP).includes(mimeType)
@@ -42,9 +51,8 @@ export default defineEventHandler(async (event) => {
 
     const ext = (file.filename || 'file').split('.').pop() || 'mp4'
     const filename = `${uuidv4()}.${ext}`
-    const uploadDir = resolve(process.cwd(), 'public/uploads')
     writeFileSync(resolve(uploadDir, filename), file.data)
-    return { url: `/uploads/${filename}` }
+    return { url: `${urlPrefix}/${filename}` }
   }
 
   const maxSizeRow = db.prepare('SELECT content FROM site_content WHERE key = ?').get('upload_max_size') as { content: string } | undefined
@@ -55,7 +63,6 @@ export default defineEventHandler(async (event) => {
   }
 
   const filename = `${uuidv4()}.webp`
-  const uploadDir = resolve(process.cwd(), 'public/uploads')
 
   const optimized = await sharp(file.data)
     .resize({ width: MAX_IMAGE_WIDTH, withoutEnlargement: true })
@@ -63,5 +70,5 @@ export default defineEventHandler(async (event) => {
     .toBuffer()
 
   writeFileSync(resolve(uploadDir, filename), optimized)
-  return { url: `/uploads/${filename}` }
+  return { url: `${urlPrefix}/${filename}` }
 })

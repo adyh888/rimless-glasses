@@ -1,6 +1,7 @@
 declare global {
   const H3Error: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').H3Error
   const H3Event: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').H3Event
+  const UPLOAD_ROOT: typeof import('../../server/utils/media').UPLOAD_ROOT
   const VIDEO_MIME_MAP: typeof import('../../server/utils/media').VIDEO_MIME_MAP
   const __buildAssetsURL: typeof import('../../node_modules/.pnpm/@nuxt+nitro-server@4.4.6_@babel+plugin-syntax-typescript@7.29.7_@babel+core@7.29.7__bet_7c0987fa8668e44f5aa819aff9cb10a5/node_modules/@nuxt/nitro-server/dist/runtime/utils/paths').buildAssetsURL
   const __publicAssetsURL: typeof import('../../node_modules/.pnpm/@nuxt+nitro-server@4.4.6_@babel+plugin-syntax-typescript@7.29.7_@babel+core@7.29.7__bet_7c0987fa8668e44f5aa819aff9cb10a5/node_modules/@nuxt/nitro-server/dist/runtime/utils/paths').publicAssetsURL
@@ -97,6 +98,7 @@ declare global {
   const readValidatedBody: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').readValidatedBody
   const removeResponseHeader: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').removeResponseHeader
   const runTask: typeof import('../../node_modules/.pnpm/nitropack@2.13.4_better-sqlite3@12.10.0_oxc-parser@0.131.0_srvx@0.11.16/node_modules/nitropack/dist/runtime/internal/task').runTask
+  const safePath: typeof import('../../server/utils/media').safePath
   const sanitizeStatusCode: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').sanitizeStatusCode
   const sanitizeStatusMessage: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').sanitizeStatusMessage
   const sealSession: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').sealSession
@@ -131,6 +133,7 @@ declare global {
   const useRuntimeConfig: typeof import('../../node_modules/.pnpm/nitropack@2.13.4_better-sqlite3@12.10.0_oxc-parser@0.131.0_srvx@0.11.16/node_modules/nitropack/dist/runtime/internal/config').useRuntimeConfig
   const useSession: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').useSession
   const useStorage: typeof import('../../node_modules/.pnpm/nitropack@2.13.4_better-sqlite3@12.10.0_oxc-parser@0.131.0_srvx@0.11.16/node_modules/nitropack/dist/runtime/internal/storage').useStorage
+  const validateName: typeof import('../../server/utils/media').validateName
   const verifyPassword: typeof import('../../server/utils/auth').verifyPassword
   const verifyToken: typeof import('../../server/utils/auth').verifyToken
   const writeEarlyHints: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').writeEarlyHints
@@ -157,4 +160,4 @@ export { buildAssetsURL as __buildAssetsURL, publicAssetsURL as __publicAssetsUR
 export { defineAppConfig } from '/Users/liqian/Desktop/Demo/2026-05/glasses/node_modules/.pnpm/@nuxt+nitro-server@4.4.6_@babel+plugin-syntax-typescript@7.29.7_@babel+core@7.29.7__bet_7c0987fa8668e44f5aa819aff9cb10a5/node_modules/@nuxt/nitro-server/dist/runtime/utils/config';
 export { hashPassword, verifyPassword, signToken, verifyToken, getAuthUser } from '/Users/liqian/Desktop/Demo/2026-05/glasses/server/utils/auth';
 export { db } from '/Users/liqian/Desktop/Demo/2026-05/glasses/server/utils/db';
-export { isVideoUrl, VIDEO_MIME_MAP } from '/Users/liqian/Desktop/Demo/2026-05/glasses/server/utils/media';
+export { UPLOAD_ROOT, isVideoUrl, VIDEO_MIME_MAP, safePath, validateName } from '/Users/liqian/Desktop/Demo/2026-05/glasses/server/utils/media';

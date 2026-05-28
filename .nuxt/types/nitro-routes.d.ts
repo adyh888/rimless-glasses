@@ -43,11 +43,18 @@ declare module "nitropack/types" {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/content/[key].get').default>>>>
       'put': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/content/[key].put').default>>>>
     }
+    '/api/folders/**:path': {
+      'delete': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/folders/[...path].delete').default>>>>
+      'put': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/folders/[...path].put').default>>>>
+    }
+    '/api/folders': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/folders/index.post').default>>>>
+    }
     '/api/media': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/media.get').default>>>>
     }
-    '/api/media/:name': {
-      'put': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/media/[name].put').default>>>>
+    '/api/media/**:path': {
+      'put': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/media/[...path].put').default>>>>
     }
     '/api/messages/:id': {
       'delete': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/messages/[id].delete').default>>>>
