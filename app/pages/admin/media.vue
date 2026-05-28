@@ -375,15 +375,39 @@
           v-if="preview.show"
           class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90"
           @click.self="preview.show = false"
+          @keydown.left.prevent="previewPrev"
+          @keydown.right.prevent="previewNext"
+          @keydown.esc.prevent="preview.show = false"
+          tabindex="0"
+          ref="previewOverlayRef"
         >
           <button
             type="button"
             @click="preview.show = false"
             class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-white/70 hover:text-white text-3xl z-10"
           >&times;</button>
+          <!-- Prev -->
+          <button
+            v-if="preview.index > 0"
+            type="button"
+            @click.stop="previewPrev"
+            class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-black/50 text-white/70 hover:text-white hover:bg-black/70 transition-colors z-10"
+          >
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <!-- Next -->
+          <button
+            v-if="preview.index < items.length - 1"
+            type="button"
+            @click.stop="previewNext"
+            class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-black/50 text-white/70 hover:text-white hover:bg-black/70 transition-colors z-10"
+          >
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
           <div class="text-center" @click.stop>
             <video
               v-if="preview.type === 'video'"
+              :key="preview.url"
               :src="preview.url"
               controls
               autoplay
@@ -391,11 +415,12 @@
             />
             <img
               v-else
+              :key="preview.url"
               :src="preview.url"
               :alt="preview.name"
               class="max-w-[90vw] max-h-[80vh] object-contain rounded-lg"
             />
-            <p class="mt-3 text-white/70 text-sm">{{ preview.name }}</p>
+            <p class="mt-3 text-white/70 text-sm">{{ preview.name }} ({{ preview.index + 1 }}/{{ items.length }})</p>
           </div>
         </div>
       </Transition>
@@ -450,12 +475,13 @@ const dragging = ref(false)
 const uploadInput = ref<HTMLInputElement>()
 const folderUploadInput = ref<HTMLInputElement>()
 const newFolderInput = ref<HTMLInputElement>()
+const previewOverlayRef = ref<HTMLElement>()
 const showNewFolderModal = ref(false)
 const newFolderName = ref('')
 
 const renameModal = reactive({ show: false, oldName: '', newName: '', filePath: '' })
 const renameFolderModal = reactive({ show: false, folderPath: '', newName: '' })
-const preview = reactive({ show: false, url: '', name: '', type: '' })
+const preview = reactive({ show: false, url: '', name: '', type: '', index: 0 })
 
 const clipboard = reactive({
   items: [] as { url: string; name: string; sourcePath: string }[],
@@ -554,10 +580,33 @@ function toggleSelect(item: MediaItem) {
 }
 
 function openPreview(item: MediaItem) {
+  const idx = items.value.findIndex(i => i.url === item.url)
   preview.url = item.url
   preview.name = item.name
   preview.type = item.type
+  preview.index = idx >= 0 ? idx : 0
   preview.show = true
+  nextTick(() => previewOverlayRef.value?.focus())
+}
+
+function previewPrev() {
+  if (preview.index <= 0) return
+  const item = items.value[preview.index - 1]
+  if (!item) return
+  preview.index--
+  preview.url = item.url
+  preview.name = item.name
+  preview.type = item.type
+}
+
+function previewNext() {
+  if (preview.index >= items.value.length - 1) return
+  const item = items.value[preview.index + 1]
+  if (!item) return
+  preview.index++
+  preview.url = item.url
+  preview.name = item.name
+  preview.type = item.type
 }
 
 watch(() => preview.show, (val) => {
