@@ -21,6 +21,10 @@ export default defineEventHandler((event) => {
     sql += ' AND sub_category = ?'
     params.push(query.sub_category)
   }
+  if (query.search) {
+    sql += ' AND name LIKE ?'
+    params.push(`%${query.search}%`)
+  }
   sql += ' ORDER BY sort_order ASC'
   const page = parseInt(query.page as string) || 1
   const limit = parseInt(query.limit as string) || 50
