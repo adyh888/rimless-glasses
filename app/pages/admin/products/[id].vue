@@ -141,8 +141,6 @@ const showPreview = ref(false)
 const previewSrc = ref('')
 const dragIdx = ref(-1)
 const dragOverIdx = ref(-1)
-const originalImages = ref<string[]>([])
-
 const form = reactive({
   name: '',
   slug: '',
@@ -172,7 +170,6 @@ if (!isNew) {
     try {
       form.images = JSON.parse(data.images_json || '[]')
     } catch { form.images = [] }
-    originalImages.value = [...form.images]
     try {
       const specs = JSON.parse(data.specs_json || '{}')
       form.specRows = Object.entries(specs).map(([key, value]) => ({ key, value: value as string }))
@@ -205,22 +202,7 @@ function onDragEnd() {
   dragOverIdx.value = -1
 }
 
-async function deleteUploadFile(url: string) {
-  if (!url) return
-  try {
-    const path = url.replace('/uploads/', '')
-    await $fetch(`/uploads/${path}`, { method: 'DELETE' })
-  } catch { /* ignore */ }
-}
-
 async function save() {
-  // 删除被移除的图片
-  const removedImages = originalImages.value.filter(img => !form.images.includes(img))
-  for (const img of removedImages) {
-    await deleteUploadFile(img)
-  }
-
-  saving.value = true
   saving.value = true
   const specs: Record<string, string> = {}
   form.specRows.forEach(r => { if (r.key) specs[r.key] = r.value })
