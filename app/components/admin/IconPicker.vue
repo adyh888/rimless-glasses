@@ -42,25 +42,18 @@
           </div>
 
           <div class="border-t border-gray-100 pt-3">
-            <p class="text-xs text-secondary mb-2">或上传/选择图标图片</p>
-            <p class="text-[10px] text-gray-400 mb-2">建议正方形图片，将按 1:1 裁剪显示</p>
+            <p class="text-xs text-secondary mb-2">从素材库选择图标</p>
+            <p class="text-[10px] text-gray-400 mb-2">建议正方形图片，选择后可裁剪为 1:1 比例</p>
             <div v-if="isImage" class="flex items-center gap-3 mb-2">
               <img :src="modelValue" class="w-8 h-8 object-contain rounded border border-gray-100" alt="" />
+              <button type="button" @click="openCropper(modelValue)" class="text-xs text-accent hover:underline">裁剪</button>
               <button type="button" @click="clearImage" class="text-xs text-red-500 hover:underline">移除</button>
             </div>
-            <div class="flex gap-3">
-              <button
-                type="button"
-                @click="triggerUpload"
-                class="text-xs text-accent hover:underline"
-              >{{ isImage ? '重新上传' : '上传图片' }}</button>
-              <button
-                type="button"
-                @click="showLibrary = true"
-                class="text-xs text-accent hover:underline"
-              >从素材库选择</button>
-            </div>
-            <input ref="fileRef" type="file" accept="image/*" class="hidden" @change="onFileChange" />
+            <button
+              type="button"
+              @click="showLibrary = true"
+              class="text-xs text-accent hover:underline"
+            >{{ isImage ? '重新选择' : '选择图片' }}</button>
           </div>
         </div>
       </div>
@@ -88,7 +81,6 @@ const emit = defineEmits<{
 const isOpen = ref(false)
 const triggerRef = ref<HTMLButtonElement>()
 const panelRef = ref<HTMLElement>()
-const fileRef = ref<HTMLInputElement>()
 const showLibrary = ref(false)
 const cropperShow = ref(false)
 const cropperSrc = ref('')
@@ -135,27 +127,16 @@ function clearImage() {
   emit('update:modelValue', '')
 }
 
-function triggerUpload() {
-  fileRef.value?.click()
-}
-
-function onFileChange(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = () => {
-    cropperSrc.value = reader.result as string
-    cropperShow.value = true
-  }
-  reader.readAsDataURL(file)
-  ;(e.target as HTMLInputElement).value = ''
-}
-
 function onLibrarySelect(urls: string[]) {
   if (urls.length > 0) {
-    cropperSrc.value = urls[0]
-    cropperShow.value = true
+    emit('update:modelValue', urls[0])
+    isOpen.value = false
   }
+}
+
+function openCropper(src: string) {
+  cropperSrc.value = src
+  cropperShow.value = true
 }
 
 function onCropped(url: string) {
