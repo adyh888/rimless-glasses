@@ -245,7 +245,15 @@ interface MediaItem {
 const items = ref<MediaItem[]>([])
 const total = ref(0)
 const currentPage = ref(1)
+const PAGESIZE_KEY = 'admin-media-pagesize'
 const pageSize = ref(24)
+if (import.meta.client) {
+  const saved = localStorage.getItem(PAGESIZE_KEY)
+  if (saved) pageSize.value = Number(saved) || 24
+}
+watch(pageSize, (v) => {
+  if (import.meta.client) localStorage.setItem(PAGESIZE_KEY, String(v))
+})
 const filterType = ref('all')
 const searchQuery = ref('')
 const selectedUrls = ref(new Set<string>())

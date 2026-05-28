@@ -11,6 +11,7 @@
           muted
           loop
           playsinline
+          preload="auto"
         />
         <div
           v-else

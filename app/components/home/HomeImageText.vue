@@ -7,6 +7,8 @@
             <img
               :src="image || 'https://via.placeholder.com/800x600'"
               :alt="heading"
+              loading="lazy"
+              decoding="async"
               class="w-full h-full object-cover"
             />
           </div>

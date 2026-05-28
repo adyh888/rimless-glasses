@@ -1,10 +1,13 @@
 import { writeFileSync } from 'fs'
 import { resolve } from 'path'
 import { v4 as uuidv4 } from 'uuid'
+import sharp from 'sharp'
 import db from '../utils/db'
 import { VIDEO_MIME_MAP } from '../utils/media'
 
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const MAX_IMAGE_WIDTH = 1920
+const WEBP_QUALITY = 80
 
 export default defineEventHandler(async (event) => {
   const formData = await readMultipartFormData(event)
@@ -36,18 +39,29 @@ export default defineEventHandler(async (event) => {
     if (file.data.length > maxSizeBytes) {
       throw createError({ statusCode: 400, statusMessage: `视频文件大小不能超过 ${maxSizeMB}MB` })
     }
-  } else {
-    const maxSizeRow = db.prepare('SELECT content FROM site_content WHERE key = ?').get('upload_max_size') as { content: string } | undefined
-    const maxSizeMB = maxSizeRow?.content ? parseInt(maxSizeRow.content, 10) : 5
-    const maxSizeBytes = maxSizeMB * 1024 * 1024
-    if (file.data.length > maxSizeBytes) {
-      throw createError({ statusCode: 400, statusMessage: `图片文件大小不能超过 ${maxSizeMB}MB` })
-    }
+
+    const ext = (file.filename || 'file').split('.').pop() || 'mp4'
+    const filename = `${uuidv4()}.${ext}`
+    const uploadDir = resolve(process.cwd(), 'public/uploads')
+    writeFileSync(resolve(uploadDir, filename), file.data)
+    return { url: `/uploads/${filename}` }
   }
 
-  const ext = (file.filename || 'file').split('.').pop() || 'jpg'
-  const filename = `${uuidv4()}.${ext}`
+  const maxSizeRow = db.prepare('SELECT content FROM site_content WHERE key = ?').get('upload_max_size') as { content: string } | undefined
+  const maxSizeMB = maxSizeRow?.content ? parseInt(maxSizeRow.content, 10) : 5
+  const maxSizeBytes = maxSizeMB * 1024 * 1024
+  if (file.data.length > maxSizeBytes) {
+    throw createError({ statusCode: 400, statusMessage: `图片文件大小不能超过 ${maxSizeMB}MB` })
+  }
+
+  const filename = `${uuidv4()}.webp`
   const uploadDir = resolve(process.cwd(), 'public/uploads')
-  writeFileSync(resolve(uploadDir, filename), file.data)
+
+  const optimized = await sharp(file.data)
+    .resize({ width: MAX_IMAGE_WIDTH, withoutEnlargement: true })
+    .webp({ quality: WEBP_QUALITY })
+    .toBuffer()
+
+  writeFileSync(resolve(uploadDir, filename), optimized)
   return { url: `/uploads/${filename}` }
 })

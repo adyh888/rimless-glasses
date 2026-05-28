@@ -16,6 +16,8 @@
               <img
                 :src="article.cover_image || 'https://via.placeholder.com/600x375'"
                 :alt="article.title"
+                loading="lazy"
+                decoding="async"
                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
             </div>
