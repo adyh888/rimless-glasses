@@ -17,7 +17,7 @@
         :alt="siteName"
         class="w-full h-full object-cover"
       />
-      <div class="absolute inset-0 bg-black/20" />
+      <div class="absolute inset-0" :style="overlayStyle" />
     </section>
 
     <!-- Content -->
@@ -54,6 +54,16 @@
 <script setup lang="ts">
 const { data } = await useFetch('/api/content/about_us')
 const content = computed(() => (data.value as any)?.content || '')
+
+const { data: overlayData } = await useFetch('/api/content/about_overlay')
+const overlayStyle = computed(() => {
+  try {
+    const cfg = JSON.parse((overlayData.value as any)?.content || '{}')
+    return { backgroundColor: cfg.color || '#000000', opacity: (cfg.opacity ?? 20) / 100 }
+  } catch {
+    return { backgroundColor: '#000000', opacity: 0.2 }
+  }
+})
 
 const brandRef = await useBrandName()
 const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)

@@ -263,6 +263,64 @@
         @cropped="onAboutCropped"
       />
 
+      <!-- 蒙版设置 -->
+      <div class="mt-6 pt-6 border-t border-gray-100">
+        <h3 class="text-xs font-medium text-primary mb-3">图片蒙版效果</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs text-secondary mb-1.5">蒙版颜色</label>
+            <div class="flex items-center gap-3">
+              <input
+                v-model="aboutOverlay.color"
+                type="color"
+                class="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5"
+              />
+              <input
+                v-model="aboutOverlay.color"
+                type="text"
+                class="w-24 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+                placeholder="#000000"
+              />
+              <button
+                v-for="preset in overlayPresets"
+                :key="preset.color"
+                type="button"
+                class="w-8 h-8 rounded-full border-2 transition-all"
+                :class="aboutOverlay.color === preset.color ? 'border-accent scale-110' : 'border-gray-200 hover:border-gray-400'"
+                :style="{ backgroundColor: preset.color }"
+                :title="preset.label"
+                @click="aboutOverlay.color = preset.color"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs text-secondary mb-1.5">透明度：{{ aboutOverlay.opacity }}%</label>
+            <div class="flex items-center gap-3">
+              <input
+                v-model.number="aboutOverlay.opacity"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                class="flex-1 accent-primary"
+              />
+              <input
+                v-model.number="aboutOverlay.opacity"
+                type="number"
+                min="0"
+                max="100"
+                class="w-16 px-2 py-1.5 border border-gray-200 rounded-lg text-sm text-center focus:border-accent focus:outline-none"
+              />
+            </div>
+          </div>
+          <div v-if="aboutImage" class="relative h-24 rounded-lg overflow-hidden">
+            <img :src="aboutImage" class="w-full h-full object-cover" />
+            <div class="absolute inset-0" :style="{ backgroundColor: aboutOverlay.color, opacity: aboutOverlay.opacity / 100 }" />
+            <span class="absolute bottom-1 right-2 text-[10px] text-white/80">预览</span>
+          </div>
+        </div>
+      </div>
+
       <div class="mt-6">
         <button
           @click="saveAboutImage"
@@ -854,6 +912,14 @@ const savingNav = ref(false)
 const navSaved = ref(false)
 
 const aboutImage = ref('')
+const aboutOverlay = reactive({ color: '#000000', opacity: 20 })
+const overlayPresets = [
+  { color: '#000000', label: '黑色' },
+  { color: '#ffffff', label: '白色' },
+  { color: '#1a1a2e', label: '深蓝黑' },
+  { color: '#2d3436', label: '深灰' },
+  { color: '#0c3547', label: '深青' },
+]
 const savingAboutImage = ref(false)
 const aboutImageSaved = ref(false)
 const cropperShow = ref(false)
@@ -997,7 +1063,7 @@ const accountError = ref('')
 const currentUsername = computed(() => user.value?.username || '—')
 
 onMounted(async () => {
-  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes, socialRes, adminMenuRes, logoRes, accessKeyRes] = await Promise.all([
+  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes, socialRes, adminMenuRes, logoRes, accessKeyRes, aboutOverlayRes] = await Promise.all([
     $fetch<any>('/api/content/show_product_price'),
     $fetch<any>('/api/content/contact_info'),
     $fetch<any>('/api/content/brand_name_primary'),
@@ -1014,6 +1080,7 @@ onMounted(async () => {
     $fetch<any>('/api/content/admin_menu_items'),
     $fetch<any>('/api/content/site_logo'),
     $fetch<any>('/api/content/admin_access_key'),
+    $fetch<any>('/api/content/about_overlay'),
   ])
   showPrice.value = (priceRes?.content ?? '1') !== '0'
   uploadMaxSize.value = uploadSizeRes?.content ? parseInt(uploadSizeRes.content, 10) : 5
@@ -1063,6 +1130,13 @@ onMounted(async () => {
   }
 
   aboutImage.value = aboutImageRes?.content || ''
+  try {
+    const parsedOverlay = aboutOverlayRes?.content ? JSON.parse(aboutOverlayRes.content) : null
+    if (parsedOverlay) {
+      aboutOverlay.color = parsedOverlay.color || '#000000'
+      aboutOverlay.opacity = parsedOverlay.opacity ?? 20
+    }
+  } catch {}
 
   try {
     const parsedLogo = logoRes?.content ? JSON.parse(logoRes.content) : null
@@ -1176,10 +1250,16 @@ async function saveAboutImage() {
   savingAboutImage.value = true
   aboutImageSaved.value = false
   try {
-    await authFetch('/api/content/about_image', {
-      method: 'PUT',
-      body: { content: aboutImage.value },
-    })
+    await Promise.all([
+      authFetch('/api/content/about_image', {
+        method: 'PUT',
+        body: { content: aboutImage.value },
+      }),
+      authFetch('/api/content/about_overlay', {
+        method: 'PUT',
+        body: { content: JSON.stringify({ color: aboutOverlay.color, opacity: aboutOverlay.opacity }) },
+      }),
+    ])
     aboutImageSaved.value = true
     setTimeout(() => { aboutImageSaved.value = false }, 3000)
   } catch (e: any) {
