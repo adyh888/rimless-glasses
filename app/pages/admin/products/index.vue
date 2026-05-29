@@ -10,13 +10,21 @@
     <!-- Search & Filters Toolbar -->
     <div class="space-y-3 mb-6">
       <div class="flex items-center gap-4 flex-wrap">
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="搜索产品名称..."
-          class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none w-56"
-          @input="onSearchInput"
-        />
+        <div class="relative">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="搜索产品名称..."
+            class="px-3 py-1.5 pr-7 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none w-56"
+            @input="onSearchInput"
+          />
+          <button
+            v-if="searchQuery"
+            type="button"
+            @click="searchQuery = ''; currentPage = 1; loadProducts()"
+            class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-600"
+          >&times;</button>
+        </div>
         <div class="flex-1" />
         <div class="flex items-center gap-2">
           <label class="text-xs text-secondary">每页</label>

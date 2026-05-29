@@ -86,6 +86,13 @@ const categories = computed(() => {
 const selectedCategory = ref('全部')
 const selectedSubCategory = ref('全部')
 
+if (import.meta.client) {
+  const savedCat = sessionStorage.getItem('products-category')
+  const savedSub = sessionStorage.getItem('products-subcategory')
+  if (savedCat) selectedCategory.value = savedCat
+  if (savedSub) selectedSubCategory.value = savedSub
+}
+
 const subCategories = computed(() => {
   let products = allProducts.value
   if (selectedCategory.value !== '全部') {
@@ -103,8 +110,18 @@ const subCategories = computed(() => {
   return ['全部', ...sorted, ...rest]
 })
 
-watch(selectedCategory, () => {
+watch(selectedCategory, (v) => {
   selectedSubCategory.value = '全部'
+  if (import.meta.client) {
+    sessionStorage.setItem('products-category', v)
+    sessionStorage.setItem('products-subcategory', '全部')
+  }
+})
+
+watch(selectedSubCategory, (v) => {
+  if (import.meta.client) {
+    sessionStorage.setItem('products-subcategory', v)
+  }
 })
 
 const filteredProducts = computed(() => {
