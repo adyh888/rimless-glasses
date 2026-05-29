@@ -70,6 +70,7 @@ const { data } = await useFetch('/api/products', {
 })
 
 const { data: catOrderData } = await useFetch('/api/content/product_category_order')
+const { data: subOrderData } = await useFetch('/api/content/product_subcategory_order')
 
 const allProducts = computed(() => (data.value as any)?.items || [])
 
@@ -90,8 +91,16 @@ const subCategories = computed(() => {
   if (selectedCategory.value !== '全部') {
     products = products.filter((p: any) => p.category === selectedCategory.value)
   }
-  const subs = [...new Set(products.map((p: any) => p.sub_category).filter(Boolean))]
-  return subs.length > 0 ? ['全部', ...subs] : []
+  const rawSubs = [...new Set(products.map((p: any) => p.sub_category).filter(Boolean))]
+  if (rawSubs.length === 0) return []
+
+  let savedSubOrder: Record<string, string[]> = {}
+  try { savedSubOrder = JSON.parse((subOrderData.value as any)?.content || '{}') } catch {}
+
+  const catOrder = savedSubOrder[selectedCategory.value] || []
+  const sorted = catOrder.filter((s: string) => rawSubs.includes(s))
+  const rest = rawSubs.filter((s: string) => !sorted.includes(s))
+  return ['全部', ...sorted, ...rest]
 })
 
 watch(selectedCategory, () => {

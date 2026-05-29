@@ -69,18 +69,37 @@
       </div>
 
       <!-- Sub-category pills -->
-      <div v-if="subCategories.length > 0" class="flex flex-wrap gap-2">
+      <div v-if="subCategories.length > 0" class="flex flex-wrap gap-2 items-center">
         <button
-          v-for="sub in subCategories"
-          :key="sub"
           class="px-3 py-1 text-xs rounded-full transition-colors"
-          :class="selectedSubCategory === sub
+          :class="selectedSubCategory === '全部'
             ? 'bg-accent text-white'
             : 'bg-gray-50 text-secondary hover:bg-gray-100'"
+          @click="selectSubCategory('全部')"
+        >
+          全部
+        </button>
+        <button
+          v-for="(sub, idx) in draggableSubCategories"
+          :key="sub"
+          draggable="true"
+          class="px-3 py-1 text-xs rounded-full transition-colors cursor-grab active:cursor-grabbing select-none"
+          :class="[
+            selectedSubCategory === sub
+              ? 'bg-accent text-white'
+              : 'bg-gray-50 text-secondary hover:bg-gray-100',
+            subDragIdx === idx ? 'opacity-50 ring-2 ring-accent' : '',
+            subDragOverIdx === idx && subDragIdx !== idx ? 'ring-2 ring-gray-300' : '',
+          ]"
           @click="selectSubCategory(sub)"
+          @dragstart="subDragIdx = idx"
+          @dragover.prevent="subDragOverIdx = idx"
+          @drop.prevent="onSubDrop"
+          @dragend="subDragIdx = -1; subDragOverIdx = -1"
         >
           {{ sub }}
         </button>
+        <span v-if="draggableSubCategories.length > 1" class="text-[10px] text-gray-300 ml-1">拖拽排序</span>
       </div>
     </div>
 
@@ -242,10 +261,13 @@ const searchQuery = ref('')
 const allCategories = ref<string[]>([])
 const draggableCategories = ref<string[]>([])
 const categorySubMap = ref<Record<string, string[]>>({})
+const draggableSubCategories = ref<string[]>([])
 const selectedCategory = ref('全部')
 const selectedSubCategory = ref('全部')
 const catDragIdx = ref(-1)
 const catDragOverIdx = ref(-1)
+const subDragIdx = ref(-1)
+const subDragOverIdx = ref(-1)
 
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
 
@@ -267,8 +289,7 @@ const paginationRange = computed(() => {
 
 const subCategories = computed(() => {
   if (selectedCategory.value === '全部') return []
-  const subs = categorySubMap.value[selectedCategory.value] || []
-  return subs.length > 0 ? ['全部', ...subs] : []
+  return draggableSubCategories.value.length > 0 ? draggableSubCategories.value : []
 })
 
 function getFirstMedia(product: any) {
@@ -334,6 +355,11 @@ function selectCategory(cat: string) {
   selectedCategory.value = cat
   selectedSubCategory.value = '全部'
   currentPage.value = 1
+  if (cat !== '全部') {
+    draggableSubCategories.value = categorySubMap.value[cat] || []
+  } else {
+    draggableSubCategories.value = []
+  }
   loadProducts()
 }
 
@@ -363,9 +389,10 @@ async function loadProducts() {
 }
 
 async function loadCategories() {
-  const [prodData, orderData] = await Promise.all([
+  const [prodData, orderData, subOrderData] = await Promise.all([
     $fetch<any>('/api/products', { query: { limit: 9999 } }),
     $fetch<any>('/api/content/product_category_order'),
+    $fetch<any>('/api/content/product_subcategory_order'),
   ])
   const items = prodData.items || []
   const cats = new Set<string>()
@@ -388,9 +415,19 @@ async function loadCategories() {
 
   draggableCategories.value = ordered
   allCategories.value = ['全部', ...ordered]
-  categorySubMap.value = Object.fromEntries(
-    Object.entries(map).map(([k, v]) => [k, [...v]])
-  )
+
+  let savedSubOrder: Record<string, string[]> = {}
+  try { savedSubOrder = JSON.parse(subOrderData.content || '{}') } catch {}
+
+  const orderedSubMap: Record<string, string[]> = {}
+  for (const [cat, subs] of Object.entries(map)) {
+    const subArray = [...subs]
+    const catOrder = savedSubOrder[cat] || []
+    const sortedSubs = catOrder.filter(s => subArray.includes(s))
+    const restSubs = subArray.filter(s => !sortedSubs.includes(s))
+    orderedSubMap[cat] = [...sortedSubs, ...restSubs]
+  }
+  categorySubMap.value = orderedSubMap
 }
 
 async function onCatDrop() {
@@ -405,6 +442,30 @@ async function onCatDrop() {
   await authFetch('/api/content/product_category_order', {
     method: 'PUT',
     body: { content: JSON.stringify(items) },
+  })
+}
+
+async function onSubDrop() {
+  if (subDragIdx.value === -1 || subDragOverIdx.value === -1 || subDragIdx.value === subDragOverIdx.value) return
+  const items = [...draggableSubCategories.value]
+  const [moved] = items.splice(subDragIdx.value, 1)
+  items.splice(subDragOverIdx.value, 0, moved)
+  draggableSubCategories.value = items
+  categorySubMap.value[selectedCategory.value] = items
+  subDragIdx.value = -1
+  subDragOverIdx.value = -1
+
+  let allSubOrders: Record<string, string[]> = {}
+  try {
+    const res = await $fetch<any>('/api/content/product_subcategory_order')
+    allSubOrders = JSON.parse(res.content || '{}')
+  } catch {}
+
+  allSubOrders[selectedCategory.value] = items
+
+  await authFetch('/api/content/product_subcategory_order', {
+    method: 'PUT',
+    body: { content: JSON.stringify(allSubOrders) },
   })
 }
 
