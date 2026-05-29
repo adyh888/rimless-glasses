@@ -16,7 +16,11 @@ function getClientIp(event: any): string {
 }
 
 function sanitizeInput(str: string, maxLength: number): string {
-  return str.slice(0, maxLength).replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, '')
+  return str
+    .slice(0, maxLength)
+    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, '')
+    .replace(/[<>'"\\\/]/g, '')
+    .replace(/\.\./g, '')
 }
 
 export default defineEventHandler(async (event) => {
