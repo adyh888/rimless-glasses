@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: '留言内容不能为空' })
   }
 
-  const validationConfig = db.prepare('SELECT content FROM content WHERE key = ?').get('contact_validation') as any
+  const validationConfig = db.prepare('SELECT content FROM site_content WHERE key = ?').get('contact_validation') as any
   let validation: any = {
     email: { enabled: true, pattern: '' },
     phone: { enabled: true, pattern: '', minLength: 7, maxLength: 20 },
