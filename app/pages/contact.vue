@@ -31,9 +31,11 @@
                     v-model="form.email"
                     type="email"
                     class="w-full px-4 py-3 border rounded-lg focus:border-accent focus:outline-none transition-colors text-sm"
-                    :class="contactError ? 'border-red-300' : 'border-gray-200'"
+                    :class="(contactError || emailError) ? 'border-red-300' : 'border-gray-200'"
                     placeholder="your@email.com"
+                    @blur="validateEmail"
                   />
+                  <p v-if="emailError" class="text-red-500 text-xs mt-1">{{ emailError }}</p>
                 </div>
                 <div>
                   <label class="block text-sm text-secondary mb-2">电话 <span class="text-xs text-gray-400">（邮箱和电话至少填一项）</span></label>
@@ -41,21 +43,29 @@
                     v-model="form.phone"
                     type="tel"
                     class="w-full px-4 py-3 border rounded-lg focus:border-accent focus:outline-none transition-colors text-sm"
-                    :class="contactError ? 'border-red-300' : 'border-gray-200'"
+                    :class="(contactError || phoneError) ? 'border-red-300' : 'border-gray-200'"
                     placeholder="138-0000-0000"
+                    @blur="validatePhone"
                   />
+                  <p v-if="phoneError" class="text-red-500 text-xs mt-1">{{ phoneError }}</p>
                 </div>
               </div>
               <p v-if="contactError" class="text-red-500 text-xs -mt-4">请至少填写邮箱或电话其中一项</p>
               <div>
-                <label class="block text-sm text-secondary mb-2">留言内容 *</label>
+                <div class="flex items-center justify-between mb-2">
+                  <label class="block text-sm text-secondary">留言内容 *</label>
+                  <span class="text-xs text-gray-400">{{ form.message.length }} / {{ validationRules.message.maxLength }}</span>
+                </div>
                 <textarea
                   v-model="form.message"
                   required
                   rows="5"
-                  class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:border-accent focus:outline-none transition-colors text-sm resize-none"
+                  class="w-full px-4 py-3 border rounded-lg focus:border-accent focus:outline-none transition-colors text-sm resize-none"
+                  :class="messageError ? 'border-red-300' : 'border-gray-200'"
                   placeholder="请输入您的留言..."
+                  @blur="validateMessage"
                 />
+                <p v-if="messageError" class="text-red-500 text-xs mt-1">{{ messageError }}</p>
               </div>
               <button
                 type="submit"
@@ -147,6 +157,16 @@ const submitError = ref('')
 const contactError = computed(() => !form.email && !form.phone && formTouched.value)
 const formTouched = ref(false)
 
+const validationRules = ref({
+  email: { enabled: true, pattern: '' },
+  phone: { enabled: true, pattern: '', minLength: 7, maxLength: 20 },
+  message: { minLength: 10, maxLength: 500 },
+})
+
+const emailError = ref('')
+const phoneError = ref('')
+const messageError = ref('')
+
 const contactInfoRef = await useContactInfo()
 const contactInfo = computed(() => contactInfoRef.value)
 
@@ -168,9 +188,80 @@ const pageSubtitle = computed(() => navItem.value?.subtitle || '期待与您的�
 const brandRef = await useBrandName()
 const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
 
+onMounted(async () => {
+  try {
+    const res = await $fetch<any>('/api/content/contact_validation')
+    if (res?.content) {
+      validationRules.value = JSON.parse(res.content)
+    }
+  } catch {}
+})
+
+function validateEmail() {
+  emailError.value = ''
+  if (!form.email) return true
+
+  if (validationRules.value.email.enabled) {
+    const pattern = validationRules.value.email.pattern || '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$'
+    const regex = new RegExp(pattern)
+    if (!regex.test(form.email)) {
+      emailError.value = '邮箱格式不正确'
+      return false
+    }
+  }
+  return true
+}
+
+function validatePhone() {
+  phoneError.value = ''
+  if (!form.phone) return true
+
+  if (validationRules.value.phone.enabled) {
+    const pattern = validationRules.value.phone.pattern || '^1[3-9]\\d{9}$|^0\\d{2,3}-?\\d{7,8}$'
+    const regex = new RegExp(pattern)
+    if (!regex.test(form.phone)) {
+      phoneError.value = '电话格式不正确（支持手机号或固定电话）'
+      return false
+    }
+    const phoneLength = form.phone.replace(/[^0-9]/g, '').length
+    if (phoneLength < validationRules.value.phone.minLength || phoneLength > validationRules.value.phone.maxLength) {
+      phoneError.value = `电话长度应在 ${validationRules.value.phone.minLength} 到 ${validationRules.value.phone.maxLength} 位之间`
+      return false
+    }
+  }
+  return true
+}
+
+function validateMessage() {
+  messageError.value = ''
+  if (!form.message) return true
+
+  const length = form.message.length
+  if (length < validationRules.value.message.minLength) {
+    messageError.value = `留言内容至少需要 ${validationRules.value.message.minLength} 个字符`
+    return false
+  }
+  if (length > validationRules.value.message.maxLength) {
+    messageError.value = `留言内容不能超过 ${validationRules.value.message.maxLength} 个字符`
+    return false
+  }
+  return true
+}
+
 async function submitForm() {
   formTouched.value = true
+  emailError.value = ''
+  phoneError.value = ''
+  messageError.value = ''
+
   if (!form.email && !form.phone) return
+
+  const emailValid = validateEmail()
+  const phoneValid = validatePhone()
+  const messageValid = validateMessage()
+
+  if (!emailValid || !phoneValid || !messageValid) return
+
   submitting.value = true
   submitSuccess.value = ''
   submitError.value = ''
@@ -182,6 +273,9 @@ async function submitForm() {
     form.phone = ''
     form.message = ''
     formTouched.value = false
+    emailError.value = ''
+    phoneError.value = ''
+    messageError.value = ''
   } catch (e: any) {
     submitError.value = e?.data?.statusMessage || '发送失败，请稍后重试'
   } finally {

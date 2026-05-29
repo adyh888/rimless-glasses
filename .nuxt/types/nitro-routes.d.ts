@@ -63,6 +63,10 @@ declare module "nitropack/types" {
       'delete': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/messages/[id].delete').default>>>>
       'put': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/messages/[id].put').default>>>>
     }
+    '/api/messages/batch': {
+      'delete': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/messages/batch.delete').default>>>>
+      'put': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/messages/batch.put').default>>>>
+    }
     '/api/messages': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/messages/index.get').default>>>>
     }

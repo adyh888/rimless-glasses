@@ -2,20 +2,67 @@
   <div>
     <div class="flex items-center justify-between mb-8">
       <h1 class="text-2xl font-light text-primary">留言管理</h1>
-      <span class="text-sm text-secondary">共 {{ total }} 条留言</span>
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
+          <label class="text-xs text-secondary">每页</label>
+          <select
+            v-model.number="pageSize"
+            class="px-2 py-1 border border-gray-200 rounded-lg text-xs focus:border-accent focus:outline-none bg-white"
+            @change="currentPage = 1; loadMessages()"
+          >
+            <option :value="10">10</option>
+            <option :value="20">20</option>
+            <option :value="50">50</option>
+            <option :value="100">100</option>
+          </select>
+        </div>
+        <span class="text-sm text-secondary">共 {{ total }} 条留言</span>
+      </div>
+    </div>
+
+    <!-- Batch actions toolbar -->
+    <div class="flex items-center gap-3 mb-4">
+      <button
+        @click="markAllRead"
+        :disabled="batchProcessing"
+        class="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-all disabled:opacity-50"
+      >
+        {{ batchProcessing ? '处理中...' : '一键全部已读' }}
+      </button>
+      <template v-if="selectedIds.size > 0">
+        <button
+          @click="batchMarkRead"
+          :disabled="batchProcessing"
+          class="px-3 py-1.5 text-sm text-blue-600 border border-blue-200 bg-blue-50 rounded-lg hover:bg-blue-100 transition-all disabled:opacity-50"
+        >标记已读 ({{ selectedIds.size }})</button>
+        <button
+          @click="batchDelete"
+          :disabled="batchProcessing"
+          class="px-3 py-1.5 text-sm text-red-600 border border-red-200 bg-red-50 rounded-lg hover:bg-red-100 transition-all disabled:opacity-50"
+        >删除选中 ({{ selectedIds.size }})</button>
+      </template>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
       <table class="w-full">
         <thead class="bg-gray-50 border-b border-gray-100">
           <tr>
-            <th class="text-left px-6 py-3 text-xs font-medium text-secondary">状态</th>
-            <th class="text-left px-6 py-3 text-xs font-medium text-secondary">姓名</th>
-            <th class="text-left px-6 py-3 text-xs font-medium text-secondary">邮箱</th>
-            <th class="text-left px-6 py-3 text-xs font-medium text-secondary">电话</th>
-            <th class="text-left px-6 py-3 text-xs font-medium text-secondary">留言内容</th>
-            <th class="text-left px-6 py-3 text-xs font-medium text-secondary">时间</th>
-            <th class="text-right px-6 py-3 text-xs font-medium text-secondary">操作</th>
+            <th class="w-10 px-4 py-3">
+              <input
+                type="checkbox"
+                :checked="isAllSelected"
+                :indeterminate="isPartialSelected"
+                @change="toggleSelectAll"
+                class="w-4 h-4 text-accent rounded cursor-pointer"
+              />
+            </th>
+            <th class="text-left px-4 py-3 text-xs font-medium text-secondary">状态</th>
+            <th class="text-left px-4 py-3 text-xs font-medium text-secondary">姓名</th>
+            <th class="text-left px-4 py-3 text-xs font-medium text-secondary">邮箱</th>
+            <th class="text-left px-4 py-3 text-xs font-medium text-secondary">电话</th>
+            <th class="text-left px-4 py-3 text-xs font-medium text-secondary">留言内容</th>
+            <th class="text-left px-4 py-3 text-xs font-medium text-secondary">时间</th>
+            <th class="text-right px-4 py-3 text-xs font-medium text-secondary">操作</th>
           </tr>
         </thead>
         <tbody>
@@ -25,16 +72,24 @@
             class="border-b border-gray-50 hover:bg-gray-50/50"
             :class="{ 'bg-blue-50/30': !msg.is_read }"
           >
-            <td class="px-6 py-3">
+            <td class="w-10 px-4 py-3">
+              <input
+                type="checkbox"
+                :checked="selectedIds.has(msg.id)"
+                @change="toggleSelect(msg.id)"
+                class="w-4 h-4 text-accent rounded cursor-pointer"
+              />
+            </td>
+            <td class="px-4 py-3">
               <span
                 class="text-xs px-2 py-1 rounded-full"
                 :class="msg.is_read ? 'bg-gray-100 text-gray-500' : 'bg-blue-50 text-blue-600'"
               >{{ msg.is_read ? '已读' : '未读' }}</span>
             </td>
-            <td class="px-6 py-3 text-sm text-primary font-medium">{{ msg.name }}</td>
-            <td class="px-6 py-3 text-sm text-secondary">{{ msg.email }}</td>
-            <td class="px-6 py-3 text-sm text-secondary">{{ msg.phone || '-' }}</td>
-            <td class="px-6 py-3 text-sm text-secondary max-w-xs">
+            <td class="px-4 py-3 text-sm text-primary font-medium">{{ msg.name }}</td>
+            <td class="px-4 py-3 text-sm text-secondary">{{ msg.email }}</td>
+            <td class="px-4 py-3 text-sm text-secondary">{{ msg.phone || '-' }}</td>
+            <td class="px-4 py-3 text-sm text-secondary max-w-xs">
               <button
                 type="button"
                 class="text-left hover:text-primary transition-colors"
@@ -43,8 +98,8 @@
                 {{ msg.message.length > 40 ? msg.message.slice(0, 40) + '...' : msg.message }}
               </button>
             </td>
-            <td class="px-6 py-3 text-sm text-secondary whitespace-nowrap">{{ formatTime(msg.created_at) }}</td>
-            <td class="px-6 py-3 text-right space-x-3">
+            <td class="px-4 py-3 text-sm text-secondary whitespace-nowrap">{{ formatTime(msg.created_at) }}</td>
+            <td class="px-4 py-3 text-right space-x-3">
               <button
                 v-if="!msg.is_read"
                 @click="markRead(msg)"
@@ -56,6 +111,29 @@
         </tbody>
       </table>
       <div v-if="!messages.length" class="text-center py-12 text-secondary text-sm">暂无留言</div>
+    </div>
+
+    <!-- Pagination -->
+    <div v-if="totalPages > 1" class="flex items-center justify-center gap-2 pt-6">
+      <button
+        :disabled="currentPage <= 1"
+        @click="currentPage--; loadMessages()"
+        class="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-30"
+      >上一页</button>
+      <template v-for="p in paginationRange" :key="p">
+        <button
+          v-if="p !== '...'"
+          @click="currentPage = p as number; loadMessages()"
+          class="w-8 h-8 text-sm rounded-lg transition-colors"
+          :class="currentPage === p ? 'bg-primary text-white' : 'hover:bg-gray-50 text-secondary'"
+        >{{ p }}</button>
+        <span v-else class="text-secondary text-sm px-1">...</span>
+      </template>
+      <button
+        :disabled="currentPage >= totalPages"
+        @click="currentPage++; loadMessages()"
+        class="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-30"
+      >下一页</button>
     </div>
 
     <!-- Detail modal -->
@@ -106,13 +184,72 @@ definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 const { authFetch } = useAuth()
 const messages = ref<any[]>([])
 const total = ref(0)
+const currentPage = ref(1)
 const showDetail = ref(false)
 const currentMsg = ref<any>(null)
+const batchProcessing = ref(false)
+const selectedIds = ref(new Set<number>())
+
+const PAGESIZE_KEY = 'admin-messages-pagesize'
+const pageSize = ref(20)
+if (import.meta.client) {
+  const saved = localStorage.getItem(PAGESIZE_KEY)
+  if (saved) pageSize.value = Number(saved) || 20
+}
+watch(pageSize, (v) => {
+  if (import.meta.client) localStorage.setItem(PAGESIZE_KEY, String(v))
+})
+
+const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
+
+const isAllSelected = computed(() =>
+  messages.value.length > 0 && messages.value.every(m => selectedIds.value.has(m.id))
+)
+const isPartialSelected = computed(() =>
+  !isAllSelected.value && messages.value.some(m => selectedIds.value.has(m.id))
+)
+
+const paginationRange = computed(() => {
+  const pages: (number | string)[] = []
+  const tp = totalPages.value
+  const cp = currentPage.value
+  if (tp <= 7) {
+    for (let i = 1; i <= tp; i++) pages.push(i)
+  } else {
+    pages.push(1)
+    if (cp > 3) pages.push('...')
+    for (let i = Math.max(2, cp - 1); i <= Math.min(tp - 1, cp + 1); i++) pages.push(i)
+    if (cp < tp - 2) pages.push('...')
+    pages.push(tp)
+  }
+  return pages
+})
+
+function toggleSelect(id: number) {
+  const s = new Set(selectedIds.value)
+  if (s.has(id)) s.delete(id)
+  else s.add(id)
+  selectedIds.value = s
+}
+
+function toggleSelectAll() {
+  if (isAllSelected.value) {
+    selectedIds.value = new Set()
+  } else {
+    selectedIds.value = new Set(messages.value.map(m => m.id))
+  }
+}
 
 async function loadMessages() {
-  const data = await $fetch<any>('/api/messages', { query: { limit: 100 } })
+  const data = await $fetch<any>('/api/messages', {
+    query: {
+      page: currentPage.value,
+      limit: pageSize.value,
+    },
+  })
   messages.value = data.items || []
   total.value = data.total || 0
+  selectedIds.value = new Set()
 }
 
 async function viewMessage(msg: any) {
@@ -126,6 +263,55 @@ async function viewMessage(msg: any) {
 async function markRead(msg: any) {
   await authFetch(`/api/messages/${msg.id}`, { method: 'PUT', body: { is_read: 1 } })
   msg.is_read = 1
+}
+
+async function markAllRead() {
+  if (!confirm('确定将所有留言标记为已读吗？')) return
+  batchProcessing.value = true
+  try {
+    await authFetch('/api/messages/batch', {
+      method: 'PUT',
+      body: { ids: [], action: 'mark_all_read' },
+    })
+    await loadMessages()
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '操作失败')
+  } finally {
+    batchProcessing.value = false
+  }
+}
+
+async function batchMarkRead() {
+  if (selectedIds.value.size === 0) return
+  batchProcessing.value = true
+  try {
+    await authFetch('/api/messages/batch', {
+      method: 'PUT',
+      body: { ids: Array.from(selectedIds.value), action: 'mark_read' },
+    })
+    await loadMessages()
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '操作失败')
+  } finally {
+    batchProcessing.value = false
+  }
+}
+
+async function batchDelete() {
+  if (selectedIds.value.size === 0) return
+  if (!confirm(`确定删除选中的 ${selectedIds.value.size} 条留言吗？`)) return
+  batchProcessing.value = true
+  try {
+    await authFetch('/api/messages/batch', {
+      method: 'DELETE',
+      body: { ids: Array.from(selectedIds.value) },
+    })
+    await loadMessages()
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '删除失败')
+  } finally {
+    batchProcessing.value = false
+  }
 }
 
 async function deleteMessage(id: number) {

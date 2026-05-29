@@ -586,6 +586,137 @@
       </div>
     </section>
 
+    <!-- 联系表单验证规则 -->
+    <section v-show="activeTab === 'contact'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+      <h2 class="text-sm font-medium text-primary mb-1">联系表单验证规则</h2>
+      <p class="text-xs text-secondary mb-5">设置前台联系表单的验证规则</p>
+
+      <div class="space-y-6">
+        <!-- 邮箱验证 -->
+        <div class="border border-gray-100 rounded-lg p-4">
+          <h3 class="text-sm font-medium text-primary mb-3">邮箱验证</h3>
+          <div class="space-y-3">
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input v-model="contactValidation.email.enabled" type="checkbox" class="w-4 h-4 text-accent rounded" />
+              <span class="text-sm text-secondary">启用邮箱格式验证</span>
+            </label>
+            <div v-if="contactValidation.email.enabled">
+              <label class="block text-xs text-secondary mb-2">自定义正则表达式（留空使用默认）</label>
+              <input
+                v-model="contactValidation.email.pattern"
+                type="text"
+                placeholder="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none font-mono"
+              />
+              <p class="text-xs text-gray-400 mt-1">默认：标准邮箱格式</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 电话验证 -->
+        <div class="border border-gray-100 rounded-lg p-4">
+          <h3 class="text-sm font-medium text-primary mb-3">电话验证</h3>
+          <div class="space-y-3">
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input v-model="contactValidation.phone.enabled" type="checkbox" class="w-4 h-4 text-accent rounded" />
+              <span class="text-sm text-secondary">启用电话格式验证</span>
+            </label>
+            <div v-if="contactValidation.phone.enabled" class="space-y-3">
+              <div>
+                <label class="block text-xs text-secondary mb-2">自定义正则表达式（留空使用默认）</label>
+                <input
+                  v-model="contactValidation.phone.pattern"
+                  type="text"
+                  placeholder="^1[3-9]\d{9}$|^0\d{2,3}-?\d{7,8}$"
+                  class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none font-mono"
+                />
+                <p class="text-xs text-gray-400 mt-1">默认：支持手机号（1开头11位）和固定电话（区号-号码）</p>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs text-secondary mb-2">最小长度</label>
+                  <input
+                    v-model.number="contactValidation.phone.minLength"
+                    type="number"
+                    min="0"
+                    class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs text-secondary mb-2">最大长度</label>
+                  <input
+                    v-model.number="contactValidation.phone.maxLength"
+                    type="number"
+                    min="0"
+                    class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 留言内容验证 -->
+        <div class="border border-gray-100 rounded-lg p-4">
+          <h3 class="text-sm font-medium text-primary mb-3">留言内容验证</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-secondary mb-2">最小长度（字符）</label>
+              <input
+                v-model.number="contactValidation.message.minLength"
+                type="number"
+                min="0"
+                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+              />
+            </div>
+            <div>
+              <label class="block text-xs text-secondary mb-2">最大长度（字符）</label>
+              <input
+                v-model.number="contactValidation.message.maxLength"
+                type="number"
+                min="0"
+                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- IP 频率限制 -->
+        <div class="border border-gray-100 rounded-lg p-4">
+          <h3 class="text-sm font-medium text-primary mb-3">提交频率限制</h3>
+          <p class="text-xs text-gray-400 mb-3">限制同一 IP 在指定时间内只能提交一次留言，防止恶意刷留言</p>
+          <div class="space-y-3">
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input v-model="contactValidation.rateLimit.enabled" type="checkbox" class="w-4 h-4 text-accent rounded" />
+              <span class="text-sm text-secondary">启用频率限制</span>
+            </label>
+            <div v-if="contactValidation.rateLimit.enabled">
+              <label class="block text-xs text-secondary mb-2">提交间隔（秒）</label>
+              <input
+                v-model.number="contactValidation.rateLimit.interval"
+                type="number"
+                min="10"
+                max="86400"
+                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+              />
+              <p class="text-xs text-gray-400 mt-1">同一 IP 地址两次提交的最小间隔，默认 60 秒</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <button
+          @click="saveContactValidation"
+          :disabled="savingContactValidation"
+          class="px-5 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50"
+        >
+          {{ savingContactValidation ? '保存中...' : '保存验证规则' }}
+        </button>
+        <span v-if="contactValidationSaved" class="ml-3 text-sm text-green-600">已保存</span>
+      </div>
+    </section>
+
     <!-- 社交媒体 -->
     <section v-show="activeTab === 'contact'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">社交媒体</h2>
@@ -972,6 +1103,29 @@ const contact = reactive<{ items: ContactItem[]; hours: string[] }>({
 const savingContact = ref(false)
 const contactSaved = ref(false)
 
+const contactValidation = reactive({
+  email: {
+    enabled: true,
+    pattern: '',
+  },
+  phone: {
+    enabled: true,
+    pattern: '',
+    minLength: 7,
+    maxLength: 20,
+  },
+  message: {
+    minLength: 10,
+    maxLength: 500,
+  },
+  rateLimit: {
+    enabled: true,
+    interval: 60,
+  },
+})
+const savingContactValidation = ref(false)
+const contactValidationSaved = ref(false)
+
 const siteLogo = reactive({ url: '', show: false, height: 32 })
 const savingLogo = ref(false)
 const logoSaved = ref(false)
@@ -1063,7 +1217,7 @@ const accountError = ref('')
 const currentUsername = computed(() => user.value?.username || '—')
 
 onMounted(async () => {
-  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes, socialRes, adminMenuRes, logoRes, accessKeyRes, aboutOverlayRes] = await Promise.all([
+  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes, socialRes, adminMenuRes, logoRes, accessKeyRes, aboutOverlayRes, contactValidationRes] = await Promise.all([
     $fetch<any>('/api/content/show_product_price'),
     $fetch<any>('/api/content/contact_info'),
     $fetch<any>('/api/content/brand_name_primary'),
@@ -1081,6 +1235,7 @@ onMounted(async () => {
     $fetch<any>('/api/content/site_logo'),
     $fetch<any>('/api/content/admin_access_key'),
     $fetch<any>('/api/content/about_overlay'),
+    $fetch<any>('/api/content/contact_validation'),
   ])
   showPrice.value = (priceRes?.content ?? '1') !== '0'
   uploadMaxSize.value = uploadSizeRes?.content ? parseInt(uploadSizeRes.content, 10) : 5
@@ -1186,6 +1341,22 @@ onMounted(async () => {
   } catch {
     adminMenuItems.splice(0, adminMenuItems.length, ...defaultAdminMenu)
   }
+
+  try {
+    const parsedValidation = contactValidationRes?.content ? JSON.parse(contactValidationRes.content) : null
+    if (parsedValidation) {
+      contactValidation.email.enabled = parsedValidation.email?.enabled ?? true
+      contactValidation.email.pattern = parsedValidation.email?.pattern || ''
+      contactValidation.phone.enabled = parsedValidation.phone?.enabled ?? true
+      contactValidation.phone.pattern = parsedValidation.phone?.pattern || ''
+      contactValidation.phone.minLength = parsedValidation.phone?.minLength ?? 7
+      contactValidation.phone.maxLength = parsedValidation.phone?.maxLength ?? 20
+      contactValidation.message.minLength = parsedValidation.message?.minLength ?? 10
+      contactValidation.message.maxLength = parsedValidation.message?.maxLength ?? 500
+      contactValidation.rateLimit.enabled = parsedValidation.rateLimit?.enabled ?? true
+      contactValidation.rateLimit.interval = parsedValidation.rateLimit?.interval ?? 60
+    }
+  } catch {}
 
   // 同步当前用户名（authFetch /api/auth/me）
   if (!user.value && token.value) {
@@ -1366,6 +1537,23 @@ async function saveContact() {
     alert(e?.data?.statusMessage || '保存失败')
   } finally {
     savingContact.value = false
+  }
+}
+
+async function saveContactValidation() {
+  savingContactValidation.value = true
+  contactValidationSaved.value = false
+  try {
+    await authFetch('/api/content/contact_validation', {
+      method: 'PUT',
+      body: { content: JSON.stringify(contactValidation) },
+    })
+    contactValidationSaved.value = true
+    setTimeout(() => { contactValidationSaved.value = false }, 3000)
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '保存失败')
+  } finally {
+    savingContactValidation.value = false
   }
 }
 
