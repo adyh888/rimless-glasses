@@ -24,6 +24,7 @@ export default defineNuxtConfig({
   ],
 
   nitro: {
+    compressPublicAssets: true,
     esbuild: {
       options: {
         target: 'esnext',
@@ -50,8 +51,10 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {
-          rel: 'stylesheet',
+          rel: 'preload',
+          as: 'style',
           href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500&display=swap',
+          onload: "this.onload=null;this.rel='stylesheet'",
         },
       ],
     },

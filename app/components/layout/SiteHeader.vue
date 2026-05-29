@@ -61,10 +61,23 @@ const navItems = computed(() => navItemsRef.value.filter(item => item.is_active)
 const scrolled = ref(false)
 const mobileOpen = ref(false)
 
+let ticking = false
+function onScroll() {
+  if (!ticking) {
+    ticking = true
+    requestAnimationFrame(() => {
+      scrolled.value = window.scrollY > 50
+      ticking = false
+    })
+  }
+}
+
 onMounted(() => {
-  window.addEventListener('scroll', () => {
-    scrolled.value = window.scrollY > 50
-  })
+  scrolled.value = window.scrollY > 50
+  window.addEventListener('scroll', onScroll, { passive: true })
+})
+onUnmounted(() => {
+  window.removeEventListener('scroll', onScroll)
 })
 </script>
 

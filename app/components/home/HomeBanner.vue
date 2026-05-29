@@ -11,7 +11,7 @@
           muted
           loop
           playsinline
-          preload="auto"
+          :preload="currentBanner === 0 ? 'auto' : (preloaded.has(currentBanner) ? 'auto' : 'metadata')"
         />
         <div
           v-else
@@ -89,7 +89,39 @@ const bannerIntervalMs = computed(() => {
 
 const currentBanner = ref(0)
 const carouselRef = ref<HTMLElement>()
+const preloaded = reactive(new Set<number>())
 let bannerTimer: ReturnType<typeof setInterval>
+
+function preloadBannerResources() {
+  if (banners.value.length <= 1) return
+  let idx = 1
+  function preloadNext() {
+    if (idx >= banners.value.length) return
+    const banner = banners.value[idx]
+    const url = banner?.image_url
+    if (!url) { idx++; scheduleNext(); return }
+    if (isVideoUrl(url)) {
+      const video = document.createElement('video')
+      video.preload = 'auto'
+      video.src = url
+      video.oncanplaythrough = () => { preloaded.add(idx); idx++; scheduleNext() }
+      video.onerror = () => { idx++; scheduleNext() }
+    } else {
+      const img = new Image()
+      img.src = url
+      img.onload = () => { preloaded.add(idx); idx++; scheduleNext() }
+      img.onerror = () => { idx++; scheduleNext() }
+    }
+  }
+  function scheduleNext() {
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(() => preloadNext(), { timeout: 3000 })
+    } else {
+      setTimeout(preloadNext, 200)
+    }
+  }
+  scheduleNext()
+}
 
 function startTimer() {
   bannerTimer = setInterval(() => {
@@ -126,7 +158,10 @@ useSwipe(carouselRef, {
   onSwipeRight: goPrev,
 })
 
-onMounted(() => { startTimer() })
+onMounted(() => {
+  startTimer()
+  preloadBannerResources()
+})
 onUnmounted(() => clearInterval(bannerTimer))
 </script>
 
