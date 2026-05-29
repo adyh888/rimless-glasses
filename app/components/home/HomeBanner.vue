@@ -2,17 +2,25 @@
   <section ref="carouselRef" class="relative h-screen overflow-hidden" style="touch-action: pan-y;">
     <Transition name="banner-fade" mode="out-in">
       <div :key="currentBanner" class="absolute inset-0">
-        <video
-          v-if="isVideoUrl(banners[currentBanner]?.image_url)"
-          :key="'video-' + currentBanner"
-          :src="banners[currentBanner]?.image_url"
-          class="absolute inset-0 w-full h-full object-cover"
-          autoplay
-          muted
-          loop
-          playsinline
-          :preload="currentBanner === 0 ? 'auto' : (preloaded.has(currentBanner) ? 'auto' : 'metadata')"
-        />
+        <template v-if="isVideoUrl(banners[currentBanner]?.image_url)">
+          <img
+            v-if="banners[currentBanner]?.video_poster && !videoLoaded[currentBanner]"
+            :src="banners[currentBanner].video_poster"
+            class="absolute inset-0 w-full h-full object-cover"
+          />
+          <video
+            :key="'video-' + currentBanner"
+            :src="banners[currentBanner]?.image_url"
+            :poster="banners[currentBanner]?.video_poster || undefined"
+            class="absolute inset-0 w-full h-full object-cover"
+            autoplay
+            muted
+            loop
+            playsinline
+            :preload="currentBanner === 0 ? 'auto' : (preloaded.has(currentBanner) ? 'auto' : 'metadata')"
+            @canplay="videoLoaded[currentBanner] = true"
+          />
+        </template>
         <div
           v-else
           class="absolute inset-0 bg-cover bg-center"
@@ -90,6 +98,7 @@ const bannerIntervalMs = computed(() => {
 const currentBanner = ref(0)
 const carouselRef = ref<HTMLElement>()
 const preloaded = reactive(new Set<number>())
+const videoLoaded = reactive<Record<number, boolean>>({})
 let bannerTimer: ReturnType<typeof setInterval>
 
 function preloadBannerResources() {
