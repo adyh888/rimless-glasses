@@ -1,6 +1,6 @@
 import { resolve, normalize, sep } from 'path'
 
-export const UPLOAD_ROOT = resolve(process.cwd(), 'public/uploads')
+export const UPLOAD_ROOT = resolve(process.cwd(), 'uploads')
 
 const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.mov']
 
