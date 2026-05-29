@@ -33,6 +33,11 @@
           点击预览大图
         </button>
       </div>
+      <div v-if="isVideoUrl(form.image_url)">
+        <label class="block text-sm text-secondary mb-1.5">视频封面图</label>
+        <p class="text-xs text-gray-400 mb-2">视频加载完成前显示的默认图片，建议与视频尺寸一致</p>
+        <ImageUploader v-model="form.video_poster" />
+      </div>
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-sm text-secondary mb-1.5">排序</label>
@@ -76,6 +81,7 @@ const form = reactive({
   button_text: '',
   button_link: '',
   image_url: '',
+  video_poster: '',
   sort_order: 0,
   is_active: 1,
 })

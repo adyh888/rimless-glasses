@@ -18,16 +18,33 @@
               class="relative overflow-hidden rounded-2xl bg-surface aspect-square cursor-pointer"
               @click="openPreview(currentImageIdx)"
             >
-              <video
-                v-if="isVideoUrl(currentImage)"
-                :key="currentImage"
-                :src="currentImage"
-                class="w-full h-full object-cover"
-                autoplay
-                muted
-                loop
-                playsinline
-              />
+              <template v-if="isVideoUrl(currentImage)">
+                <div
+                  v-if="!productVideoReady[currentImageIdx]"
+                  class="absolute inset-0 flex items-center justify-center bg-gray-100 z-[1]"
+                >
+                  <img
+                    v-if="productPoster"
+                    :src="productPoster"
+                    class="w-full h-full object-cover"
+                  />
+                  <div v-else class="text-center">
+                    <svg class="w-10 h-10 text-gray-300 animate-pulse mx-auto" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <p class="text-xs text-gray-400 mt-2">视频加载中...</p>
+                  </div>
+                </div>
+                <video
+                  :key="currentImage"
+                  :src="currentImage"
+                  class="w-full h-full object-cover"
+                  autoplay
+                  muted
+                  loop
+                  playsinline
+                  preload="auto"
+                  @playing="productVideoReady[currentImageIdx] = true"
+                />
+              </template>
               <img
                 v-else
                 :src="currentImage"
@@ -189,6 +206,11 @@ const specs = computed(() => {
 
 const currentImageIdx = ref(0)
 const currentImage = computed(() => images.value[currentImageIdx.value] || 'https://via.placeholder.com/800')
+const productVideoReady = reactive<Record<number, boolean>>({})
+const productPoster = computed(() => {
+  const imgs: string[] = images.value
+  return imgs.find((url: string) => !isVideoUrl(url)) || ''
+})
 
 const showPreview = ref(false)
 const previewIdx = ref(0)

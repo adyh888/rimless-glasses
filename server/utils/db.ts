@@ -72,6 +72,7 @@ db.exec(`
 `)
 
 try { db.exec(`ALTER TABLE products ADD COLUMN sub_category TEXT DEFAULT ''`) } catch {}
+try { db.exec(`ALTER TABLE banners ADD COLUMN video_poster TEXT DEFAULT ''`) } catch {}
 
 export default db
 export { db }

@@ -1,4 +1,4 @@
-import { readFileSync, statSync, existsSync } from 'fs'
+import { createReadStream, readFileSync, statSync, existsSync } from 'fs'
 import { safePath } from '../../utils/media'
 
 const MIME: Record<string, string> = {
@@ -12,6 +12,8 @@ const MIME: Record<string, string> = {
   '.webm': 'video/webm',
   '.mov': 'video/quicktime',
 }
+
+const VIDEO_EXTS = new Set(['.mp4', '.webm', '.mov'])
 
 export default defineEventHandler((event) => {
   const path = getRouterParam(event, 'path') || ''
@@ -27,8 +29,40 @@ export default defineEventHandler((event) => {
   }
 
   const ext = full.slice(full.lastIndexOf('.')).toLowerCase()
-  setHeader(event, 'Content-Type', MIME[ext] || 'application/octet-stream')
-  setHeader(event, 'Content-Length', stat.size)
+  const mime = MIME[ext] || 'application/octet-stream'
+  const fileSize = stat.size
+
+  if (VIDEO_EXTS.has(ext)) {
+    const rangeHeader = getHeader(event, 'range')
+
+    if (rangeHeader) {
+      const match = rangeHeader.match(/bytes=(\d+)-(\d*)/)
+      if (match) {
+        const start = parseInt(match[1], 10)
+        const end = match[2] ? parseInt(match[2], 10) : fileSize - 1
+        const chunkSize = end - start + 1
+
+        setResponseStatus(event, 206)
+        setHeader(event, 'Content-Type', mime)
+        setHeader(event, 'Content-Range', `bytes ${start}-${end}/${fileSize}`)
+        setHeader(event, 'Content-Length', chunkSize)
+        setHeader(event, 'Accept-Ranges', 'bytes')
+        setHeader(event, 'Cache-Control', 'public, max-age=31536000, immutable')
+
+        return sendStream(event, createReadStream(full, { start, end }))
+      }
+    }
+
+    setHeader(event, 'Content-Type', mime)
+    setHeader(event, 'Content-Length', fileSize)
+    setHeader(event, 'Accept-Ranges', 'bytes')
+    setHeader(event, 'Cache-Control', 'public, max-age=31536000, immutable')
+
+    return sendStream(event, createReadStream(full))
+  }
+
+  setHeader(event, 'Content-Type', mime)
+  setHeader(event, 'Content-Length', fileSize)
   setHeader(event, 'Cache-Control', 'public, max-age=31536000, immutable')
   return readFileSync(full)
 })
