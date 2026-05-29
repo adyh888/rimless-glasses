@@ -452,6 +452,17 @@ const total = ref(0)
 const currentPage = ref(1)
 const currentFolder = ref('')
 
+const mediaCache = new Map<string, { folders: FolderItem[]; items: MediaItem[]; total: number; timestamp: number }>()
+const CACHE_TTL = 5 * 60 * 1000
+
+function getMediaCacheKey() {
+  return `${currentFolder.value}|${currentPage.value}|${pageSize.value}|${filterType.value}|${searchQuery.value}`
+}
+
+function clearMediaCache() {
+  mediaCache.clear()
+}
+
 const PAGESIZE_KEY = 'admin-media-pagesize'
 const pageSize = ref(24)
 if (import.meta.client) {
@@ -460,6 +471,7 @@ if (import.meta.client) {
 }
 watch(pageSize, (v) => {
   if (import.meta.client) localStorage.setItem(PAGESIZE_KEY, String(v))
+  clearMediaCache()
 })
 
 const filterType = ref('all')
@@ -535,6 +547,7 @@ function onSearchInput() {
   if (searchTimer) clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
     currentPage.value = 1
+    clearMediaCache()
     loadMedia()
   }, 300)
 }
@@ -547,10 +560,21 @@ function navigateToFolder(path: string) {
   currentFolder.value = path
   currentPage.value = 1
   selectedUrls.value = new Set()
+  clearMediaCache()
   loadMedia()
 }
 
 async function loadMedia() {
+  const cacheKey = getMediaCacheKey()
+  const cached = mediaCache.get(cacheKey)
+
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    folders.value = cached.folders
+    items.value = cached.items
+    total.value = cached.total
+    return
+  }
+
   try {
     const res = await $fetch<{ folders: FolderItem[]; items: MediaItem[]; total: number }>('/api/media', {
       params: {
@@ -564,6 +588,13 @@ async function loadMedia() {
     folders.value = res.folders
     items.value = res.items
     total.value = res.total
+
+    mediaCache.set(cacheKey, {
+      folders: res.folders,
+      items: res.items,
+      total: res.total,
+      timestamp: Date.now(),
+    })
   } catch {
     folders.value = []
     items.value = []
@@ -619,6 +650,7 @@ async function singleDelete(item: MediaItem) {
   try {
     const path = item.url.replace('/uploads/', '')
     await $fetch(`/uploads/${path}`, { method: 'DELETE', headers: authHeaders() })
+    clearMediaCache()
     await loadMedia()
   } catch {
     alert('删除失败')
@@ -638,6 +670,7 @@ async function batchDelete() {
     } catch {}
   }
   deleting.value = false
+  clearMediaCache()
   await loadMedia()
 }
 
@@ -706,6 +739,7 @@ async function clipboardPaste() {
 
   pasting.value = false
   clipboardClear()
+  clearMediaCache()
   await loadMedia()
 
   if (errors.length) {
@@ -735,6 +769,7 @@ async function confirmRename() {
       body: { newName: renameModal.newName.trim() },
     })
     renameModal.show = false
+    clearMediaCache()
     await loadMedia()
   } catch (e: any) {
     alert(e?.data?.statusMessage || '重命名失败')
@@ -758,6 +793,7 @@ async function confirmRenameFolder() {
       body: { newName: renameFolderModal.newName.trim() },
     })
     renameFolderModal.show = false
+    clearMediaCache()
     await loadMedia()
   } catch (e: any) {
     alert(e?.data?.statusMessage || '重命名失败')
@@ -771,6 +807,7 @@ async function confirmDeleteFolder(folder: FolderItem) {
   if (!window.confirm(msg)) return
   try {
     await authFetch(`/api/folders/${folder.path}?force=true`, { method: 'DELETE' })
+    clearMediaCache()
     await loadMedia()
   } catch (e: any) {
     alert(e?.data?.statusMessage || '删除失败')
@@ -785,6 +822,7 @@ async function confirmCreateFolder() {
     const path = currentFolder.value ? `${currentFolder.value}/${name}` : name
     await authFetch('/api/folders', { method: 'POST', body: { path } })
     showNewFolderModal.value = false
+    clearMediaCache()
     await loadMedia()
   } catch (e: any) {
     alert(e?.data?.statusMessage || '创建失败')
@@ -826,6 +864,7 @@ async function handleFiles(files: FileList | null) {
   }
   uploading.value = false
   dragging.value = false
+  clearMediaCache()
   await loadMedia()
 }
 
@@ -858,6 +897,7 @@ async function onFolderSelect(e: Event) {
   }
   uploading.value = false
   if (folderUploadInput.value) folderUploadInput.value.value = ''
+  clearMediaCache()
   await loadMedia()
 }
 
@@ -939,6 +979,7 @@ async function onDrop(e: DragEvent) {
         uploadProgress.done++
       }
       uploading.value = false
+      clearMediaCache()
       await loadMedia()
       return
     }

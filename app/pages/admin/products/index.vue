@@ -255,6 +255,17 @@ const togglingId = ref<number | null>(null)
 const previewOverlayRef = ref<HTMLElement>()
 const preview = reactive({ show: false, items: [] as string[], index: 0 })
 
+const pageCache = new Map<string, { items: any[], total: number, timestamp: number }>()
+const CACHE_TTL = 5 * 60 * 1000
+
+function getCacheKey() {
+  return `${selectedCategory.value}|${selectedSubCategory.value}|${searchQuery.value}|${currentPage.value}|${pageSize.value}`
+}
+
+function clearCache() {
+  pageCache.clear()
+}
+
 const PAGESIZE_KEY = 'admin-products-pagesize'
 const pageSize = ref(20)
 if (import.meta.client) {
@@ -263,6 +274,7 @@ if (import.meta.client) {
 }
 watch(pageSize, (v) => {
   if (import.meta.client) localStorage.setItem(PAGESIZE_KEY, String(v))
+  clearCache()
 })
 
 const searchQuery = ref('')
@@ -343,6 +355,7 @@ async function toggleStatus(product: any) {
       body: { ...product, is_active: newStatus, images: getAllMedia(product), specs: JSON.parse(product.specs_json || '{}') },
     })
     product.is_active = newStatus
+    clearCache()
   } catch (e: any) {
     alert(e?.data?.statusMessage || '切换状态失败')
   } finally {
@@ -355,6 +368,7 @@ function onSearchInput() {
   if (searchTimer) clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
     currentPage.value = 1
+    clearCache()
     loadProducts()
   }, 300)
 }
@@ -368,16 +382,27 @@ function selectCategory(cat: string) {
   } else {
     draggableSubCategories.value = []
   }
+  clearCache()
   loadProducts()
 }
 
 function selectSubCategory(sub: string) {
   selectedSubCategory.value = sub
   currentPage.value = 1
+  clearCache()
   loadProducts()
 }
 
 async function loadProducts() {
+  const cacheKey = getCacheKey()
+  const cached = pageCache.get(cacheKey)
+
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    products.value = cached.items
+    total.value = cached.total
+    return
+  }
+
   const query: Record<string, any> = {
     page: currentPage.value,
     limit: pageSize.value,
@@ -394,6 +419,12 @@ async function loadProducts() {
   const data = await $fetch<any>('/api/products', { query })
   products.value = data.items || []
   total.value = data.total || 0
+
+  pageCache.set(cacheKey, {
+    items: data.items || [],
+    total: data.total || 0,
+    timestamp: Date.now(),
+  })
 }
 
 async function loadCategories() {
@@ -504,6 +535,7 @@ async function copyProduct(product: any) {
     }
 
     await authFetch('/api/products', { method: 'POST', body })
+    clearCache()
     await loadProducts()
     await loadCategories()
   } catch (e: any) {
@@ -516,6 +548,7 @@ async function copyProduct(product: any) {
 async function deleteProduct(id: number) {
   if (!confirm('确定要删除这个产品吗？')) return
   await authFetch(`/api/products/${id}`, { method: 'DELETE' })
+  clearCache()
   await loadProducts()
   await loadCategories()
 }
