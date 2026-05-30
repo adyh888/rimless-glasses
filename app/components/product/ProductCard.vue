@@ -6,7 +6,7 @@
         :alt="product.name"
         loading="lazy"
         decoding="async"
-        class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        class="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
       />
       <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-500" />
     </div>
