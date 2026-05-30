@@ -6,6 +6,7 @@
         v-else-if="block.type === 'products'"
         :title="block.title || '甄选系列'"
         :subtitle="block.subtitle || '每一副，都是对极简美学的致敬'"
+        :per-row="block.perRow || 3"
         :rows="block.rows || (block.limit ? Math.ceil(block.limit / 3) : 1)"
       />
       <HomeImageText

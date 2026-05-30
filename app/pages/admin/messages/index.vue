@@ -315,7 +315,7 @@ async function deleteMessage(id: number) {
 
 function formatTime(dt: string) {
   if (!dt) return ''
-  const normalized = dt.replace(' ', 'T').replace(/-/g, '/')
+  const normalized = dt.replace(/-/g, '/')
   const d = new Date(normalized)
   if (isNaN(d.getTime())) return ''
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`

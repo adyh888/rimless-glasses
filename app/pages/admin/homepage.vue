@@ -104,11 +104,22 @@
               <label class="block text-xs text-secondary mb-1.5">副标题</label>
               <input v-model="block.subtitle" type="text" placeholder="如：每一副，都是对极简美学的致敬" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none" />
             </div>
-            <div>
-              <label class="block text-xs text-secondary mb-1.5">显示行数</label>
-              <input v-model.number="block.rows" type="number" min="1" max="5" class="w-24 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none" />
-              <p class="text-xs text-gray-400 mt-1">实际显示数量 = 行数 × 每行显示数（在站点设置中配置）</p>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs text-secondary mb-1.5">每行显示数</label>
+                <select v-model.number="block.perRow" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none bg-white">
+                  <option :value="2">每行 2 个</option>
+                  <option :value="3">每行 3 个</option>
+                  <option :value="4">每行 4 个</option>
+                  <option :value="5">每行 5 个</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-secondary mb-1.5">显示行数</label>
+                <input v-model.number="block.rows" type="number" min="1" max="5" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none" />
+              </div>
             </div>
+            <p class="text-xs text-gray-400">实际显示数量 = 每行显示数 × 行数</p>
           </div>
 
           <!-- Image Text -->
@@ -333,6 +344,7 @@ function addBlock(type: HomepageBlock['type']) {
     case 'products':
       base.title = '甄选系列'
       base.subtitle = '每一副，都是对极简美学的致敬'
+      base.perRow = 3
       base.rows = 1
       break
     case 'image_text':

@@ -66,8 +66,7 @@ const displaySubtitle = computed(() => {
 
 function formatDate(dateStr: string) {
   if (!dateStr) return ''
-  // Safari/iOS 需要将空格替换为 T 或使用 / 分隔符
-  const normalized = dateStr.replace(' ', 'T').replace(/-/g, '/')
+  const normalized = dateStr.replace(/-/g, '/')
   const d = new Date(normalized)
   if (isNaN(d.getTime())) return ''
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
