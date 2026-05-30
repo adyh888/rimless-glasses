@@ -14,9 +14,9 @@
         <div>
           <h4 class="text-white text-sm font-medium mb-4 tracking-wide">产品系列</h4>
           <ul class="space-y-2 text-sm">
-            <li><NuxtLink to="/products" class="hover:text-white transition-colors">经典系列</NuxtLink></li>
-            <li><NuxtLink to="/products" class="hover:text-white transition-colors">商务系列</NuxtLink></li>
-            <li><NuxtLink to="/products" class="hover:text-white transition-colors">运动系列</NuxtLink></li>
+            <li v-for="cat in productCategories" :key="cat">
+              <a href="/products" class="hover:text-white transition-colors" @click.prevent="goCategory(cat)">{{ cat }}</a>
+            </li>
           </ul>
         </div>
 
@@ -58,6 +58,29 @@ const navRef = await useNavItems()
 const brand = computed(() => brandRef.value)
 const tagline = computed(() => taglineRef.value)
 const contactInfo = computed(() => contactInfoRef.value)
+
+const { data: productsData } = await useFetch('/api/products', {
+  query: { active_only: 'true', limit: 9999 },
+})
+const { data: catOrderData } = await useFetch('/api/content/product_category_order')
+
+const productCategories = computed(() => {
+  const items = (productsData.value as any)?.items || []
+  const rawCats = [...new Set(items.map((p: any) => p.category).filter(Boolean))] as string[]
+  let savedOrder: string[] = []
+  try { savedOrder = JSON.parse((catOrderData.value as any)?.content || '[]') } catch {}
+  const sorted = savedOrder.filter(c => rawCats.includes(c))
+  const rest = rawCats.filter(c => !sorted.includes(c))
+  return [...sorted, ...rest]
+})
+
+function goCategory(cat: string) {
+  if (import.meta.client) {
+    sessionStorage.setItem('products-category', cat)
+    sessionStorage.setItem('products-subcategory', '全部')
+  }
+  navigateTo('/products')
+}
 
 function navLabel(path: string, fallback: string) {
   return navRef.value.find(n => n.path === path)?.label || fallback
