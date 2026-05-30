@@ -75,11 +75,7 @@ const productCategories = computed(() => {
 })
 
 function goCategory(cat: string) {
-  if (import.meta.client) {
-    sessionStorage.setItem('products-category', cat)
-    sessionStorage.setItem('products-subcategory', '全部')
-  }
-  navigateTo('/products')
+  navigateTo({ path: '/products', query: { category: cat } })
 }
 
 function navLabel(path: string, fallback: string) {

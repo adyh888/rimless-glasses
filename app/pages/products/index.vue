@@ -99,15 +99,25 @@ const categories = computed(() => {
   return ['全部', ...sorted, ...rest]
 })
 
+const route = useRoute()
+
 const selectedCategory = ref('全部')
 const selectedSubCategory = ref('全部')
 
-if (import.meta.client) {
-  const savedCat = sessionStorage.getItem('products-category')
-  const savedSub = sessionStorage.getItem('products-subcategory')
-  if (savedCat) selectedCategory.value = savedCat
-  if (savedSub) selectedSubCategory.value = savedSub
+// 从 query 参数初始化分类（SSR 安全）
+if (route.query.category && typeof route.query.category === 'string') {
+  selectedCategory.value = route.query.category
 }
+
+// 客户端：如果没有 query 参数，从 sessionStorage 恢复
+onMounted(() => {
+  if (!route.query.category) {
+    const savedCat = sessionStorage.getItem('products-category')
+    const savedSub = sessionStorage.getItem('products-subcategory')
+    if (savedCat) selectedCategory.value = savedCat
+    if (savedSub) selectedSubCategory.value = savedSub
+  }
+})
 
 const subCategories = computed(() => {
   let products = allProducts.value
@@ -137,6 +147,13 @@ watch(selectedCategory, (v) => {
 watch(selectedSubCategory, (v) => {
   if (import.meta.client) {
     sessionStorage.setItem('products-subcategory', v)
+  }
+})
+
+// 监听路由 query 变化（同页面点击页脚分类链接时触发）
+watch(() => route.query.category, (cat) => {
+  if (cat && typeof cat === 'string') {
+    selectedCategory.value = cat
   }
 })
 
