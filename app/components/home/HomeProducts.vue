@@ -5,7 +5,7 @@
         <SectionTitle :title="title" :subtitle="subtitle" />
       </ScrollReveal>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div class="grid gap-8" :class="gridColsClass">
         <ScrollReveal
           v-for="(product, idx) in featuredProducts"
           :key="product.id"
@@ -34,15 +34,30 @@
 const props = withDefaults(defineProps<{
   title: string
   subtitle: string
-  limit: number
+  rows: number
 }>(), {
   title: '甄选系列',
   subtitle: '每一副，都是对极简美学的致敬',
-  limit: 4,
+  rows: 1,
 })
 
+// 读取后台设置的产品列表布局
+const { data: perRowData } = await useFetch('/api/content/products_per_row')
+const productsPerRow = computed(() => {
+  const content = (perRowData.value as any)?.content
+  return content ? parseInt(content, 10) || 3 : 3
+})
+
+// 计算实际显示数量 = 行数 × 每行显示数
+const limit = computed(() => props.rows * productsPerRow.value)
+
 const { data: productsData } = await useFetch('/api/products', {
-  query: computed(() => ({ featured: 'true', active_only: 'true', limit: props.limit })),
+  query: computed(() => ({ featured: 'true', active_only: 'true', limit: limit.value })),
 })
 const featuredProducts = computed(() => (productsData.value as any)?.items || [])
+
+const gridColsClass = computed(() => {
+  const cols = productsPerRow.value
+  return `grid-cols-1 md:grid-cols-2 lg:grid-cols-${cols}`
+})
 </script>

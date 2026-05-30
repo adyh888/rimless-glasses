@@ -57,7 +57,9 @@ const article = computed(() => data.value as any)
 
 function formatDate(dateStr: string) {
   if (!dateStr) return ''
-  const d = new Date(dateStr)
+  // Safari/iOS 需要将空格替换为 T 或使用 / 分隔符
+  const normalized = dateStr.replace(' ', 'T').replace(/-/g, '/')
+  const d = new Date(normalized)
   if (isNaN(d.getTime())) return ''
   return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`
 }

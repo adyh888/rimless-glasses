@@ -105,8 +105,9 @@
               <input v-model="block.subtitle" type="text" placeholder="如：每一副，都是对极简美学的致敬" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none" />
             </div>
             <div>
-              <label class="block text-xs text-secondary mb-1.5">显示数量</label>
-              <input v-model.number="block.limit" type="number" min="1" max="12" class="w-24 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none" />
+              <label class="block text-xs text-secondary mb-1.5">显示行数</label>
+              <input v-model.number="block.rows" type="number" min="1" max="5" class="w-24 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none" />
+              <p class="text-xs text-gray-400 mt-1">实际显示数量 = 行数 × 每行显示数（在站点设置中配置）</p>
             </div>
           </div>
 
@@ -332,7 +333,7 @@ function addBlock(type: HomepageBlock['type']) {
     case 'products':
       base.title = '甄选系列'
       base.subtitle = '每一副，都是对极简美学的致敬'
-      base.limit = 4
+      base.rows = 1
       break
     case 'image_text':
       base.label = ''
