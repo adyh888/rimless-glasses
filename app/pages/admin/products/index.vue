@@ -25,6 +25,18 @@
             class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-600"
           >&times;</button>
         </div>
+        <div class="flex items-center gap-2">
+          <label class="text-xs text-secondary">状态</label>
+          <select
+            v-model="selectedStatus"
+            class="px-2 py-1 border border-gray-200 rounded-lg text-xs focus:border-accent focus:outline-none bg-white"
+            @change="currentPage = 1; clearCache(); loadProducts()"
+          >
+            <option value="all">全部</option>
+            <option value="active">上架</option>
+            <option value="inactive">下架</option>
+          </select>
+        </div>
         <div class="flex-1" />
         <div class="flex items-center gap-2">
           <label class="text-xs text-secondary">每页</label>
@@ -158,6 +170,7 @@
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">名称</th>
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">分类</th>
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">价格</th>
+            <th class="text-left px-6 py-3 text-xs font-medium text-secondary">排序</th>
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">状态</th>
             <th class="text-right px-6 py-3 text-xs font-medium text-secondary">操作</th>
           </tr>
@@ -228,6 +241,27 @@
                   class="text-sm text-primary hover:text-accent transition-colors"
                   title="点击编辑价格"
                 >&yen;{{ Number(product.price).toLocaleString() }}</button>
+              </template>
+            </td>
+            <td class="px-6 py-3" @click.stop>
+              <template v-if="editingSortOrder === product.id">
+                <input
+                  v-model.number="editSortOrderValue"
+                  type="number"
+                  min="0"
+                  class="w-20 px-2 py-1 border border-accent rounded text-sm focus:outline-none"
+                  @keyup.enter="saveInlineSortOrder(product)"
+                  @keyup.esc="editingSortOrder = null"
+                  @blur="saveInlineSortOrder(product)"
+                  ref="sortOrderInputRef"
+                />
+              </template>
+              <template v-else>
+                <button
+                  @click="startEditSortOrder(product)"
+                  class="text-sm text-secondary hover:text-accent transition-colors"
+                  title="点击编辑排序"
+                >{{ product.sort_order || 0 }}</button>
               </template>
             </td>
             <td class="px-6 py-3" @click.stop>
@@ -427,6 +461,9 @@ const nameInputRef = ref<HTMLInputElement>()
 const editingPrice = ref<number | null>(null)
 const editPriceValue = ref(0)
 const priceInputRef = ref<HTMLInputElement>()
+const editingSortOrder = ref<number | null>(null)
+const editSortOrderValue = ref(0)
+const sortOrderInputRef = ref<HTMLInputElement>()
 
 const isAllSelected = computed(() =>
   products.value.length > 0 && products.value.every(p => selectedIds.value.has(p.id))
@@ -500,6 +537,29 @@ async function saveInlinePrice(product: any) {
   }
 }
 
+function startEditSortOrder(product: any) {
+  editingSortOrder.value = product.id
+  editSortOrderValue.value = Number(product.sort_order) || 0
+  nextTick(() => sortOrderInputRef.value?.focus())
+}
+
+async function saveInlineSortOrder(product: any) {
+  if (editingSortOrder.value !== product.id) return
+  editingSortOrder.value = null
+  const newSortOrder = editSortOrderValue.value
+  if (newSortOrder === Number(product.sort_order)) return
+  try {
+    await authFetch(`/api/products/${product.id}`, {
+      method: 'PUT',
+      body: { ...product, sort_order: newSortOrder, images: getAllMedia(product), specs: JSON.parse(product.specs_json || '{}') },
+    })
+    product.sort_order = newSortOrder
+    clearCache()
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '修改失败')
+  }
+}
+
 async function batchAction(action: string) {
   if (selectedIds.value.size === 0) return
   const actionNames: Record<string, string> = {
@@ -566,7 +626,7 @@ const pageCache = new Map<string, { items: any[], total: number, timestamp: numb
 const CACHE_TTL = 5 * 60 * 1000
 
 function getCacheKey() {
-  return `${selectedCategory.value}|${selectedSubCategory.value}|${searchQuery.value}|${currentPage.value}|${pageSize.value}`
+  return `${selectedCategory.value}|${selectedSubCategory.value}|${searchQuery.value}|${selectedStatus.value}|${currentPage.value}|${pageSize.value}`
 }
 
 function clearCache() {
@@ -595,6 +655,7 @@ watch(currentPage, (v) => {
 })
 
 const searchQuery = ref('')
+const selectedStatus = ref('all')
 const allCategories = ref<string[]>([])
 const draggableCategories = ref<string[]>([])
 const categorySubMap = ref<Record<string, string[]>>({})
@@ -733,6 +794,16 @@ async function loadProducts() {
   }
   if (searchQuery.value.trim()) {
     query.search = searchQuery.value.trim()
+  }
+  if (selectedStatus.value === 'active') {
+    query.is_active = 1
+  } else if (selectedStatus.value === 'inactive') {
+    query.is_active = 0
+  }
+  // 全部状态时，按上架状态排序（上架在前）
+  if (selectedStatus.value === 'all') {
+    query.order_by = 'is_active'
+    query.order_dir = 'DESC'
   }
   const data = await $fetch<any>('/api/products', { query })
   products.value = data.items || []

@@ -7,10 +7,39 @@
       </NuxtLink>
     </div>
 
+    <!-- Batch actions toolbar -->
+    <div v-if="selectedIds.size > 0" class="flex items-center gap-3 mb-4 flex-wrap">
+      <span class="text-sm text-secondary">已选 {{ selectedIds.size }} 项</span>
+      <button
+        @click="batchAction('publish')"
+        :disabled="batchProcessing"
+        class="px-3 py-1.5 text-sm text-green-600 border border-green-200 bg-green-50 rounded-lg hover:bg-green-100 transition-all disabled:opacity-50"
+      >批量发布</button>
+      <button
+        @click="batchAction('unpublish')"
+        :disabled="batchProcessing"
+        class="px-3 py-1.5 text-sm text-yellow-600 border border-yellow-200 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-all disabled:opacity-50"
+      >放入草稿箱</button>
+      <button
+        @click="batchAction('delete')"
+        :disabled="batchProcessing"
+        class="px-3 py-1.5 text-sm text-red-600 border border-red-200 bg-red-50 rounded-lg hover:bg-red-100 transition-all disabled:opacity-50"
+      >批量删除</button>
+    </div>
+
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
       <table class="w-full">
         <thead class="bg-gray-50 border-b border-gray-100">
           <tr>
+            <th class="w-10 px-4 py-3">
+              <input
+                type="checkbox"
+                :checked="isAllSelected"
+                :indeterminate="isPartialSelected"
+                @change="toggleSelectAll"
+                class="w-4 h-4 text-accent rounded cursor-pointer"
+              />
+            </th>
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">标题</th>
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">发布时间</th>
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">状态</th>
@@ -18,7 +47,20 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="article in articles" :key="article.id" class="border-b border-gray-50 hover:bg-gray-50/50">
+          <tr
+            v-for="article in articles"
+            :key="article.id"
+            class="border-b border-gray-50 hover:bg-gray-50/50 cursor-pointer"
+            @click="goToArticle(article)"
+          >
+            <td class="w-10 px-4 py-3" @click.stop>
+              <input
+                type="checkbox"
+                :checked="selectedIds.has(article.id)"
+                @change="toggleSelect(article.id)"
+                class="w-4 h-4 text-accent rounded cursor-pointer"
+              />
+            </td>
             <td class="px-6 py-3 text-sm text-primary">{{ article.title }}</td>
             <td class="px-6 py-3 text-sm text-secondary">{{ formatDate(article.created_at) }}</td>
             <td class="px-6 py-3">
@@ -26,7 +68,7 @@
                 {{ article.is_published ? '已发布' : '草稿' }}
               </span>
             </td>
-            <td class="px-6 py-3 text-right space-x-3">
+            <td class="px-6 py-3 text-right space-x-3" @click.stop>
               <NuxtLink :to="`/admin/articles/${article.id}`" class="text-xs text-accent hover:underline">编辑</NuxtLink>
               <button @click="deleteArticle(article.id)" class="text-xs text-red-500 hover:underline">删除</button>
             </td>
@@ -43,6 +85,34 @@ definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
 const { authFetch } = useAuth()
 const articles = ref<any[]>([])
+const selectedIds = ref(new Set<number>())
+const batchProcessing = ref(false)
+
+const isAllSelected = computed(() =>
+  articles.value.length > 0 && articles.value.every(a => selectedIds.value.has(a.id))
+)
+const isPartialSelected = computed(() =>
+  !isAllSelected.value && articles.value.some(a => selectedIds.value.has(a.id))
+)
+
+function toggleSelect(id: number) {
+  const s = new Set(selectedIds.value)
+  if (s.has(id)) s.delete(id)
+  else s.add(id)
+  selectedIds.value = s
+}
+
+function toggleSelectAll() {
+  if (isAllSelected.value) {
+    selectedIds.value = new Set()
+  } else {
+    selectedIds.value = new Set(articles.value.map(a => a.id))
+  }
+}
+
+function goToArticle(article: any) {
+  window.open(`/news/${article.slug}`, '_blank')
+}
 
 function formatDate(dateStr: string) {
   if (!dateStr) return ''
@@ -53,6 +123,29 @@ function formatDate(dateStr: string) {
 async function loadArticles() {
   const data = await $fetch<any>('/api/articles', { query: { limit: 100 } })
   articles.value = data.items || []
+  selectedIds.value = new Set()
+}
+
+async function batchAction(action: string) {
+  if (selectedIds.value.size === 0) return
+  const actionNames: Record<string, string> = {
+    delete: '删除',
+    publish: '发布',
+    unpublish: '放入草稿箱',
+  }
+  if (!confirm(`确定要${actionNames[action] || '操作'}选中的 ${selectedIds.value.size} 篇文章吗？`)) return
+  batchProcessing.value = true
+  try {
+    await authFetch('/api/articles/batch', {
+      method: 'POST',
+      body: { ids: Array.from(selectedIds.value), action },
+    })
+    await loadArticles()
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '操作失败')
+  } finally {
+    batchProcessing.value = false
+  }
 }
 
 async function deleteArticle(id: number) {

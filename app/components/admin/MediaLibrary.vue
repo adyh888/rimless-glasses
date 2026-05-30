@@ -101,14 +101,14 @@
                 <img
                   v-if="item.type === 'image'"
                   :src="item.url"
-                  class="w-full h-full object-cover"
+                  class="w-full h-full object-contain bg-gray-50"
                   loading="lazy"
                 />
                 <VideoThumbnail
                   v-else
                   :src="item.url"
-                  container-class="w-full h-full"
-                  canvas-class="object-cover"
+                  container-class="w-full h-full bg-gray-50"
+                  canvas-class="object-contain"
                 />
                 <div
                   v-if="selectedUrls.has(item.url)"

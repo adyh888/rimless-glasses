@@ -11,6 +11,9 @@ declare module "nitropack/types" {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/articles/[id].get').default>>>>
       'put': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/articles/[id].put').default>>>>
     }
+    '/api/articles/batch': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/articles/batch.post').default>>>>
+    }
     '/api/articles/import': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/articles/import.post').default>>>>
     }
