@@ -197,7 +197,7 @@
                   :src="getFirstMedia(product)"
                   container-class="w-16 h-12"
                 />
-                <img v-else :src="getFirstMedia(product)" class="w-16 h-12 object-cover rounded hover:opacity-80 transition-opacity" />
+                <img v-else :src="getFirstMedia(product)" class="w-16 h-12 object-contain bg-gray-50 rounded hover:opacity-80 transition-opacity" />
               </div>
             </td>
             <td class="px-6 py-3" @click.stop>

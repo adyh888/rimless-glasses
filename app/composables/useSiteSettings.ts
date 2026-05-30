@@ -198,6 +198,24 @@ export async function useSiteLogo() {
   })
 }
 
+export type ProductThumbBg = { color: string; opacity: number }
+
+export async function useProductThumbBg() {
+  const { data } = await useFetch<{ key: string; content: string }>('/api/content/product_thumb_bg', {
+    key: 'site-product-thumb-bg',
+  })
+  return computed<ProductThumbBg>(() => {
+    const raw = data.value?.content
+    if (!raw) return { color: '#ffffff', opacity: 100 }
+    try {
+      const parsed = JSON.parse(raw)
+      return { color: parsed.color || '#ffffff', opacity: parsed.opacity ?? 100 }
+    } catch {
+      return { color: '#ffffff', opacity: 100 }
+    }
+  })
+}
+
 export type FooterTagline = { line1: string; line2: string }
 
 export async function useFooterTagline() {

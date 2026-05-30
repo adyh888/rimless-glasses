@@ -15,7 +15,8 @@
           <!-- Images -->
           <div>
             <div
-              class="relative overflow-hidden rounded-2xl bg-surface aspect-square cursor-pointer"
+              class="relative overflow-hidden rounded-2xl aspect-square cursor-pointer"
+              :style="thumbBgStyle"
               @click="openPreview(currentImageIdx)"
             >
               <template v-if="isVideoUrl(currentImage)">
@@ -26,7 +27,7 @@
                   <img
                     v-if="productPoster"
                     :src="productPoster"
-                    class="w-full h-full object-cover"
+                    class="w-full h-full object-contain"
                   />
                   <div v-else class="text-center">
                     <svg class="w-10 h-10 text-gray-300 animate-pulse mx-auto" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -36,7 +37,7 @@
                 <video
                   :key="currentImage"
                   :src="currentImage"
-                  class="w-full h-full object-cover"
+                  class="w-full h-full object-contain"
                   autoplay
                   muted
                   loop
@@ -49,7 +50,7 @@
                 v-else
                 :src="currentImage"
                 :alt="product.name"
-                class="w-full h-full object-cover"
+                class="w-full h-full object-contain"
               />
               <div class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                 <div class="w-10 h-10 rounded-full bg-black/30 flex items-center justify-center">
@@ -65,14 +66,15 @@
                 :key="idx"
                 class="w-20 h-20 rounded-lg overflow-hidden border-2 transition-all"
                 :class="currentImageIdx === idx ? 'border-accent' : 'border-transparent'"
+                :style="thumbBgStyle"
                 @click="currentImageIdx = idx"
               >
-                <div v-if="isVideoUrl(media)" class="w-full h-full bg-gray-100 flex items-center justify-center">
+                <div v-if="isVideoUrl(media)" class="w-full h-full flex items-center justify-center">
                   <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M8 5v14l11-7z"/>
                   </svg>
                 </div>
-                <img v-else :src="media" class="w-full h-full object-cover" />
+                <img v-else :src="media" class="w-full h-full object-contain" />
               </button>
             </div>
           </div>
@@ -187,6 +189,15 @@ const product = computed(() => data.value as any)
 
 const showPriceRef = await useShowPrice()
 const showPrice = computed(() => showPriceRef.value)
+
+const thumbBgRef = await useProductThumbBg()
+const thumbBgStyle = computed(() => {
+  const bg = thumbBgRef.value
+  const r = parseInt(bg.color.slice(1, 3), 16)
+  const g = parseInt(bg.color.slice(3, 5), 16)
+  const b = parseInt(bg.color.slice(5, 7), 16)
+  return { backgroundColor: `rgba(${r}, ${g}, ${b}, ${bg.opacity / 100})` }
+})
 
 const images = computed(() => {
   try {

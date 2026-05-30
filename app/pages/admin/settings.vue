@@ -140,6 +140,77 @@
       </div>
     </section>
 
+    <!-- 产品缩略图衬底 -->
+    <section v-show="activeTab === 'content'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+      <h2 class="text-sm font-medium text-primary mb-1">产品缩略图衬底</h2>
+      <p class="text-xs text-secondary mb-5">设置产品图片等比例显示时，未填充区域的衬底颜色和透明度（前台产品列表、产品详情页、后台产品管理均生效）</p>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs text-secondary mb-1.5">衬底颜色</label>
+          <div class="flex items-center gap-3">
+            <input
+              v-model="thumbBg.color"
+              type="color"
+              class="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5"
+            />
+            <input
+              v-model="thumbBg.color"
+              type="text"
+              class="w-24 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+              placeholder="#ffffff"
+            />
+            <button
+              v-for="preset in thumbBgPresets"
+              :key="preset.color"
+              type="button"
+              class="w-8 h-8 rounded-full border-2 transition-all"
+              :class="thumbBg.color === preset.color ? 'border-accent scale-110' : 'border-gray-200 hover:border-gray-400'"
+              :style="{ backgroundColor: preset.color }"
+              :title="preset.label"
+              @click="thumbBg.color = preset.color"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs text-secondary mb-1.5">透明度：{{ thumbBg.opacity }}%</label>
+          <div class="flex items-center gap-3">
+            <input
+              v-model.number="thumbBg.opacity"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              class="flex-1 accent-primary"
+            />
+            <input
+              v-model.number="thumbBg.opacity"
+              type="number"
+              min="0"
+              max="100"
+              class="w-16 px-2 py-1.5 border border-gray-200 rounded-lg text-sm text-center focus:border-accent focus:outline-none"
+            />
+          </div>
+        </div>
+        <div class="relative w-32 h-32 rounded-lg overflow-hidden border border-gray-100">
+          <div class="absolute inset-0" :style="thumbBgPreviewStyle" />
+          <img src="https://via.placeholder.com/200x200?text=Preview" class="relative w-full h-full object-contain" />
+          <span class="absolute bottom-1 right-2 text-[10px] text-gray-400">预览</span>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <button
+          @click="saveThumbBg"
+          :disabled="savingThumbBg"
+          class="px-5 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50"
+        >
+          {{ savingThumbBg ? '保存中...' : '保存' }}
+        </button>
+        <span v-if="thumbBgSaved" class="ml-3 text-sm text-green-600">已保存</span>
+      </div>
+    </section>
+
     <!-- 轮播设置 -->
     <section v-show="activeTab === 'content'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">轮播设置</h2>
@@ -1091,6 +1162,23 @@ const productsPerRow = ref(3)
 const savingProductsPerRow = ref(false)
 const productsPerRowSaved = ref(false)
 
+const thumbBg = reactive({ color: '#ffffff', opacity: 100 })
+const thumbBgPresets = [
+  { color: '#ffffff', label: '白色' },
+  { color: '#f9fafb', label: '浅灰' },
+  { color: '#f3f4f6', label: '灰色' },
+  { color: '#000000', label: '黑色' },
+  { color: '#faf5ef', label: '米色' },
+]
+const savingThumbBg = ref(false)
+const thumbBgSaved = ref(false)
+const thumbBgPreviewStyle = computed(() => {
+  const r = parseInt(thumbBg.color.slice(1, 3), 16)
+  const g = parseInt(thumbBg.color.slice(3, 5), 16)
+  const b = parseInt(thumbBg.color.slice(5, 7), 16)
+  return { backgroundColor: `rgba(${r}, ${g}, ${b}, ${thumbBg.opacity / 100})` }
+})
+
 const bannerInterval = ref(5)
 const savingBannerInterval = ref(false)
 const bannerIntervalSaved = ref(false)
@@ -1279,7 +1367,7 @@ const accountError = ref('')
 const currentUsername = computed(() => user.value?.username || '—')
 
 onMounted(async () => {
-  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes, socialRes, adminMenuRes, logoRes, accessKeyRes, aboutOverlayRes, contactValidationRes, productsPerRowRes] = await Promise.all([
+  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes, socialRes, adminMenuRes, logoRes, accessKeyRes, aboutOverlayRes, contactValidationRes, productsPerRowRes, thumbBgRes] = await Promise.all([
     $fetch<any>('/api/content/show_product_price'),
     $fetch<any>('/api/content/contact_info'),
     $fetch<any>('/api/content/brand_name_primary'),
@@ -1299,9 +1387,17 @@ onMounted(async () => {
     $fetch<any>('/api/content/about_overlay'),
     $fetch<any>('/api/content/contact_validation'),
     $fetch<any>('/api/content/products_per_row'),
+    $fetch<any>('/api/content/product_thumb_bg'),
   ])
   showPrice.value = (priceRes?.content ?? '1') !== '0'
   productsPerRow.value = productsPerRowRes?.content ? parseInt(productsPerRowRes.content, 10) || 3 : 3
+  try {
+    const parsedThumbBg = thumbBgRes?.content ? JSON.parse(thumbBgRes.content) : null
+    if (parsedThumbBg) {
+      thumbBg.color = parsedThumbBg.color || '#ffffff'
+      thumbBg.opacity = parsedThumbBg.opacity ?? 100
+    }
+  } catch {}
   uploadMaxSize.value = uploadSizeRes?.content ? parseInt(uploadSizeRes.content, 10) : 5
 
   const enabledFormats = (videoFormatsRes?.content || 'mp4,webm').split(',').map((s: string) => s.trim())
@@ -1554,6 +1650,23 @@ async function saveProductsPerRow() {
     alert(e?.data?.statusMessage || '保存失败')
   } finally {
     savingProductsPerRow.value = false
+  }
+}
+
+async function saveThumbBg() {
+  savingThumbBg.value = true
+  thumbBgSaved.value = false
+  try {
+    await authFetch('/api/content/product_thumb_bg', {
+      method: 'PUT',
+      body: { content: JSON.stringify({ color: thumbBg.color, opacity: thumbBg.opacity }) },
+    })
+    thumbBgSaved.value = true
+    setTimeout(() => { thumbBgSaved.value = false }, 3000)
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '保存失败')
+  } finally {
+    savingThumbBg.value = false
   }
 }
 

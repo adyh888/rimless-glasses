@@ -1,6 +1,9 @@
 <template>
   <NuxtLink :to="`/products/${product.slug}`" class="group block">
-    <div class="relative overflow-hidden rounded-xl bg-surface aspect-[4/3]">
+    <div
+      class="relative overflow-hidden rounded-xl aspect-[4/3]"
+      :style="thumbBgStyle"
+    >
       <img
         :src="firstImage"
         :alt="product.name"
@@ -25,6 +28,15 @@ const props = defineProps<{ product: any }>()
 
 const showPriceRef = await useShowPrice()
 const showPrice = computed(() => showPriceRef.value)
+
+const thumbBgRef = await useProductThumbBg()
+const thumbBgStyle = computed(() => {
+  const bg = thumbBgRef.value
+  const r = parseInt(bg.color.slice(1, 3), 16)
+  const g = parseInt(bg.color.slice(3, 5), 16)
+  const b = parseInt(bg.color.slice(5, 7), 16)
+  return { backgroundColor: `rgba(${r}, ${g}, ${b}, ${bg.opacity / 100})` }
+})
 
 const firstImage = computed(() => {
   try {

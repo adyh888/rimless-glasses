@@ -76,7 +76,7 @@
             <template v-else>
               <img
                 :src="img"
-                class="w-24 h-24 object-cover rounded-lg"
+                class="w-24 h-24 object-contain bg-gray-50 rounded-lg"
                 @click.stop="previewSrc = img; showPreview = true"
               />
               <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-all flex items-center justify-center" @click.stop="previewSrc = img; showPreview = true">
