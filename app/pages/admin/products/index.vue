@@ -574,14 +574,24 @@ function clearCache() {
 }
 
 const PAGESIZE_KEY = 'admin-products-pagesize'
+const CURRENTPAGE_KEY = 'admin-products-currentpage'
 const pageSize = ref(20)
+
 if (import.meta.client) {
-  const saved = localStorage.getItem(PAGESIZE_KEY)
-  if (saved) pageSize.value = Number(saved) || 20
+  const savedSize = localStorage.getItem(PAGESIZE_KEY)
+  const savedPage = localStorage.getItem(CURRENTPAGE_KEY)
+  if (savedSize) pageSize.value = Number(savedSize) || 20
+  if (savedPage) currentPage.value = Number(savedPage) || 1
 }
+
 watch(pageSize, (v) => {
   if (import.meta.client) localStorage.setItem(PAGESIZE_KEY, String(v))
   clearCache()
+})
+
+watch(currentPage, (v) => {
+  if (import.meta.client) localStorage.setItem(CURRENTPAGE_KEY, String(v))
+  loadProducts()
 })
 
 const searchQuery = ref('')
@@ -707,6 +717,7 @@ async function loadProducts() {
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     products.value = cached.items
     total.value = cached.total
+    selectedIds.value = new Set()
     return
   }
 
@@ -727,6 +738,13 @@ async function loadProducts() {
   products.value = data.items || []
   total.value = data.total || 0
   selectedIds.value = new Set()
+
+  // 如果当前页无数据且不是第一页，自动跳转到最后一页
+  if (products.value.length === 0 && currentPage.value > 1 && total.value > 0) {
+    const maxPage = Math.ceil(total.value / pageSize.value)
+    currentPage.value = Math.max(1, maxPage)
+    return // watch 会触发重新加载
+  }
 
   pageCache.set(cacheKey, {
     items: data.items || [],
@@ -860,10 +878,6 @@ async function deleteProduct(id: number) {
   await loadProducts()
   await loadCategories()
 }
-
-watch(currentPage, () => {
-  loadProducts()
-})
 
 onMounted(async () => {
   await Promise.all([loadProducts(), loadCategories()])
