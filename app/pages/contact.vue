@@ -20,9 +20,12 @@
                   v-model="form.name"
                   type="text"
                   required
-                  class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:border-accent focus:outline-none transition-colors text-sm"
+                  class="w-full px-4 py-3 border rounded-lg focus:border-accent focus:outline-none transition-colors text-sm"
+                  :class="nameError ? 'border-red-300' : 'border-gray-200'"
                   placeholder="请输入您的姓名"
+                  @blur="validateName"
                 />
+                <p v-if="nameError" class="text-red-500 text-xs mt-1">{{ nameError }}</p>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
@@ -158,11 +161,13 @@ const contactError = computed(() => !form.email && !form.phone && formTouched.va
 const formTouched = ref(false)
 
 const validationRules = ref({
+  name: { minLength: 2, maxLength: 20 },
   email: { enabled: true, pattern: '' },
   phone: { enabled: true, pattern: '', minLength: 7, maxLength: 20 },
   message: { minLength: 10, maxLength: 500 },
 })
 
+const nameError = ref('')
 const emailError = ref('')
 const phoneError = ref('')
 const messageError = ref('')
@@ -196,6 +201,22 @@ onMounted(async () => {
     }
   } catch {}
 })
+
+function validateName() {
+  nameError.value = ''
+  if (!form.name) return true
+  const minLen = validationRules.value.name?.minLength ?? 2
+  const maxLen = validationRules.value.name?.maxLength ?? 20
+  if (form.name.length < minLen) {
+    nameError.value = `姓名至少需要 ${minLen} 个字符`
+    return false
+  }
+  if (form.name.length > maxLen) {
+    nameError.value = `姓名不能超过 ${maxLen} 个字符`
+    return false
+  }
+  return true
+}
 
 function validateEmail() {
   emailError.value = ''
@@ -250,17 +271,19 @@ function validateMessage() {
 
 async function submitForm() {
   formTouched.value = true
+  nameError.value = ''
   emailError.value = ''
   phoneError.value = ''
   messageError.value = ''
 
   if (!form.email && !form.phone) return
 
+  const nameValid = validateName()
   const emailValid = validateEmail()
   const phoneValid = validatePhone()
   const messageValid = validateMessage()
 
-  if (!emailValid || !phoneValid || !messageValid) return
+  if (!nameValid || !emailValid || !phoneValid || !messageValid) return
 
   submitting.value = true
   submitSuccess.value = ''
@@ -273,6 +296,7 @@ async function submitForm() {
     form.phone = ''
     form.message = ''
     formTouched.value = false
+    nameError.value = ''
     emailError.value = ''
     phoneError.value = ''
     messageError.value = ''

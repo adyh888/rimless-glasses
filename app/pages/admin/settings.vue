@@ -111,6 +111,35 @@
       </div>
     </section>
 
+    <!-- 产品列表每行显示数 -->
+    <section v-show="activeTab === 'content'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+      <h2 class="text-sm font-medium text-primary mb-1">产品列表布局</h2>
+      <p class="text-xs text-secondary mb-5">设置前台产品中心页面每行显示的产品数量</p>
+
+      <div class="flex items-center gap-4">
+        <select
+          v-model.number="productsPerRow"
+          class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none bg-white"
+        >
+          <option :value="2">每行 2 个</option>
+          <option :value="3">每行 3 个</option>
+          <option :value="4">每行 4 个</option>
+          <option :value="5">每行 5 个</option>
+        </select>
+      </div>
+
+      <div class="mt-6">
+        <button
+          @click="saveProductsPerRow"
+          :disabled="savingProductsPerRow"
+          class="px-5 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50"
+        >
+          {{ savingProductsPerRow ? '保存中...' : '保存' }}
+        </button>
+        <span v-if="productsPerRowSaved" class="ml-3 text-sm text-green-600">已保存</span>
+      </div>
+    </section>
+
     <!-- 轮播设置 -->
     <section v-show="activeTab === 'content'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">轮播设置</h2>
@@ -592,6 +621,31 @@
       <p class="text-xs text-secondary mb-5">设置前台联系表单的验证规则</p>
 
       <div class="space-y-6">
+        <!-- 姓名验证 -->
+        <div class="border border-gray-100 rounded-lg p-4">
+          <h3 class="text-sm font-medium text-primary mb-3">姓名验证</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-secondary mb-2">最小长度（字符）</label>
+              <input
+                v-model.number="contactValidation.name.minLength"
+                type="number"
+                min="1"
+                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+              />
+            </div>
+            <div>
+              <label class="block text-xs text-secondary mb-2">最大长度（字符）</label>
+              <input
+                v-model.number="contactValidation.name.maxLength"
+                type="number"
+                min="1"
+                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+              />
+            </div>
+          </div>
+        </div>
+
         <!-- 邮箱验证 -->
         <div class="border border-gray-100 rounded-lg p-4">
           <h3 class="text-sm font-medium text-primary mb-3">邮箱验证</h3>
@@ -1033,6 +1087,10 @@ const videoMaxSize = ref(50)
 const savingVideo = ref(false)
 const videoSaved = ref(false)
 
+const productsPerRow = ref(3)
+const savingProductsPerRow = ref(false)
+const productsPerRowSaved = ref(false)
+
 const bannerInterval = ref(5)
 const savingBannerInterval = ref(false)
 const bannerIntervalSaved = ref(false)
@@ -1104,6 +1162,10 @@ const savingContact = ref(false)
 const contactSaved = ref(false)
 
 const contactValidation = reactive({
+  name: {
+    minLength: 2,
+    maxLength: 20,
+  },
   email: {
     enabled: true,
     pattern: '',
@@ -1217,7 +1279,7 @@ const accountError = ref('')
 const currentUsername = computed(() => user.value?.username || '—')
 
 onMounted(async () => {
-  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes, socialRes, adminMenuRes, logoRes, accessKeyRes, aboutOverlayRes, contactValidationRes] = await Promise.all([
+  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes, socialRes, adminMenuRes, logoRes, accessKeyRes, aboutOverlayRes, contactValidationRes, productsPerRowRes] = await Promise.all([
     $fetch<any>('/api/content/show_product_price'),
     $fetch<any>('/api/content/contact_info'),
     $fetch<any>('/api/content/brand_name_primary'),
@@ -1236,8 +1298,10 @@ onMounted(async () => {
     $fetch<any>('/api/content/admin_access_key'),
     $fetch<any>('/api/content/about_overlay'),
     $fetch<any>('/api/content/contact_validation'),
+    $fetch<any>('/api/content/products_per_row'),
   ])
   showPrice.value = (priceRes?.content ?? '1') !== '0'
+  productsPerRow.value = productsPerRowRes?.content ? parseInt(productsPerRowRes.content, 10) || 3 : 3
   uploadMaxSize.value = uploadSizeRes?.content ? parseInt(uploadSizeRes.content, 10) : 5
 
   const enabledFormats = (videoFormatsRes?.content || 'mp4,webm').split(',').map((s: string) => s.trim())
@@ -1345,6 +1409,8 @@ onMounted(async () => {
   try {
     const parsedValidation = contactValidationRes?.content ? JSON.parse(contactValidationRes.content) : null
     if (parsedValidation) {
+      contactValidation.name.minLength = parsedValidation.name?.minLength ?? 2
+      contactValidation.name.maxLength = parsedValidation.name?.maxLength ?? 20
       contactValidation.email.enabled = parsedValidation.email?.enabled ?? true
       contactValidation.email.pattern = parsedValidation.email?.pattern || ''
       contactValidation.phone.enabled = parsedValidation.phone?.enabled ?? true
@@ -1471,6 +1537,23 @@ async function saveUploadMaxSize() {
     alert(e?.data?.statusMessage || '保存失败')
   } finally {
     savingUploadMaxSize.value = false
+  }
+}
+
+async function saveProductsPerRow() {
+  savingProductsPerRow.value = true
+  productsPerRowSaved.value = false
+  try {
+    await authFetch('/api/content/products_per_row', {
+      method: 'PUT',
+      body: { content: String(productsPerRow.value) },
+    })
+    productsPerRowSaved.value = true
+    setTimeout(() => { productsPerRowSaved.value = false }, 3000)
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '保存失败')
+  } finally {
+    savingProductsPerRow.value = false
   }
 }
 

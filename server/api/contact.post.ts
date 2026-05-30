@@ -46,15 +46,9 @@ export default defineEventHandler(async (event) => {
   const phone = body.phone ? sanitizeInput(body.phone, 30) : ''
   const message = sanitizeInput(body.message, 5000)
 
-  if (!name.trim()) {
-    throw createError({ statusCode: 400, statusMessage: '姓名不能为空' })
-  }
-  if (!message.trim()) {
-    throw createError({ statusCode: 400, statusMessage: '留言内容不能为空' })
-  }
-
   const validationConfig = db.prepare('SELECT content FROM site_content WHERE key = ?').get('contact_validation') as any
   let validation: any = {
+    name: { minLength: 2, maxLength: 20 },
     email: { enabled: true, pattern: '' },
     phone: { enabled: true, pattern: '', minLength: 7, maxLength: 20 },
     message: { minLength: 10, maxLength: 500 },
@@ -65,6 +59,21 @@ export default defineEventHandler(async (event) => {
     try {
       validation = JSON.parse(validationConfig.content)
     } catch {}
+  }
+
+  if (!name.trim()) {
+    throw createError({ statusCode: 400, statusMessage: '姓名不能为空' })
+  }
+  const nameMinLen = validation.name?.minLength ?? 2
+  const nameMaxLen = validation.name?.maxLength ?? 20
+  if (name.length < nameMinLen) {
+    throw createError({ statusCode: 400, statusMessage: `姓名至少需要 ${nameMinLen} 个字符` })
+  }
+  if (name.length > nameMaxLen) {
+    throw createError({ statusCode: 400, statusMessage: `姓名不能超过 ${nameMaxLen} 个字符` })
+  }
+  if (!message.trim()) {
+    throw createError({ statusCode: 400, statusMessage: '留言内容不能为空' })
   }
 
   const clientIp = getClientIp(event)

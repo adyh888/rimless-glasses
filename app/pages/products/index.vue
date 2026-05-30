@@ -42,7 +42,7 @@
     <!-- Products Grid -->
     <section class="py-16 bg-white">
       <div class="max-w-7xl mx-auto px-6">
-        <div v-if="filteredProducts.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div v-if="filteredProducts.length" class="grid gap-8" :class="gridColClass">
           <ScrollReveal
             v-for="(product, idx) in filteredProducts"
             :key="product.id"
@@ -71,6 +71,22 @@ const { data } = await useFetch('/api/products', {
 
 const { data: catOrderData } = await useFetch('/api/content/product_category_order')
 const { data: subOrderData } = await useFetch('/api/content/product_subcategory_order')
+const { data: perRowData } = await useFetch('/api/content/products_per_row')
+
+const productsPerRow = computed(() => {
+  const val = parseInt((perRowData.value as any)?.content, 10)
+  return val >= 2 && val <= 5 ? val : 3
+})
+
+const gridColClass = computed(() => {
+  const map: Record<number, string> = {
+    2: 'grid-cols-1 sm:grid-cols-2',
+    3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+    4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
+    5: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5',
+  }
+  return map[productsPerRow.value] || map[3]
+})
 
 const allProducts = computed(() => (data.value as any)?.items || [])
 

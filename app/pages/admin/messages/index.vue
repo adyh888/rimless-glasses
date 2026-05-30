@@ -69,10 +69,11 @@
           <tr
             v-for="msg in messages"
             :key="msg.id"
-            class="border-b border-gray-50 hover:bg-gray-50/50"
+            class="border-b border-gray-50 hover:bg-gray-50/50 cursor-pointer"
             :class="{ 'bg-blue-50/30': !msg.is_read }"
+            @click="viewMessage(msg)"
           >
-            <td class="w-10 px-4 py-3">
+            <td class="w-10 px-4 py-3" @click.stop>
               <input
                 type="checkbox"
                 :checked="selectedIds.has(msg.id)"
@@ -86,20 +87,12 @@
                 :class="msg.is_read ? 'bg-gray-100 text-gray-500' : 'bg-blue-50 text-blue-600'"
               >{{ msg.is_read ? '已读' : '未读' }}</span>
             </td>
-            <td class="px-4 py-3 text-sm text-primary font-medium">{{ msg.name }}</td>
-            <td class="px-4 py-3 text-sm text-secondary">{{ msg.email }}</td>
-            <td class="px-4 py-3 text-sm text-secondary">{{ msg.phone || '-' }}</td>
-            <td class="px-4 py-3 text-sm text-secondary max-w-xs">
-              <button
-                type="button"
-                class="text-left hover:text-primary transition-colors"
-                @click="viewMessage(msg)"
-              >
-                {{ msg.message.length > 40 ? msg.message.slice(0, 40) + '...' : msg.message }}
-              </button>
-            </td>
+            <td class="px-4 py-3 text-sm text-primary font-medium max-w-[120px] truncate" :title="msg.name">{{ msg.name }}</td>
+            <td class="px-4 py-3 text-sm text-secondary max-w-[160px] truncate" :title="msg.email">{{ msg.email }}</td>
+            <td class="px-4 py-3 text-sm text-secondary whitespace-nowrap">{{ msg.phone || '-' }}</td>
+            <td class="px-4 py-3 text-sm text-secondary max-w-[200px] truncate" :title="msg.message">{{ msg.message }}</td>
             <td class="px-4 py-3 text-sm text-secondary whitespace-nowrap">{{ formatTime(msg.created_at) }}</td>
-            <td class="px-4 py-3 text-right space-x-3">
+            <td class="px-4 py-3 text-right space-x-3" @click.stop>
               <button
                 v-if="!msg.is_read"
                 @click="markRead(msg)"

@@ -111,10 +111,49 @@
       </div>
     </div>
 
+    <!-- Batch actions toolbar -->
+    <div v-if="selectedIds.size > 0" class="flex items-center gap-3 mb-4 flex-wrap">
+      <span class="text-sm text-secondary">已选 {{ selectedIds.size }} 项</span>
+      <button
+        @click="batchAction('set_active')"
+        :disabled="batchProcessing"
+        class="px-3 py-1.5 text-sm text-green-600 border border-green-200 bg-green-50 rounded-lg hover:bg-green-100 transition-all disabled:opacity-50"
+      >批量上架</button>
+      <button
+        @click="batchAction('set_inactive')"
+        :disabled="batchProcessing"
+        class="px-3 py-1.5 text-sm text-orange-600 border border-orange-200 bg-orange-50 rounded-lg hover:bg-orange-100 transition-all disabled:opacity-50"
+      >批量下架</button>
+      <button
+        @click="showBatchPrice = true"
+        :disabled="batchProcessing"
+        class="px-3 py-1.5 text-sm text-blue-600 border border-blue-200 bg-blue-50 rounded-lg hover:bg-blue-100 transition-all disabled:opacity-50"
+      >批量定价</button>
+      <button
+        @click="showBatchCategory = true"
+        :disabled="batchProcessing"
+        class="px-3 py-1.5 text-sm text-purple-600 border border-purple-200 bg-purple-50 rounded-lg hover:bg-purple-100 transition-all disabled:opacity-50"
+      >批量分类</button>
+      <button
+        @click="batchAction('delete')"
+        :disabled="batchProcessing"
+        class="px-3 py-1.5 text-sm text-red-600 border border-red-200 bg-red-50 rounded-lg hover:bg-red-100 transition-all disabled:opacity-50"
+      >批量删除</button>
+    </div>
+
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
       <table class="w-full">
         <thead class="bg-gray-50 border-b border-gray-100">
           <tr>
+            <th class="w-10 px-4 py-3">
+              <input
+                type="checkbox"
+                :checked="isAllSelected"
+                :indeterminate="isPartialSelected"
+                @change="toggleSelectAll"
+                class="w-4 h-4 text-accent rounded cursor-pointer"
+              />
+            </th>
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">媒体</th>
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">名称</th>
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">分类</th>
@@ -124,8 +163,21 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="product in products" :key="product.id" class="border-b border-gray-50 hover:bg-gray-50/50">
-            <td class="px-6 py-3">
+          <tr
+            v-for="product in products"
+            :key="product.id"
+            class="border-b border-gray-50 hover:bg-gray-50/50 cursor-pointer"
+            @click="goToProduct(product)"
+          >
+            <td class="w-10 px-4 py-3" @click.stop>
+              <input
+                type="checkbox"
+                :checked="selectedIds.has(product.id)"
+                @change="toggleSelect(product.id)"
+                class="w-4 h-4 text-accent rounded cursor-pointer"
+              />
+            </td>
+            <td class="px-6 py-3" @click.stop>
               <div class="cursor-pointer" @click="openPreview(product)">
                 <VideoThumbnail
                   v-if="isVideoUrl(getFirstMedia(product))"
@@ -135,13 +187,50 @@
                 <img v-else :src="getFirstMedia(product)" class="w-16 h-12 object-cover rounded hover:opacity-80 transition-opacity" />
               </div>
             </td>
-            <td class="px-6 py-3">
-              <a :href="`/products/${product.slug}`" target="_blank" class="text-sm text-primary hover:text-accent hover:underline transition-colors">{{ product.name }}</a>
-              <div v-if="product.is_featured" class="text-xs text-accent">推荐</div>
+            <td class="px-6 py-3" @click.stop>
+              <template v-if="editingName === product.id">
+                <input
+                  v-model="editNameValue"
+                  type="text"
+                  class="w-full px-2 py-1 border border-accent rounded text-sm focus:outline-none"
+                  @keyup.enter="saveInlineName(product)"
+                  @keyup.esc="editingName = null"
+                  @blur="saveInlineName(product)"
+                  ref="nameInputRef"
+                />
+              </template>
+              <template v-else>
+                <button
+                  @click="startEditName(product)"
+                  class="text-sm text-primary hover:text-accent transition-colors text-left"
+                  title="点击编辑名称"
+                >{{ product.name }}</button>
+                <div v-if="product.is_featured" class="text-xs text-accent">推荐</div>
+              </template>
             </td>
             <td class="px-6 py-3 text-sm text-secondary">{{ product.category }}{{ product.sub_category ? ' / ' + product.sub_category : '' }}</td>
-            <td class="px-6 py-3 text-sm text-primary">&yen;{{ Number(product.price).toLocaleString() }}</td>
-            <td class="px-6 py-3">
+            <td class="px-6 py-3" @click.stop>
+              <template v-if="editingPrice === product.id">
+                <input
+                  v-model.number="editPriceValue"
+                  type="number"
+                  min="0"
+                  class="w-24 px-2 py-1 border border-accent rounded text-sm focus:outline-none"
+                  @keyup.enter="saveInlinePrice(product)"
+                  @keyup.esc="editingPrice = null"
+                  @blur="saveInlinePrice(product)"
+                  ref="priceInputRef"
+                />
+              </template>
+              <template v-else>
+                <button
+                  @click="startEditPrice(product)"
+                  class="text-sm text-primary hover:text-accent transition-colors"
+                  title="点击编辑价格"
+                >&yen;{{ Number(product.price).toLocaleString() }}</button>
+              </template>
+            </td>
+            <td class="px-6 py-3" @click.stop>
               <button
                 @click="toggleStatus(product)"
                 :disabled="togglingId === product.id"
@@ -151,7 +240,7 @@
                 {{ togglingId === product.id ? '切换中...' : (product.is_active ? '上架' : '下架') }}
               </button>
             </td>
-            <td class="px-6 py-3 text-right space-x-3">
+            <td class="px-6 py-3 text-right space-x-3" @click.stop>
               <NuxtLink :to="`/admin/products/${product.id}`" class="text-xs text-accent hover:underline">编辑</NuxtLink>
               <button
                 @click="copyProduct(product)"
@@ -165,6 +254,76 @@
       </table>
       <div v-if="!products.length" class="text-center py-12 text-secondary text-sm">暂无数据</div>
     </div>
+
+    <!-- Batch Price Modal -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div
+          v-if="showBatchPrice"
+          class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
+          @click.self="showBatchPrice = false"
+        >
+          <div class="bg-white rounded-xl shadow-2xl w-[90vw] max-w-sm p-6" @click.stop>
+            <h3 class="text-base font-medium text-primary mb-4">批量设置价格</h3>
+            <p class="text-xs text-secondary mb-3">将为选中的 {{ selectedIds.size }} 个产品设置统一价格</p>
+            <input
+              v-model.number="batchPriceValue"
+              type="number"
+              min="0"
+              class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+              placeholder="输入价格"
+            />
+            <div class="flex gap-3 mt-4">
+              <button
+                @click="confirmBatchPrice"
+                :disabled="batchProcessing"
+                class="px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 disabled:opacity-50"
+              >确定</button>
+              <button @click="showBatchPrice = false" class="px-4 py-2 border border-gray-200 text-sm rounded-lg hover:bg-gray-50">取消</button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- Batch Category Modal -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div
+          v-if="showBatchCategory"
+          class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
+          @click.self="showBatchCategory = false"
+        >
+          <div class="bg-white rounded-xl shadow-2xl w-[90vw] max-w-sm p-6" @click.stop>
+            <h3 class="text-base font-medium text-primary mb-4">批量设置分类</h3>
+            <p class="text-xs text-secondary mb-3">将为选中的 {{ selectedIds.size }} 个产品设置分类</p>
+            <input
+              v-model="batchCategoryValue"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+              placeholder="分类名称（用 / 分隔子分类，如：太阳镜/偏光）"
+            />
+            <div v-if="draggableCategories.length" class="mt-2 flex flex-wrap gap-1">
+              <button
+                v-for="cat in draggableCategories"
+                :key="cat"
+                type="button"
+                @click="batchCategoryValue = cat"
+                class="px-2 py-0.5 text-xs bg-gray-100 rounded hover:bg-gray-200 text-secondary"
+              >{{ cat }}</button>
+            </div>
+            <div class="flex gap-3 mt-4">
+              <button
+                @click="confirmBatchCategory"
+                :disabled="batchProcessing || !batchCategoryValue.trim()"
+                class="px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 disabled:opacity-50"
+              >确定</button>
+              <button @click="showBatchCategory = false" class="px-4 py-2 border border-gray-200 text-sm rounded-lg hover:bg-gray-50">取消</button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
 
     <!-- Pagination -->
     <div v-if="totalPages > 1" class="flex items-center justify-center gap-2 pt-6">
@@ -254,6 +413,154 @@ const copying = ref<number | null>(null)
 const togglingId = ref<number | null>(null)
 const previewOverlayRef = ref<HTMLElement>()
 const preview = reactive({ show: false, items: [] as string[], index: 0 })
+
+const selectedIds = ref(new Set<number>())
+const batchProcessing = ref(false)
+const showBatchPrice = ref(false)
+const batchPriceValue = ref(0)
+const showBatchCategory = ref(false)
+const batchCategoryValue = ref('')
+
+const editingName = ref<number | null>(null)
+const editNameValue = ref('')
+const nameInputRef = ref<HTMLInputElement>()
+const editingPrice = ref<number | null>(null)
+const editPriceValue = ref(0)
+const priceInputRef = ref<HTMLInputElement>()
+
+const isAllSelected = computed(() =>
+  products.value.length > 0 && products.value.every(p => selectedIds.value.has(p.id))
+)
+const isPartialSelected = computed(() =>
+  !isAllSelected.value && products.value.some(p => selectedIds.value.has(p.id))
+)
+
+function toggleSelect(id: number) {
+  const s = new Set(selectedIds.value)
+  if (s.has(id)) s.delete(id)
+  else s.add(id)
+  selectedIds.value = s
+}
+
+function toggleSelectAll() {
+  if (isAllSelected.value) {
+    selectedIds.value = new Set()
+  } else {
+    selectedIds.value = new Set(products.value.map(p => p.id))
+  }
+}
+
+function goToProduct(product: any) {
+  window.open(`/products/${product.slug}`, '_blank')
+}
+
+function startEditName(product: any) {
+  editingName.value = product.id
+  editNameValue.value = product.name
+  nextTick(() => nameInputRef.value?.focus())
+}
+
+async function saveInlineName(product: any) {
+  if (editingName.value !== product.id) return
+  editingName.value = null
+  const newName = editNameValue.value.trim()
+  if (!newName || newName === product.name) return
+  try {
+    await authFetch(`/api/products/${product.id}`, {
+      method: 'PUT',
+      body: { ...product, name: newName, images: getAllMedia(product), specs: JSON.parse(product.specs_json || '{}') },
+    })
+    product.name = newName
+    clearCache()
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '修改失败')
+  }
+}
+
+function startEditPrice(product: any) {
+  editingPrice.value = product.id
+  editPriceValue.value = Number(product.price)
+  nextTick(() => priceInputRef.value?.focus())
+}
+
+async function saveInlinePrice(product: any) {
+  if (editingPrice.value !== product.id) return
+  editingPrice.value = null
+  const newPrice = editPriceValue.value
+  if (newPrice === Number(product.price)) return
+  try {
+    await authFetch(`/api/products/${product.id}`, {
+      method: 'PUT',
+      body: { ...product, price: newPrice, images: getAllMedia(product), specs: JSON.parse(product.specs_json || '{}') },
+    })
+    product.price = newPrice
+    clearCache()
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '修改失败')
+  }
+}
+
+async function batchAction(action: string) {
+  if (selectedIds.value.size === 0) return
+  const actionNames: Record<string, string> = {
+    delete: '删除',
+    set_active: '上架',
+    set_inactive: '下架',
+  }
+  if (!confirm(`确定要${actionNames[action] || '操作'}选中的 ${selectedIds.value.size} 个产品吗？`)) return
+  batchProcessing.value = true
+  try {
+    await authFetch('/api/products/batch', {
+      method: 'POST',
+      body: { ids: Array.from(selectedIds.value), action },
+    })
+    selectedIds.value = new Set()
+    clearCache()
+    await loadProducts()
+    if (action === 'delete') await loadCategories()
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '操作失败')
+  } finally {
+    batchProcessing.value = false
+  }
+}
+
+async function confirmBatchPrice() {
+  batchProcessing.value = true
+  try {
+    await authFetch('/api/products/batch', {
+      method: 'POST',
+      body: { ids: Array.from(selectedIds.value), action: 'set_price', value: batchPriceValue.value },
+    })
+    showBatchPrice.value = false
+    selectedIds.value = new Set()
+    clearCache()
+    await loadProducts()
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '操作失败')
+  } finally {
+    batchProcessing.value = false
+  }
+}
+
+async function confirmBatchCategory() {
+  if (!batchCategoryValue.value.trim()) return
+  batchProcessing.value = true
+  try {
+    await authFetch('/api/products/batch', {
+      method: 'POST',
+      body: { ids: Array.from(selectedIds.value), action: 'set_category', value: batchCategoryValue.value.trim() },
+    })
+    showBatchCategory.value = false
+    selectedIds.value = new Set()
+    clearCache()
+    await Promise.all([loadProducts(), loadCategories()])
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '操作失败')
+  } finally {
+    batchProcessing.value = false
+  }
+}
 
 const pageCache = new Map<string, { items: any[], total: number, timestamp: number }>()
 const CACHE_TTL = 5 * 60 * 1000
@@ -419,6 +726,7 @@ async function loadProducts() {
   const data = await $fetch<any>('/api/products', { query })
   products.value = data.items || []
   total.value = data.total || 0
+  selectedIds.value = new Set()
 
   pageCache.set(cacheKey, {
     items: data.items || [],
