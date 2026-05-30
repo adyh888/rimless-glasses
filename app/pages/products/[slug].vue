@@ -18,6 +18,8 @@
               class="relative overflow-hidden rounded-2xl aspect-square cursor-pointer"
               :style="thumbBgStyle"
               @click="openPreview(currentImageIdx)"
+              @touchstart="handleTouchStart"
+              @touchend="handleTouchEnd"
             >
               <template v-if="isVideoUrl(currentImage)">
                 <div
@@ -130,6 +132,8 @@
           @keydown.esc="showPreview = false"
           @keydown.left="previewPrev"
           @keydown.right="previewNext"
+          @touchstart="handlePreviewTouchStart"
+          @touchend="handlePreviewTouchEnd"
           tabindex="0"
           ref="previewOverlay"
         >
@@ -143,14 +147,16 @@
             v-if="images.length > 1"
             type="button"
             @click="previewPrev"
-            class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-xl z-10"
+            class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center text-2xl z-10 transition-opacity"
+            :style="{ color: arrowStyle.arrowColor, backgroundColor: arrowStyle.arrowBgColor }"
           >&lsaquo;</button>
           <!-- Next -->
           <button
             v-if="images.length > 1"
             type="button"
             @click="previewNext"
-            class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-xl z-10"
+            class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center text-2xl z-10 transition-opacity"
+            :style="{ color: arrowStyle.arrowColor, backgroundColor: arrowStyle.arrowBgColor }"
           >&rsaquo;</button>
           <!-- Content -->
           <video
@@ -199,6 +205,9 @@ const thumbBgStyle = computed(() => {
   return { backgroundColor: `rgba(${r}, ${g}, ${b}, ${bg.opacity / 100})` }
 })
 
+const arrowStyleRef = await useLightboxArrowStyle()
+const arrowStyle = computed(() => arrowStyleRef.value)
+
 const images = computed(() => {
   try {
     return JSON.parse(product.value?.images_json || '[]')
@@ -223,10 +232,52 @@ const productPoster = computed(() => {
   return imgs.find((url: string) => !isVideoUrl(url)) || ''
 })
 
+// Touch swipe for main gallery
+const touchStartX = ref(0)
+const touchEndX = ref(0)
+function handleTouchStart(e: TouchEvent) {
+  touchStartX.value = e.touches[0].clientX
+}
+function handleTouchEnd(e: TouchEvent) {
+  touchEndX.value = e.changedTouches[0].clientX
+  handleSwipe()
+}
+function handleSwipe() {
+  const diff = touchStartX.value - touchEndX.value
+  if (Math.abs(diff) > 50) {
+    if (diff > 0 && currentImageIdx.value < images.value.length - 1) {
+      currentImageIdx.value++
+    } else if (diff < 0 && currentImageIdx.value > 0) {
+      currentImageIdx.value--
+    }
+  }
+}
+
 const showPreview = ref(false)
 const previewIdx = ref(0)
 const previewSrc = computed(() => images.value[previewIdx.value] || '')
 const previewOverlay = ref<HTMLElement>()
+
+// Touch swipe for lightbox
+const previewTouchStartX = ref(0)
+const previewTouchEndX = ref(0)
+function handlePreviewTouchStart(e: TouchEvent) {
+  previewTouchStartX.value = e.touches[0].clientX
+}
+function handlePreviewTouchEnd(e: TouchEvent) {
+  previewTouchEndX.value = e.changedTouches[0].clientX
+  handlePreviewSwipe()
+}
+function handlePreviewSwipe() {
+  const diff = previewTouchStartX.value - previewTouchEndX.value
+  if (Math.abs(diff) > 50) {
+    if (diff > 0) {
+      previewNext()
+    } else {
+      previewPrev()
+    }
+  }
+}
 
 function openPreview(idx: number) {
   previewIdx.value = idx

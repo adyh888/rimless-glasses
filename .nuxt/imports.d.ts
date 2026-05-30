@@ -33,7 +33,7 @@ export { definePageMeta, PageMeta } from '#app/composables/pages';
 export { defineLazyHydrationComponent } from '#app/composables/lazy-hydration';
 export { useAuth } from '../app/composables/useAuth';
 export { DEFAULT_SECTIONS, generateBlockId, useHomepageSections, HomepageBlock } from '../app/composables/useHomepageSections';
-export { useContactInfo, useShowPrice, useBrandName, useNavItems, useAboutImage, useSocialLinks, useAdminMenu, useSiteLogo, useProductThumbBg, useFooterTagline, DEFAULT_ADMIN_MENU, ContactInfo, BrandName, NavItem, SocialLink, AdminMenuItem, SiteLogo, ProductThumbBg, FooterTagline } from '../app/composables/useSiteSettings';
+export { useContactInfo, useShowPrice, useBrandName, useNavItems, useAboutImage, useSocialLinks, useAdminMenu, useSiteLogo, useProductThumbBg, useLightboxArrowStyle, useFooterTagline, DEFAULT_ADMIN_MENU, ContactInfo, BrandName, NavItem, SocialLink, AdminMenuItem, SiteLogo, ProductThumbBg, LightboxArrowStyle, FooterTagline } from '../app/composables/useSiteSettings';
 export { useSwipe } from '../app/composables/useSwipe';
 export { isVideoUrl } from '../app/utils/media';
 export { reactiveStyle, reactiveTransform, useElementStyle, useElementTransform, useMotion, useMotionControls, useMotionProperties, useMotions, useMotionTransitions, useMotionVariants, useSpring, useReducedMotion } from '../node_modules/.pnpm/@vueuse+motion@3.0.3_magicast@0.5.3_vue@3.5.34/node_modules/@vueuse/motion/dist/nuxt/runtime/composables/index';

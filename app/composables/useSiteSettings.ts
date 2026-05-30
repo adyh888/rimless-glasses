@@ -216,6 +216,27 @@ export async function useProductThumbBg() {
   })
 }
 
+export type LightboxArrowStyle = { arrowColor: string; arrowBgColor: string }
+
+export async function useLightboxArrowStyle() {
+  const { data } = await useFetch<{ key: string; content: string }>('/api/content/lightbox_arrow_style', {
+    key: 'site-lightbox-arrow',
+  })
+  return computed<LightboxArrowStyle>(() => {
+    const raw = data.value?.content
+    if (!raw) return { arrowColor: '#ffffff', arrowBgColor: 'rgba(0, 0, 0, 0.3)' }
+    try {
+      const parsed = JSON.parse(raw)
+      return {
+        arrowColor: parsed.arrowColor || '#ffffff',
+        arrowBgColor: parsed.arrowBgColor || 'rgba(0, 0, 0, 0.3)',
+      }
+    } catch {
+      return { arrowColor: '#ffffff', arrowBgColor: 'rgba(0, 0, 0, 0.3)' }
+    }
+  })
+}
+
 export type FooterTagline = { line1: string; line2: string }
 
 export async function useFooterTagline() {

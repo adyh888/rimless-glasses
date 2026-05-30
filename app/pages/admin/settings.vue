@@ -211,6 +211,77 @@
       </div>
     </section>
 
+    <!-- 产品详情页箭头样式 -->
+    <section v-show="activeTab === 'content'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+      <h2 class="text-sm font-medium text-primary mb-1">产品详情页箭头样式</h2>
+      <p class="text-xs text-secondary mb-5">设置产品详情页放大预览时，左右切换箭头的颜色和背景色（手机端滑动也支持）</p>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs text-secondary mb-1.5">箭头颜色</label>
+          <div class="flex items-center gap-3">
+            <input
+              v-model="lightboxArrow.arrowColor"
+              type="color"
+              class="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5"
+            />
+            <input
+              v-model="lightboxArrow.arrowColor"
+              type="text"
+              class="w-24 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+              placeholder="#ffffff"
+            />
+            <button
+              v-for="preset in arrowColorPresets"
+              :key="preset.color"
+              type="button"
+              class="w-8 h-8 rounded-full border-2 transition-all"
+              :class="lightboxArrow.arrowColor === preset.color ? 'border-accent scale-110' : 'border-gray-200 hover:border-gray-400'"
+              :style="{ backgroundColor: preset.color }"
+              :title="preset.label"
+              @click="lightboxArrow.arrowColor = preset.color"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs text-secondary mb-1.5">箭头背景色</label>
+          <div class="flex items-center gap-3">
+            <input
+              v-model="lightboxArrow.arrowBgColor"
+              type="color"
+              class="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5"
+            />
+            <input
+              v-model="lightboxArrow.arrowBgColor"
+              type="text"
+              class="w-32 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+              placeholder="rgba(0,0,0,0.3)"
+            />
+          </div>
+          <p class="text-xs text-gray-400 mt-1">支持 HEX 或 rgba 格式</p>
+        </div>
+        <div class="relative w-32 h-32 rounded-lg overflow-hidden bg-gray-900 flex items-center justify-center">
+          <button
+            type="button"
+            class="w-12 h-12 rounded-full flex items-center justify-center text-2xl"
+            :style="{ color: lightboxArrow.arrowColor, backgroundColor: lightboxArrow.arrowBgColor }"
+          >&lsaquo;</button>
+          <span class="absolute bottom-1 right-2 text-[10px] text-white/60">预览</span>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <button
+          @click="saveLightboxArrow"
+          :disabled="savingLightboxArrow"
+          class="px-5 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50"
+        >
+          {{ savingLightboxArrow ? '保存中...' : '保存' }}
+        </button>
+        <span v-if="lightboxArrowSaved" class="ml-3 text-sm text-green-600">已保存</span>
+      </div>
+    </section>
+
     <!-- 轮播设置 -->
     <section v-show="activeTab === 'content'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">轮播设置</h2>
@@ -1179,6 +1250,16 @@ const thumbBgPreviewStyle = computed(() => {
   return { backgroundColor: `rgba(${r}, ${g}, ${b}, ${thumbBg.opacity / 100})` }
 })
 
+const lightboxArrow = reactive({ arrowColor: '#ffffff', arrowBgColor: 'rgba(0, 0, 0, 0.3)' })
+const arrowColorPresets = [
+  { color: '#ffffff', label: '白色' },
+  { color: '#000000', label: '黑色' },
+  { color: '#f59e0b', label: '橙色' },
+  { color: '#3b82f6', label: '蓝色' },
+]
+const savingLightboxArrow = ref(false)
+const lightboxArrowSaved = ref(false)
+
 const bannerInterval = ref(5)
 const savingBannerInterval = ref(false)
 const bannerIntervalSaved = ref(false)
@@ -1367,7 +1448,7 @@ const accountError = ref('')
 const currentUsername = computed(() => user.value?.username || '—')
 
 onMounted(async () => {
-  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes, socialRes, adminMenuRes, logoRes, accessKeyRes, aboutOverlayRes, contactValidationRes, productsPerRowRes, thumbBgRes] = await Promise.all([
+  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes, socialRes, adminMenuRes, logoRes, accessKeyRes, aboutOverlayRes, contactValidationRes, productsPerRowRes, thumbBgRes, lightboxArrowRes] = await Promise.all([
     $fetch<any>('/api/content/show_product_price'),
     $fetch<any>('/api/content/contact_info'),
     $fetch<any>('/api/content/brand_name_primary'),
@@ -1388,6 +1469,7 @@ onMounted(async () => {
     $fetch<any>('/api/content/contact_validation'),
     $fetch<any>('/api/content/products_per_row'),
     $fetch<any>('/api/content/product_thumb_bg'),
+    $fetch<any>('/api/content/lightbox_arrow_style'),
   ])
   showPrice.value = (priceRes?.content ?? '1') !== '0'
   productsPerRow.value = productsPerRowRes?.content ? parseInt(productsPerRowRes.content, 10) || 3 : 3
@@ -1396,6 +1478,13 @@ onMounted(async () => {
     if (parsedThumbBg) {
       thumbBg.color = parsedThumbBg.color || '#ffffff'
       thumbBg.opacity = parsedThumbBg.opacity ?? 100
+    }
+  } catch {}
+  try {
+    const parsedArrow = lightboxArrowRes?.content ? JSON.parse(lightboxArrowRes.content) : null
+    if (parsedArrow) {
+      lightboxArrow.arrowColor = parsedArrow.arrowColor || '#ffffff'
+      lightboxArrow.arrowBgColor = parsedArrow.arrowBgColor || 'rgba(0, 0, 0, 0.3)'
     }
   } catch {}
   uploadMaxSize.value = uploadSizeRes?.content ? parseInt(uploadSizeRes.content, 10) : 5
@@ -1667,6 +1756,23 @@ async function saveThumbBg() {
     alert(e?.data?.statusMessage || '保存失败')
   } finally {
     savingThumbBg.value = false
+  }
+}
+
+async function saveLightboxArrow() {
+  savingLightboxArrow.value = true
+  lightboxArrowSaved.value = false
+  try {
+    await authFetch('/api/content/lightbox_arrow_style', {
+      method: 'PUT',
+      body: { content: JSON.stringify({ arrowColor: lightboxArrow.arrowColor, arrowBgColor: lightboxArrow.arrowBgColor }) },
+    })
+    lightboxArrowSaved.value = true
+    setTimeout(() => { lightboxArrowSaved.value = false }, 3000)
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '保存失败')
+  } finally {
+    savingLightboxArrow.value = false
   }
 }
 

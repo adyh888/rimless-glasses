@@ -126,6 +126,7 @@ declare global {
   const useId: typeof import('vue').useId
   const useLazyAsyncData: typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/asyncData').useLazyAsyncData
   const useLazyFetch: typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/fetch').useLazyFetch
+  const useLightboxArrowStyle: typeof import('../../app/composables/useSiteSettings').useLightboxArrowStyle
   const useLink: typeof import('vue-router').useLink
   const useLoadingIndicator: typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/loading-indicator').useLoadingIndicator
   const useModel: typeof import('vue').useModel
@@ -232,7 +233,7 @@ declare global {
   export type { HomepageBlock } from '../../app/composables/useHomepageSections'
   import('../../app/composables/useHomepageSections')
   // @ts-ignore
-  export type { ContactInfo, BrandName, NavItem, SocialLink, AdminMenuItem, SiteLogo, ProductThumbBg, FooterTagline } from '../../app/composables/useSiteSettings'
+  export type { ContactInfo, BrandName, NavItem, SocialLink, AdminMenuItem, SiteLogo, ProductThumbBg, LightboxArrowStyle, FooterTagline } from '../../app/composables/useSiteSettings'
   import('../../app/composables/useSiteSettings')
 }
 // for vue template auto import
@@ -364,6 +365,7 @@ declare module 'vue' {
     readonly useId: UnwrapRef<typeof import('vue')['useId']>
     readonly useLazyAsyncData: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/asyncData')['useLazyAsyncData']>
     readonly useLazyFetch: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/fetch')['useLazyFetch']>
+    readonly useLightboxArrowStyle: UnwrapRef<typeof import('../../app/composables/useSiteSettings')['useLightboxArrowStyle']>
     readonly useLink: UnwrapRef<typeof import('vue-router')['useLink']>
     readonly useLoadingIndicator: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/loading-indicator')['useLoadingIndicator']>
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
