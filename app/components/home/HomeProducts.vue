@@ -42,7 +42,7 @@ const props = withDefaults(defineProps<{
 })
 
 const { data: productsData } = await useFetch('/api/products', {
-  query: { featured: 'true', active_only: 'true', limit: props.limit },
+  query: computed(() => ({ featured: 'true', active_only: 'true', limit: props.limit })),
 })
 const featuredProducts = computed(() => (productsData.value as any)?.items || [])
 </script>

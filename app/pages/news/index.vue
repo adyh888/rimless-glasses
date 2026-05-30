@@ -54,7 +54,8 @@ const pageSubtitle = computed(() => navItem.value?.subtitle || `了解${siteName
 function formatDate(dateStr: string) {
   if (!dateStr) return ''
   const d = new Date(dateStr)
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
+  if (isNaN(d.getTime())) return ''
+  return `${d.getFullYear()}年${String(d.getMonth() + 1).padStart(2, '0')}月${String(d.getDate()).padStart(2, '0')}日`
 }
 
 useHead({ title: computed(() => `新闻动态 - ${siteName.value}`) })
