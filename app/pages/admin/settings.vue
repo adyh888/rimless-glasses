@@ -1104,6 +1104,67 @@
       </div>
     </section>
 
+    <!-- 账号管理 -->
+    <section v-show="activeTab === 'system'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+      <h2 class="text-sm font-medium text-primary mb-1">账号管理</h2>
+      <p class="text-xs text-secondary mb-5">管理可登录后台的管理员账号，所有账号权限相同。可添加多个账号供团队共用。</p>
+
+      <div class="space-y-2 mb-6">
+        <div
+          v-for="u in adminUsers"
+          :key="u.id"
+          class="flex items-center justify-between border border-gray-100 rounded-lg px-4 py-3"
+        >
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-primary">{{ u.username }}</span>
+            <span v-if="u.id === currentUserId" class="text-[10px] text-accent bg-accent/10 px-2 py-0.5 rounded-full">当前账号</span>
+          </div>
+          <button
+            type="button"
+            :disabled="u.id === currentUserId || adminUsers.length <= 1"
+            @click="deleteUser(u)"
+            class="text-xs text-red-500 hover:underline disabled:opacity-30 disabled:cursor-not-allowed disabled:no-underline"
+          >删除</button>
+        </div>
+        <p v-if="!adminUsers.length" class="text-xs text-gray-400">加载中...</p>
+      </div>
+
+      <div class="border-t border-gray-100 pt-6">
+        <h3 class="text-xs font-medium text-primary mb-3">添加新账号</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs text-secondary mb-1.5">用户名（至少 2 位）</label>
+            <input
+              v-model="newUser.username"
+              type="text"
+              autocomplete="off"
+              class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+            />
+          </div>
+          <div>
+            <label class="block text-xs text-secondary mb-1.5">密码（至少 6 位）</label>
+            <input
+              v-model="newUser.password"
+              type="password"
+              autocomplete="new-password"
+              class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+            />
+          </div>
+        </div>
+        <div class="mt-4">
+          <button
+            @click="addUser"
+            :disabled="addingUser"
+            class="px-5 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50"
+          >
+            {{ addingUser ? '添加中...' : '添加账号' }}
+          </button>
+          <span v-if="userAdded" class="ml-3 text-sm text-green-600">已添加</span>
+          <span v-if="userError" class="ml-3 text-sm text-red-500">{{ userError }}</span>
+        </div>
+      </div>
+    </section>
+
     <!-- 账户与密码 -->
     <section v-show="activeTab === 'system'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">账户与密码</h2>
@@ -1446,6 +1507,56 @@ const savingAccount = ref(false)
 const accountSaved = ref(false)
 const accountError = ref('')
 const currentUsername = computed(() => user.value?.username || '—')
+const currentUserId = computed(() => user.value?.id ?? -1)
+
+type AdminUser = { id: number; username: string; created_at: string }
+const adminUsers = ref<AdminUser[]>([])
+const newUser = reactive({ username: '', password: '' })
+const addingUser = ref(false)
+const userAdded = ref(false)
+const userError = ref('')
+
+async function loadUsers() {
+  try {
+    const res = await authFetch<{ users: AdminUser[] }>('/api/auth/users')
+    adminUsers.value = res.users
+  } catch { /* 忽略 */ }
+}
+
+async function addUser() {
+  userError.value = ''
+  userAdded.value = false
+  if (!newUser.username.trim() || !newUser.password) {
+    userError.value = '请输入用户名和密码'
+    return
+  }
+  addingUser.value = true
+  try {
+    await authFetch('/api/auth/users', {
+      method: 'POST',
+      body: { username: newUser.username.trim(), password: newUser.password },
+    })
+    newUser.username = ''
+    newUser.password = ''
+    userAdded.value = true
+    setTimeout(() => { userAdded.value = false }, 3000)
+    await loadUsers()
+  } catch (e: any) {
+    userError.value = e?.data?.statusMessage || '添加失败'
+  } finally {
+    addingUser.value = false
+  }
+}
+
+async function deleteUser(u: AdminUser) {
+  if (!window.confirm(`确定删除账号「${u.username}」？此操作不可恢复。`)) return
+  try {
+    await authFetch(`/api/auth/users/${u.id}`, { method: 'DELETE' })
+    await loadUsers()
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '删除失败')
+  }
+}
 
 onMounted(async () => {
   const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes, socialRes, adminMenuRes, logoRes, accessKeyRes, aboutOverlayRes, contactValidationRes, productsPerRowRes, thumbBgRes, lightboxArrowRes] = await Promise.all([
@@ -1618,6 +1729,8 @@ onMounted(async () => {
       /* 忽略 */
     }
   }
+
+  await loadUsers()
 })
 
 function addItem() {

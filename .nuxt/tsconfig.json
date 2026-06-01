@@ -101,7 +101,7 @@
         "./imports"
       ],
       "#app-manifest": [
-        "./manifest/meta/f5406309-dfa0-4692-b390-61df68c2cd74.json"
+        "./manifest/meta/dev"
       ],
       "#components": [
         "./components"
@@ -201,7 +201,7 @@
     "../node_modules/.pnpm/@nuxt+telemetry@2.8.0_@nuxt+kit@4.4.6_magicast@0.5.3_/node_modules/dist/runtime/server",
     "../node_modules/.pnpm/@nuxt+telemetry@2.8.0_@nuxt+kit@4.4.6_magicast@0.5.3_/node_modules/*.*",
     "../node_modules/.pnpm/@nuxt+telemetry@2.8.0_@nuxt+kit@4.4.6_magicast@0.5.3_/node_modules/dist/*.*",
-    "../.output",
+    "dev",
     "../server"
   ],
   "vueCompilerOptions": {

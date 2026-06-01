@@ -24,11 +24,24 @@ declare module "nitropack/types" {
     '/api/auth/account': {
       'put': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/account.put').default>>>>
     }
+    '/api/auth/captcha': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/captcha.get').default>>>>
+    }
+    '/api/auth/login-status': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/login-status.get').default>>>>
+    }
     '/api/auth/login': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/login.post').default>>>>
     }
     '/api/auth/me': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/me.get').default>>>>
+    }
+    '/api/auth/users/:id': {
+      'delete': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/users/[id].delete').default>>>>
+    }
+    '/api/auth/users': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/users/index.get').default>>>>
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/users/index.post').default>>>>
     }
     '/api/banners/:id': {
       'delete': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/banners/[id].delete').default>>>>

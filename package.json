@@ -29,6 +29,7 @@
     "jsonwebtoken": "^9.0.3",
     "nuxt": "^4.4.6",
     "sharp": "^0.34.5",
+    "svg-captcha": "^1.4.0",
     "uuid": "^14.0.0",
     "vue": "^3.5.34",
     "vue-router": "^5.0.7"

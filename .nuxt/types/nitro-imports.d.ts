@@ -15,10 +15,12 @@ declare global {
   const cachedEventHandler: typeof import('../../node_modules/.pnpm/nitropack@2.13.4_better-sqlite3@12.10.0_oxc-parser@0.131.0_srvx@0.11.16/node_modules/nitropack/dist/runtime/internal/cache').cachedEventHandler
   const cachedFunction: typeof import('../../node_modules/.pnpm/nitropack@2.13.4_better-sqlite3@12.10.0_oxc-parser@0.131.0_srvx@0.11.16/node_modules/nitropack/dist/runtime/internal/cache').cachedFunction
   const callNodeListener: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').callNodeListener
+  const clearFailures: typeof import('../../server/utils/captcha').clearFailures
   const clearResponseHeaders: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').clearResponseHeaders
   const clearSession: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').clearSession
   const createApp: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').createApp
   const createAppEventHandler: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').createAppEventHandler
+  const createCaptcha: typeof import('../../server/utils/captcha').createCaptcha
   const createError: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').createError
   const createEvent: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').createEvent
   const createEventStream: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').createEventStream
@@ -49,6 +51,7 @@ declare global {
   const fromPlainHandler: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').fromPlainHandler
   const fromWebHandler: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').fromWebHandler
   const getAuthUser: typeof import('../../server/utils/auth').getAuthUser
+  const getClientIp: typeof import('../../server/utils/captcha').getClientIp
   const getCookie: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').getCookie
   const getHeader: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').getHeader
   const getHeaders: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').getHeaders
@@ -81,12 +84,14 @@ declare global {
   const isError: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').isError
   const isEvent: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').isEvent
   const isEventHandler: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').isEventHandler
+  const isLocked: typeof import('../../server/utils/captcha').isLocked
   const isMethod: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').isMethod
   const isPreflightRequest: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').isPreflightRequest
   const isStream: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').isStream
   const isVideoUrl: typeof import('../../server/utils/media').isVideoUrl
   const isWebResponse: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').isWebResponse
   const lazyEventHandler: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').lazyEventHandler
+  const needsCaptcha: typeof import('../../server/utils/captcha').needsCaptcha
   const nitroPlugin: typeof import('../../node_modules/.pnpm/nitropack@2.13.4_better-sqlite3@12.10.0_oxc-parser@0.131.0_srvx@0.11.16/node_modules/nitropack/dist/runtime/internal/plugin').nitroPlugin
   const parseCookies: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').parseCookies
   const promisifyNodeListener: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').promisifyNodeListener
@@ -96,6 +101,7 @@ declare global {
   const readMultipartFormData: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').readMultipartFormData
   const readRawBody: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').readRawBody
   const readValidatedBody: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').readValidatedBody
+  const recordFailure: typeof import('../../server/utils/captcha').recordFailure
   const removeResponseHeader: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').removeResponseHeader
   const runTask: typeof import('../../node_modules/.pnpm/nitropack@2.13.4_better-sqlite3@12.10.0_oxc-parser@0.131.0_srvx@0.11.16/node_modules/nitropack/dist/runtime/internal/task').runTask
   const safePath: typeof import('../../server/utils/media').safePath
@@ -134,6 +140,7 @@ declare global {
   const useSession: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').useSession
   const useStorage: typeof import('../../node_modules/.pnpm/nitropack@2.13.4_better-sqlite3@12.10.0_oxc-parser@0.131.0_srvx@0.11.16/node_modules/nitropack/dist/runtime/internal/storage').useStorage
   const validateName: typeof import('../../server/utils/media').validateName
+  const verifyCaptcha: typeof import('../../server/utils/captcha').verifyCaptcha
   const verifyPassword: typeof import('../../server/utils/auth').verifyPassword
   const verifyToken: typeof import('../../server/utils/auth').verifyToken
   const writeEarlyHints: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3').writeEarlyHints
@@ -159,5 +166,6 @@ export { defineNitroErrorHandler } from 'nitropack/runtime/internal/error/utils'
 export { buildAssetsURL as __buildAssetsURL, publicAssetsURL as __publicAssetsURL } from '/Users/liqian/Desktop/Demo/2026-05/glasses/node_modules/.pnpm/@nuxt+nitro-server@4.4.6_@babel+plugin-syntax-typescript@7.29.7_@babel+core@7.29.7__bet_7c0987fa8668e44f5aa819aff9cb10a5/node_modules/@nuxt/nitro-server/dist/runtime/utils/paths';
 export { defineAppConfig } from '/Users/liqian/Desktop/Demo/2026-05/glasses/node_modules/.pnpm/@nuxt+nitro-server@4.4.6_@babel+plugin-syntax-typescript@7.29.7_@babel+core@7.29.7__bet_7c0987fa8668e44f5aa819aff9cb10a5/node_modules/@nuxt/nitro-server/dist/runtime/utils/config';
 export { hashPassword, verifyPassword, signToken, verifyToken, getAuthUser } from '/Users/liqian/Desktop/Demo/2026-05/glasses/server/utils/auth';
+export { getClientIp, isLocked, needsCaptcha, recordFailure, clearFailures, createCaptcha, verifyCaptcha } from '/Users/liqian/Desktop/Demo/2026-05/glasses/server/utils/captcha';
 export { db } from '/Users/liqian/Desktop/Demo/2026-05/glasses/server/utils/db';
 export { UPLOAD_ROOT, isVideoUrl, VIDEO_MIME_MAP, safePath, validateName } from '/Users/liqian/Desktop/Demo/2026-05/glasses/server/utils/media';

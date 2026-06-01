@@ -4,10 +4,10 @@ export function useAuth() {
 
   const isAuthenticated = computed(() => !!token.value)
 
-  async function login(username: string, password: string) {
+  async function login(username: string, password: string, captcha?: string) {
     const res = await $fetch<any>('/api/auth/login', {
       method: 'POST',
-      body: { username, password },
+      body: { username, password, captcha },
     })
     token.value = res.token
     user.value = res.user
