@@ -297,6 +297,10 @@ watch(showPreview, (val) => {
   document.body.style.overflow = val ? 'hidden' : ''
 })
 
+onBeforeUnmount(() => {
+  document.body.style.overflow = ''
+})
+
 const brandRef = await useBrandName()
 const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
 
