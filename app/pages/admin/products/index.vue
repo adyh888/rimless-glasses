@@ -635,6 +635,8 @@ function clearCache() {
 
 const PAGESIZE_KEY = 'admin-products-pagesize'
 const CURRENTPAGE_KEY = 'admin-products-currentpage'
+const CATEGORY_KEY = 'admin-products-category'
+const SUBCATEGORY_KEY = 'admin-products-subcategory'
 const pageSize = ref(20)
 
 if (import.meta.client) {
@@ -662,6 +664,13 @@ const categorySubMap = ref<Record<string, string[]>>({})
 const draggableSubCategories = ref<string[]>([])
 const selectedCategory = ref('全部')
 const selectedSubCategory = ref('全部')
+
+if (import.meta.client) {
+  const savedCat = localStorage.getItem(CATEGORY_KEY)
+  const savedSubCat = localStorage.getItem(SUBCATEGORY_KEY)
+  if (savedCat) selectedCategory.value = savedCat
+  if (savedSubCat) selectedSubCategory.value = savedSubCat
+}
 const catDragIdx = ref(-1)
 const catDragOverIdx = ref(-1)
 const subDragIdx = ref(-1)
@@ -760,6 +769,10 @@ function selectCategory(cat: string) {
   } else {
     draggableSubCategories.value = []
   }
+  if (import.meta.client) {
+    localStorage.setItem(CATEGORY_KEY, cat)
+    localStorage.setItem(SUBCATEGORY_KEY, '全部')
+  }
   clearCache()
   loadProducts()
 }
@@ -767,6 +780,7 @@ function selectCategory(cat: string) {
 function selectSubCategory(sub: string) {
   selectedSubCategory.value = sub
   currentPage.value = 1
+  if (import.meta.client) localStorage.setItem(SUBCATEGORY_KEY, sub)
   clearCache()
   loadProducts()
 }
@@ -864,6 +878,25 @@ async function loadCategories() {
     orderedSubMap[cat] = [...sortedSubs, ...restSubs]
   }
   categorySubMap.value = orderedSubMap
+
+  if (selectedCategory.value !== '全部') {
+    if (ordered.includes(selectedCategory.value)) {
+      draggableSubCategories.value = orderedSubMap[selectedCategory.value] || []
+      if (selectedSubCategory.value !== '全部' && !draggableSubCategories.value.includes(selectedSubCategory.value)) {
+        selectedSubCategory.value = '全部'
+        if (import.meta.client) localStorage.setItem(SUBCATEGORY_KEY, '全部')
+      }
+    } else {
+      selectedCategory.value = '全部'
+      selectedSubCategory.value = '全部'
+      draggableSubCategories.value = []
+      if (import.meta.client) {
+        localStorage.setItem(CATEGORY_KEY, '全部')
+        localStorage.setItem(SUBCATEGORY_KEY, '全部')
+      }
+      await loadProducts()
+    }
+  }
 }
 
 async function onCatDrop() {
