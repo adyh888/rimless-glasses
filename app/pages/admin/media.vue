@@ -168,11 +168,15 @@
       <svg class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
       </svg>
-      <span class="text-amber-700">全局搜索 "<span class="font-medium">{{ searchQuery }}</span>"，共 {{ total }} 个文件、{{ folders.length }} 个文件夹</span>
+      <span class="text-amber-700">
+        <template v-if="searchQuery">全局搜索 "<span class="font-medium">{{ searchQuery }}</span>"，</template>
+        <template v-else>全局浏览所有<span class="font-medium">{{ filterType === 'image' ? '图片' : '视频' }}</span>，</template>
+        共 {{ total }} 个文件<template v-if="folders.length">、{{ folders.length }} 个文件夹</template>
+      </span>
       <button
-        @click="searchQuery = ''; currentPage = 1; clearMediaCache(); loadMedia()"
+        @click="exitGlobal"
         class="text-amber-500 hover:text-amber-700 underline text-xs ml-auto"
-      >退出搜索</button>
+      >退出</button>
     </div>
 
     <!-- Media grid -->
@@ -479,6 +483,14 @@ interface FolderItem {
 function folderParent(path: string): string {
   const i = path.lastIndexOf('/')
   return i > 0 ? path.slice(0, i) : ''
+}
+
+function exitGlobal() {
+  searchQuery.value = ''
+  filterType.value = 'all'
+  currentPage.value = 1
+  clearMediaCache()
+  loadMedia()
 }
 
 const folders = ref<FolderItem[]>([])

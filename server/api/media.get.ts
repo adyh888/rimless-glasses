@@ -62,23 +62,27 @@ export default defineEventHandler((event) => {
   const search = String(query.search || '').toLowerCase().trim()
   const type = String(query.type || '')
   const folder = String(query.folder || '').trim()
-  const globalSearch = search.length > 0
+  const typeFilterGlobal = !!type && type !== 'all'
+  const globalSearch = search.length > 0 || typeFilterGlobal
 
   if (globalSearch) {
     const acc: { items: CollectedItem[]; folders: CollectedFolder[] } = { items: [], folders: [] }
     walk(UPLOAD_ROOT, '', acc)
 
-    let folders = acc.folders
-      .filter(f => f.name.toLowerCase().includes(search))
-      .sort((a, b) => a.path.localeCompare(b.path))
+    let folders = search.length > 0
+      ? acc.folders
+          .filter(f => f.name.toLowerCase().includes(search))
+          .sort((a, b) => a.path.localeCompare(b.path))
+      : []
 
     let items = acc.items
-      .filter(i =>
+    if (search.length > 0) {
+      items = items.filter(i =>
         i.name.toLowerCase().includes(search) ||
         i.folderPath.toLowerCase().includes(search)
       )
-
-    if (type && type !== 'all') {
+    }
+    if (typeFilterGlobal) {
       items = items.filter(i => i.type === type)
     }
     items.sort((a, b) => b.mtime - a.mtime)
