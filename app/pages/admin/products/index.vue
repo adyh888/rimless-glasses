@@ -157,6 +157,7 @@
       <table class="w-full">
         <thead class="bg-gray-50 border-b border-gray-100">
           <tr>
+            <th class="w-8 px-1 py-3"></th>
             <th class="w-10 px-4 py-3">
               <input
                 type="checkbox"
@@ -178,11 +179,23 @@
         </thead>
         <tbody>
           <tr
-            v-for="product in products"
+            v-for="(product, idx) in products"
             :key="product.id"
-            class="border-b border-gray-50 hover:bg-gray-50/50 cursor-pointer"
+            draggable="true"
+            class="border-b border-gray-50 hover:bg-gray-50/50 cursor-pointer transition-colors"
+            :class="[
+              rowDragIdx === idx ? 'opacity-50' : '',
+              rowDragOverIdx === idx && rowDragIdx !== idx ? 'bg-accent/5' : '',
+            ]"
             @click="goToProduct(product)"
+            @dragstart="onRowDragStart(idx, $event)"
+            @dragover.prevent="rowDragOverIdx = idx"
+            @drop.prevent="onRowDrop"
+            @dragend="rowDragIdx = -1; rowDragOverIdx = -1"
           >
+            <td class="w-8 px-1 py-3 text-center text-gray-300 cursor-grab active:cursor-grabbing" title="拖拽调整排序" @click.stop>
+              <svg class="w-4 h-4 inline" fill="currentColor" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>
+            </td>
             <td class="w-10 px-4 py-3" @click.stop>
               <input
                 type="checkbox"
@@ -456,6 +469,8 @@ const currentPage = ref(1)
 const copying = ref<number | null>(null)
 const togglingId = ref<number | null>(null)
 const togglingFeaturedId = ref<number | null>(null)
+const rowDragIdx = ref(-1)
+const rowDragOverIdx = ref(-1)
 const previewOverlayRef = ref<HTMLElement>()
 const preview = reactive({ show: false, items: [] as string[], index: 0 })
 
@@ -742,6 +757,56 @@ function previewPrev() {
 
 function previewNext() {
   if (preview.index < preview.items.length - 1) preview.index++
+}
+
+function onRowDragStart(idx: number, e: DragEvent) {
+  rowDragIdx.value = idx
+  if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
+}
+
+async function onRowDrop() {
+  const from = rowDragIdx.value
+  const to = rowDragOverIdx.value
+  rowDragIdx.value = -1
+  rowDragOverIdx.value = -1
+  if (from === -1 || to === -1 || from === to) return
+
+  const visible = [...products.value]
+  const originalOrders = visible.map(p => Number(p.sort_order) || 0)
+  const [moved] = visible.splice(from, 1)
+  visible.splice(to, 0, moved)
+
+  const changes: { product: any; newOrder: number }[] = []
+  for (let i = 0; i < visible.length; i++) {
+    const p = visible[i]
+    const newOrder = originalOrders[i]
+    if (Number(p.sort_order) !== newOrder) {
+      changes.push({ product: p, newOrder })
+    }
+  }
+
+  const prevSnapshot = products.value
+  products.value = visible.map((p, i) => ({ ...p, sort_order: originalOrders[i] }))
+
+  if (changes.length === 0) return
+
+  try {
+    await Promise.all(changes.map(({ product, newOrder }) =>
+      authFetch(`/api/products/${product.id}`, {
+        method: 'PUT',
+        body: {
+          ...product,
+          sort_order: newOrder,
+          images: getAllMedia(product),
+          specs: JSON.parse(product.specs_json || '{}'),
+        },
+      })
+    ))
+    clearCache()
+  } catch (e: any) {
+    products.value = prevSnapshot
+    alert(e?.data?.statusMessage || '排序保存失败')
+  }
 }
 
 async function toggleFeatured(product: any) {
