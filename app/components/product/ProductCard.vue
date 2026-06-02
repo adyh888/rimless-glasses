@@ -24,14 +24,16 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ product: any }>()
+import type { ProductThumbBg } from '~/composables/useSiteSettings'
 
-const showPriceRef = await useShowPrice()
-const showPrice = computed(() => showPriceRef.value)
+const props = defineProps<{
+  product: any
+  showPrice: boolean
+  thumbBg: ProductThumbBg
+}>()
 
-const thumbBgRef = await useProductThumbBg()
 const thumbBgStyle = computed(() => {
-  const bg = thumbBgRef.value
+  const bg = props.thumbBg
   const r = parseInt(bg.color.slice(1, 3), 16)
   const g = parseInt(bg.color.slice(3, 5), 16)
   const b = parseInt(bg.color.slice(5, 7), 16)

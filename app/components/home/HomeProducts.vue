@@ -11,7 +11,7 @@
           :key="product.id"
           :delay="idx * 100"
         >
-          <ProductCard :product="product" />
+          <ProductCard :product="product" :show-price="showPrice" :thumb-bg="thumbBg" />
         </ScrollReveal>
       </div>
 
@@ -50,6 +50,11 @@ const { data: productsData } = await useFetch('/api/products', {
   query: computed(() => ({ featured: 'true', active_only: 'true', limit: limit.value })),
 })
 const featuredProducts = computed(() => (productsData.value as any)?.items || [])
+
+const showPriceRef = await useShowPrice()
+const showPrice = computed(() => showPriceRef.value)
+const thumbBgRef = await useProductThumbBg()
+const thumbBg = computed(() => thumbBgRef.value)
 
 const gridColsClass = computed(() => {
   const cols = props.perRow

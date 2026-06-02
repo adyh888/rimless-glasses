@@ -48,7 +48,7 @@
             :key="product.id"
             :delay="idx * 80"
           >
-            <ProductCard :product="product" />
+            <ProductCard :product="product" :show-price="showPrice" :thumb-bg="thumbBg" />
           </ScrollReveal>
         </div>
         <div v-else class="text-center py-20 text-secondary">
@@ -72,6 +72,11 @@ const { data } = await useFetch('/api/products', {
 const { data: catOrderData } = await useFetch('/api/content/product_category_order')
 const { data: subOrderData } = await useFetch('/api/content/product_subcategory_order')
 const { data: perRowData } = await useFetch('/api/content/products_per_row')
+
+const showPriceRef = await useShowPrice()
+const showPrice = computed(() => showPriceRef.value)
+const thumbBgRef = await useProductThumbBg()
+const thumbBg = computed(() => thumbBgRef.value)
 
 const productsPerRow = computed(() => {
   const val = parseInt((perRowData.value as any)?.content, 10)
