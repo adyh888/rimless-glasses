@@ -17,11 +17,29 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div>
           <label class="block text-sm text-secondary mb-1.5">分类</label>
-          <input v-model="form.category" type="text" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none" placeholder="例：经典系列" />
+          <input
+            v-model="form.category"
+            type="text"
+            list="category-options"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+            placeholder="选择已有或输入新分类"
+          />
+          <datalist id="category-options">
+            <option v-for="cat in allCategories" :key="cat" :value="cat" />
+          </datalist>
         </div>
         <div>
           <label class="block text-sm text-secondary mb-1.5">子分类</label>
-          <input v-model="form.sub_category" type="text" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none" placeholder="例：男 / 女" />
+          <input
+            v-model="form.sub_category"
+            type="text"
+            list="sub-category-options"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+            placeholder="选择已有或输入新子分类"
+          />
+          <datalist id="sub-category-options">
+            <option v-for="sub in subCategoriesForCurrent" :key="sub" :value="sub" />
+          </datalist>
         </div>
         <div>
           <label class="block text-sm text-secondary mb-1.5">价格（元）</label>
@@ -106,11 +124,29 @@
         <label class="block text-sm text-secondary mb-1.5">产品参数</label>
         <div class="space-y-2">
           <div v-for="(_, idx) in form.specRows" :key="idx" class="flex gap-2">
-            <input v-model="form.specRows[idx].key" type="text" placeholder="参数名" class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none" />
-            <input v-model="form.specRows[idx].value" type="text" placeholder="参数值" class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none" />
+            <input
+              v-model="form.specRows[idx].key"
+              type="text"
+              placeholder="选择已有或输入新参数名"
+              list="spec-key-options"
+              class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+            />
+            <input
+              v-model="form.specRows[idx].value"
+              type="text"
+              placeholder="选择已有或输入新参数值"
+              :list="`spec-value-options-${idx}`"
+              class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"
+            />
+            <datalist :id="`spec-value-options-${idx}`">
+              <option v-for="v in valuesForSpecKey(form.specRows[idx].key)" :key="v" :value="v" />
+            </datalist>
             <button type="button" @click="form.specRows.splice(idx, 1)" class="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg text-sm">删除</button>
           </div>
         </div>
+        <datalist id="spec-key-options">
+          <option v-for="k in allSpecKeys" :key="k" :value="k" />
+        </datalist>
         <button type="button" @click="form.specRows.push({ key: '', value: '' })" class="mt-2 text-sm text-accent hover:underline">
           + 添加参数
         </button>
@@ -141,6 +177,7 @@ const showPreview = ref(false)
 const previewSrc = ref('')
 const dragIdx = ref(-1)
 const dragOverIdx = ref(-1)
+
 const form = reactive({
   name: '',
   slug: '',
@@ -154,6 +191,66 @@ const form = reactive({
   description: '',
   specRows: [{ key: '', value: '' }] as { key: string; value: string }[],
 })
+
+const allCategories = ref<string[]>([])
+const categorySubMap = ref<Record<string, string[]>>({})
+const allSpecKeys = ref<string[]>([])
+const specKeyValueMap = ref<Record<string, string[]>>({})
+
+const subCategoriesForCurrent = computed(() => {
+  const cat = form.category?.trim()
+  if (!cat) {
+    const all = new Set<string>()
+    for (const subs of Object.values(categorySubMap.value)) {
+      for (const s of subs) all.add(s)
+    }
+    return [...all]
+  }
+  return categorySubMap.value[cat] || []
+})
+
+function valuesForSpecKey(key: string): string[] {
+  const k = (key || '').trim()
+  if (!k) return []
+  return specKeyValueMap.value[k] || []
+}
+
+async function loadCatalogOptions() {
+  try {
+    const data = await $fetch<any>('/api/products', { query: { limit: 9999 } })
+    const items: any[] = data.items || []
+    const cats = new Set<string>()
+    const catSubs: Record<string, Set<string>> = {}
+    const specKeys = new Set<string>()
+    const specValues: Record<string, Set<string>> = {}
+    for (const p of items) {
+      if (p.category) {
+        cats.add(p.category)
+        if (!catSubs[p.category]) catSubs[p.category] = new Set()
+        if (p.sub_category) catSubs[p.category].add(p.sub_category)
+      }
+      try {
+        const specs = JSON.parse(p.specs_json || '{}')
+        for (const [k, v] of Object.entries(specs)) {
+          if (!k) continue
+          specKeys.add(k)
+          if (!specValues[k]) specValues[k] = new Set()
+          if (v) specValues[k].add(String(v))
+        }
+      } catch {}
+    }
+    allCategories.value = [...cats]
+    const subMap: Record<string, string[]> = {}
+    for (const [c, set] of Object.entries(catSubs)) subMap[c] = [...set]
+    categorySubMap.value = subMap
+    allSpecKeys.value = [...specKeys]
+    const valMap: Record<string, string[]> = {}
+    for (const [k, set] of Object.entries(specValues)) valMap[k] = [...set]
+    specKeyValueMap.value = valMap
+  } catch {}
+}
+
+onMounted(() => { loadCatalogOptions() })
 
 if (!isNew) {
   onMounted(async () => {

@@ -171,6 +171,7 @@
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">分类</th>
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">价格</th>
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">排序</th>
+            <th class="text-left px-6 py-3 text-xs font-medium text-secondary">推荐</th>
             <th class="text-left px-6 py-3 text-xs font-medium text-secondary">状态</th>
             <th class="text-right px-6 py-3 text-xs font-medium text-secondary">操作</th>
           </tr>
@@ -218,7 +219,6 @@
                   class="text-sm text-primary hover:text-accent transition-colors text-left"
                   title="点击编辑名称"
                 >{{ product.name }}</button>
-                <div v-if="product.is_featured" class="text-xs text-accent">推荐</div>
               </template>
             </td>
             <td class="px-6 py-3 text-sm text-secondary">{{ product.category }}{{ product.sub_category ? ' / ' + product.sub_category : '' }}</td>
@@ -263,6 +263,16 @@
                   title="点击编辑排序"
                 >{{ product.sort_order || 0 }}</button>
               </template>
+            </td>
+            <td class="px-6 py-3" @click.stop>
+              <button
+                @click="toggleFeatured(product)"
+                :disabled="togglingFeaturedId === product.id"
+                class="text-xs px-2 py-1 rounded-full cursor-pointer transition-all"
+                :class="product.is_featured ? 'bg-accent/10 text-accent hover:bg-gray-100 hover:text-gray-500' : 'bg-gray-100 text-gray-500 hover:bg-accent/10 hover:text-accent'"
+              >
+                {{ togglingFeaturedId === product.id ? '切换中...' : (product.is_featured ? '推荐' : '普通') }}
+              </button>
             </td>
             <td class="px-6 py-3" @click.stop>
               <button
@@ -445,6 +455,7 @@ const total = ref(0)
 const currentPage = ref(1)
 const copying = ref<number | null>(null)
 const togglingId = ref<number | null>(null)
+const togglingFeaturedId = ref<number | null>(null)
 const previewOverlayRef = ref<HTMLElement>()
 const preview = reactive({ show: false, items: [] as string[], index: 0 })
 
@@ -731,6 +742,23 @@ function previewPrev() {
 
 function previewNext() {
   if (preview.index < preview.items.length - 1) preview.index++
+}
+
+async function toggleFeatured(product: any) {
+  togglingFeaturedId.value = product.id
+  try {
+    const newFeatured = product.is_featured ? 0 : 1
+    await authFetch(`/api/products/${product.id}`, {
+      method: 'PUT',
+      body: { ...product, is_featured: newFeatured, images: getAllMedia(product), specs: JSON.parse(product.specs_json || '{}') },
+    })
+    product.is_featured = newFeatured
+    clearCache()
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '切换推荐失败')
+  } finally {
+    togglingFeaturedId.value = null
+  }
 }
 
 async function toggleStatus(product: any) {
