@@ -63,10 +63,16 @@
             </td>
             <td class="px-6 py-3 text-sm text-primary">{{ article.title }}</td>
             <td class="px-6 py-3 text-sm text-secondary">{{ formatDate(article.created_at) }}</td>
-            <td class="px-6 py-3">
-              <span class="text-xs px-2 py-1 rounded-full" :class="article.is_published ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'">
-                {{ article.is_published ? '已发布' : '草稿' }}
-              </span>
+            <td class="px-6 py-3" @click.stop>
+              <button
+                @click="togglePublish(article)"
+                :disabled="togglingId === article.id"
+                class="text-xs px-2 py-1 rounded-full cursor-pointer transition-all"
+                :class="article.is_published ? 'bg-green-50 text-green-600 hover:bg-yellow-50 hover:text-yellow-600' : 'bg-yellow-50 text-yellow-600 hover:bg-green-50 hover:text-green-600'"
+                :title="article.is_published ? '点击放入草稿箱' : '点击发布'"
+              >
+                {{ togglingId === article.id ? '切换中...' : (article.is_published ? '已发布' : '草稿') }}
+              </button>
             </td>
             <td class="px-6 py-3 text-right space-x-3" @click.stop>
               <NuxtLink :to="`/admin/articles/${article.id}`" class="text-xs text-accent hover:underline">编辑</NuxtLink>
@@ -87,6 +93,7 @@ const { authFetch } = useAuth()
 const articles = ref<any[]>([])
 const selectedIds = ref(new Set<number>())
 const batchProcessing = ref(false)
+const togglingId = ref<number | null>(null)
 
 const isAllSelected = computed(() =>
   articles.value.length > 0 && articles.value.every(a => selectedIds.value.has(a.id))
@@ -147,6 +154,22 @@ async function batchAction(action: string) {
     alert(e?.data?.statusMessage || '操作失败')
   } finally {
     batchProcessing.value = false
+  }
+}
+
+async function togglePublish(article: any) {
+  togglingId.value = article.id
+  try {
+    const action = article.is_published ? 'unpublish' : 'publish'
+    await authFetch('/api/articles/batch', {
+      method: 'POST',
+      body: { ids: [article.id], action },
+    })
+    article.is_published = article.is_published ? 0 : 1
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '切换状态失败')
+  } finally {
+    togglingId.value = null
   }
 }
 

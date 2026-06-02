@@ -59,13 +59,21 @@
           @click="filterType = f.value; currentPage = 1"
         >{{ f.label }}</button>
       </div>
-      <input
-        v-model="searchQuery"
-        type="text"
-        placeholder="搜索文件名..."
-        class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none w-48"
-        @input="onSearchInput"
-      />
+      <div class="relative">
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="全局搜索文件/文件夹..."
+          class="px-3 py-1.5 pr-7 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none w-56"
+          @input="onSearchInput"
+        />
+        <button
+          v-if="searchQuery"
+          type="button"
+          @click="searchQuery = ''; currentPage = 1; clearMediaCache(); loadMedia()"
+          class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-600"
+        >&times;</button>
+      </div>
       <div class="flex-1" />
       <button
         v-if="selectedUrls.size > 0"
@@ -152,6 +160,21 @@
     />
     <div v-if="uploading" class="text-sm text-secondary">上传中... ({{ uploadProgress.done }}/{{ uploadProgress.total }})</div>
 
+    <!-- Global search hint -->
+    <div
+      v-if="globalSearch"
+      class="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg text-sm"
+    >
+      <svg class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <span class="text-amber-700">全局搜索 "<span class="font-medium">{{ searchQuery }}</span>"，共 {{ total }} 个文件、{{ folders.length }} 个文件夹</span>
+      <button
+        @click="searchQuery = ''; currentPage = 1; clearMediaCache(); loadMedia()"
+        class="text-amber-500 hover:text-amber-700 underline text-xs ml-auto"
+      >退出搜索</button>
+    </div>
+
     <!-- Media grid -->
     <div v-if="folders.length || items.length" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
       <!-- Folders -->
@@ -165,6 +188,9 @@
           <path d="M10 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V8a2 2 0 00-2-2h-8l-2-2z"/>
         </svg>
         <p class="text-xs text-primary mt-2 truncate px-2 max-w-full text-center">{{ folder.name }}</p>
+        <p v-if="globalSearch && folderParent(folder.path)" class="text-[10px] text-amber-600/70 truncate px-2 max-w-full text-center" :title="folderParent(folder.path)">
+          {{ folderParent(folder.path) }}
+        </p>
         <div class="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             type="button"
@@ -239,6 +265,9 @@
         <!-- Info -->
         <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-1.5">
           <p class="text-[10px] text-white truncate">{{ item.name }}</p>
+          <p v-if="globalSearch && item.folderPath" class="text-[10px] text-white/80 truncate" :title="item.folderPath">
+            📁 {{ item.folderPath }}
+          </p>
           <p class="text-[10px] text-white/70">{{ formatSize(item.size) }}</p>
         </div>
       </div>
@@ -439,6 +468,7 @@ interface MediaItem {
   type: string
   size: number
   mtime: number
+  folderPath?: string
 }
 
 interface FolderItem {
@@ -446,11 +476,17 @@ interface FolderItem {
   path: string
 }
 
+function folderParent(path: string): string {
+  const i = path.lastIndexOf('/')
+  return i > 0 ? path.slice(0, i) : ''
+}
+
 const folders = ref<FolderItem[]>([])
 const items = ref<MediaItem[]>([])
 const total = ref(0)
 const currentPage = ref(1)
 const currentFolder = ref('')
+const globalSearch = ref(false)
 
 const mediaCache = new Map<string, { folders: FolderItem[]; items: MediaItem[]; total: number; timestamp: number }>()
 const CACHE_TTL = 5 * 60 * 1000
@@ -576,7 +612,7 @@ async function loadMedia() {
   }
 
   try {
-    const res = await $fetch<{ folders: FolderItem[]; items: MediaItem[]; total: number }>('/api/media', {
+    const res = await $fetch<{ folders: FolderItem[]; items: MediaItem[]; total: number; globalSearch?: boolean }>('/api/media', {
       params: {
         folder: currentFolder.value,
         page: currentPage.value,
@@ -588,6 +624,7 @@ async function loadMedia() {
     folders.value = res.folders
     items.value = res.items
     total.value = res.total
+    globalSearch.value = !!res.globalSearch
 
     mediaCache.set(cacheKey, {
       folders: res.folders,
@@ -599,6 +636,7 @@ async function loadMedia() {
     folders.value = []
     items.value = []
     total.value = 0
+    globalSearch.value = false
   }
   selectedUrls.value = new Set()
 }
