@@ -51,8 +51,10 @@ const props = withDefaults(defineProps<{
   show: boolean
   imageSrc: string
   aspectRatio?: number
+  folder?: string
 }>(), {
   aspectRatio: 3.2,
+  folder: '',
 })
 
 const emit = defineEmits<{
@@ -98,7 +100,10 @@ async function confirmCrop() {
 
     const formData = new FormData()
     formData.append('file', blob, 'cropped.jpg')
-    const res = await $fetch<any>('/api/upload', {
+    const uploadUrl = props.folder
+      ? `/api/upload?folder=${encodeURIComponent(props.folder)}`
+      : '/api/upload'
+    const res = await $fetch<any>(uploadUrl, {
       method: 'POST',
       body: formData,
       headers: authHeaders(),

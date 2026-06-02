@@ -50,7 +50,12 @@
 
       <div>
         <label class="block text-sm text-secondary mb-1.5">封面图片</label>
-        <ImageUploader v-model="form.cover_image" />
+        <ImageUploader
+          v-model="form.cover_image"
+          :crop="true"
+          :aspect-ratio="16 / 10"
+          :folder="coverFolder"
+        />
       </div>
 
       <div>
@@ -89,6 +94,13 @@ const form = reactive({
   content: '',
   is_published: 0,
 })
+
+const coverFolder = (() => {
+  const now = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const ts = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`
+  return `文章内容/${ts}`
+})()
 
 if (!isNew) {
   onMounted(async () => {
