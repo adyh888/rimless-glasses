@@ -19,6 +19,8 @@ import { RuntimeConfig as UserRuntimeConfig, PublicRuntimeConfig as UserPublicRu
   interface SharedPublicRuntimeConfig {
    siteName: string,
 
+   cloudBase: string,
+
    motion: any,
   }
 declare module '@nuxt/schema' {

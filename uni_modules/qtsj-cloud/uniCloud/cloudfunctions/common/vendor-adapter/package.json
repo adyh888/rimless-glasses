@@ -1,0 +1,6 @@
+{
+  "name": "vendor-adapter",
+  "version": "0.1.0",
+  "description": "云厂商差异抽象（fileID URL、cloudPath、cron、上传凭证）",
+  "main": "index.js"
+}

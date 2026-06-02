@@ -1,0 +1,19 @@
+{
+  "id": "qtsj-cloud",
+  "displayName": "清透视界 - 云端业务模块",
+  "version": "0.1.0",
+  "description": "项目业务云对象与公共模块，跨阿里云/腾讯云/支付宝云三服务空间共享。",
+  "keywords": ["uniCloud", "qtsj"],
+  "engines": { "HBuilderX": "^3.5.2" },
+  "dcloudext": {
+    "type": "uniCloud",
+    "sale": { "regular": { "price": "0.00" }, "sourcecode": { "price": "0.00" } },
+    "contact": { "qq": "" },
+    "declaration": { "ads": "无", "data": "无", "permissions": "无" },
+    "npmurl": ""
+  },
+  "uni_modules": {
+    "uniCloud": ["aliyun", "tcb", "alipay"],
+    "dependencies": []
+  }
+}

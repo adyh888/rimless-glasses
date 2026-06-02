@@ -1,0 +1,6 @@
+{
+  "name": "db-helpers",
+  "version": "0.1.0",
+  "description": "JQL 分页、排序、软删除通用工具",
+  "main": "index.js"
+}

@@ -1,0 +1,15 @@
+{
+  "name": "hello",
+  "version": "0.1.0",
+  "description": "阶段 0 三云冒烟云对象",
+  "main": "index.js",
+  "dependencies": {
+    "vendor-adapter": "file:../common/vendor-adapter"
+  },
+  "cloudfunction-config": {
+    "concurrency": 1,
+    "memorySize": 256,
+    "timeout": 10,
+    "triggers": []
+  }
+}

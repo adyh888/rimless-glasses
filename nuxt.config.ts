@@ -36,6 +36,7 @@ export default defineNuxtConfig({
     jwtSecret: 'qingtou-shijie-jwt-secret-2026',
     public: {
       siteName: '清透视界',
+      cloudBase: process.env.NUXT_PUBLIC_CLOUD_BASE || '',
     },
   },
 

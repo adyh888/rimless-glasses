@@ -1,0 +1,10 @@
+{
+  "name": "auth-guard",
+  "version": "0.1.0",
+  "description": "云对象 admin 权限守卫，封装 uni-id token 校验",
+  "main": "index.js",
+  "dependencies": {
+    "uni-id-common": "file:../uni-id-common",
+    "uni-config-center": "file:../uni-config-center"
+  }
+}
