@@ -772,37 +772,38 @@ async function onRowDrop() {
   if (from === -1 || to === -1 || from === to) return
 
   const visible = [...products.value]
-  const originalOrders = visible.map(p => Number(p.sort_order) || 0)
   const [moved] = visible.splice(from, 1)
   visible.splice(to, 0, moved)
 
-  const changes: { product: any; newOrder: number }[] = []
-  for (let i = 0; i < visible.length; i++) {
-    const p = visible[i]
-    const newOrder = originalOrders[i]
-    if (Number(p.sort_order) !== newOrder) {
-      changes.push({ product: p, newOrder })
-    }
-  }
-
   const prevSnapshot = products.value
-  products.value = visible.map((p, i) => ({ ...p, sort_order: originalOrders[i] }))
-
-  if (changes.length === 0) return
+  products.value = visible
 
   try {
-    await Promise.all(changes.map(({ product, newOrder }) =>
-      authFetch(`/api/products/${product.id}`, {
-        method: 'PUT',
-        body: {
-          ...product,
-          sort_order: newOrder,
-          images: getAllMedia(product),
-          specs: JSON.parse(product.specs_json || '{}'),
-        },
-      })
-    ))
+    const fullData = await $fetch<any>('/api/products', {
+      query: { limit: 9999, order_by: 'sort_order', order_dir: 'ASC' },
+    })
+    const fullList: any[] = (fullData.items || []).slice()
+
+    const visibleIds = new Set(visible.map(p => p.id))
+    const indicesOfVisible: number[] = []
+    fullList.forEach((p, idx) => {
+      if (visibleIds.has(p.id)) indicesOfVisible.push(idx)
+    })
+
+    visible.forEach((p, i) => {
+      const targetIdx = indicesOfVisible[i]
+      if (targetIdx !== undefined) fullList[targetIdx] = p
+    })
+
+    const orderedIds = fullList.map(p => p.id).filter((id: any) => Number.isInteger(id) && id > 0)
+
+    await authFetch('/api/products/reorder', {
+      method: 'POST',
+      body: { ids: orderedIds },
+    })
+
     clearCache()
+    await loadProducts()
   } catch (e: any) {
     products.value = prevSnapshot
     alert(e?.data?.statusMessage || '排序保存失败')
