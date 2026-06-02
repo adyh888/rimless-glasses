@@ -1,0 +1,31 @@
+{
+  "bsonType": "object",
+  "required": ["key"],
+  "permission": {
+    "read": true,
+    "create": "'uni-id-token' in request.header",
+    "update": "'uni-id-token' in request.header",
+    "delete": "'uni-id-token' in request.header"
+  },
+  "properties": {
+    "key": {
+      "bsonType": "string",
+      "title": "内容标识",
+      "description": "唯一键名，如 about_us / contact_validation / site_config",
+      "trim": "both"
+    },
+    "content": {
+      "bsonType": "string",
+      "title": "内容",
+      "description": "文本内容或 JSON 配置字符串",
+      "defaultValue": ""
+    },
+    "updated_at": {
+      "bsonType": "timestamp",
+      "title": "更新时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "bsonType": "object",
+  "required": ["title", "slug"],
+  "permission": {
+    "read": true,
+    "create": "'uni-id-token' in request.header",
+    "update": "'uni-id-token' in request.header",
+    "delete": "'uni-id-token' in request.header"
+  },
+  "properties": {
+    "title": {
+      "bsonType": "string",
+      "title": "文章标题",
+      "trim": "both"
+    },
+    "slug": {
+      "bsonType": "string",
+      "title": "URL 标识",
+      "description": "唯一标识符，用于前端路由",
+      "trim": "both"
+    },
+    "content": {
+      "bsonType": "string",
+      "title": "文章正文",
+      "description": "富文本 HTML / Markdown 内容",
+      "defaultValue": ""
+    },
+    "cover_image": {
+      "bsonType": "string",
+      "title": "封面图片",
+      "description": "封面图 URL（云存储 fileID 或 HTTPS URL）",
+      "defaultValue": "",
+      "trim": "both"
+    },
+    "summary": {
+      "bsonType": "string",
+      "title": "摘要",
+      "defaultValue": "",
+      "trim": "both"
+    },
+    "is_published": {
+      "bsonType": "int",
+      "title": "是否发布",
+      "defaultValue": 0,
+      "enum": [0, 1]
+    },
+    "created_at": {
+      "bsonType": "timestamp",
+      "title": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "updated_at": {
+      "bsonType": "timestamp",
+      "title": "更新时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}

@@ -1,17 +1,244 @@
 {
-	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+	"pages": [
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "uni-app"
+				"navigationBarTitleText": "清透视界",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/products/index",
+			"style": {
+				"navigationBarTitleText": "产品中心",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/products/detail",
+			"style": {
+				"navigationBarTitleText": "产品详情",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/news/index",
+			"style": {
+				"navigationBarTitleText": "新闻动态",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/news/detail",
+			"style": {
+				"navigationBarTitleText": "新闻详情",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/about/index",
+			"style": {
+				"navigationBarTitleText": "关于我们",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/contact/index",
+			"style": {
+				"navigationBarTitleText": "联系我们",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/dev-smoke/index",
+			"style": {
+				"navigationBarTitleText": "qtsj-cloud 联调"
+			}
+		},
+		{
+			"path": "pages/admin/login/index",
+			"style": {
+				"navigationBarTitleText": "管理后台登录",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/admin/index/index",
+			"style": {
+				"navigationBarTitleText": "管理后台",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/admin/products/index",
+			"style": {
+				"navigationBarTitleText": "产品管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/admin/products/edit",
+			"style": {
+				"navigationBarTitleText": "编辑产品",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/admin/articles/index",
+			"style": {
+				"navigationBarTitleText": "文章管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/admin/articles/edit",
+			"style": {
+				"navigationBarTitleText": "编辑文章",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/admin/banners/index",
+			"style": {
+				"navigationBarTitleText": "轮播管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/admin/banners/edit",
+			"style": {
+				"navigationBarTitleText": "编辑轮播",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/admin/messages/index",
+			"style": {
+				"navigationBarTitleText": "留言管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/admin/content/index",
+			"style": {
+				"navigationBarTitleText": "内容管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/admin/homepage/index",
+			"style": {
+				"navigationBarTitleText": "首页管理",
+				"navigationStyle": "custom"
 			}
 		}
-	],
+	,{
+    "path": "uni_modules/uni-id-pages/pages/register/register",
+    "style": {
+        "navigationBarTitleText": "注册"
+    }
+}
+,{
+    "path": "uni_modules/uni-id-pages/pages/login/login-withoutpwd",
+    "style": {
+        "navigationBarTitleText": "登录"
+    }
+}
+,{
+    "path": "uni_modules/uni-id-pages/pages/login/login-withpwd",
+    "style": {
+        "navigationBarTitleText": "账号密码登录"
+    }
+}
+,{
+    "path": "uni_modules/uni-id-pages/pages/login/login-smscode",
+    "style": {
+        "navigationBarTitleText": "手机验证码登录"
+    }
+}
+,{
+    "path": "uni_modules/uni-id-pages/pages/userinfo/userinfo",
+    "style": {
+        "navigationBarTitleText": "个人资料"
+    }
+}
+,{
+    "path": "uni_modules/uni-id-pages/pages/userinfo/bind-mobile/bind-mobile",
+    "style": {
+        "navigationBarTitleText": "绑定手机号码"
+    }
+}
+,{
+    "path": "uni_modules/uni-id-pages/pages/userinfo/cropImage/cropImage",
+    "style": {
+        "navigationBarTitleText": ""
+    }
+}
+,{
+    "path": "uni_modules/uni-id-pages/pages/register/register-by-email",
+    "style": {
+        "navigationBarTitleText": "邮箱验证码注册"
+    }
+}
+,{
+    "path": "uni_modules/uni-id-pages/pages/retrieve/retrieve",
+    "style": {
+        "navigationBarTitleText": "重置密码"
+    }
+}
+,{
+    "path": "uni_modules/uni-id-pages/pages/retrieve/retrieve-by-email",
+    "style": {
+        "navigationBarTitleText": "通过邮箱重置密码"
+    }
+}
+,{
+    "path": "uni_modules/uni-id-pages/pages/common/webview/webview",
+    "style": {
+        "enablePullDownRefresh": false,
+        "navigationBarTitleText": ""
+    }
+}
+,{
+    "path": "uni_modules/uni-id-pages/pages/userinfo/change_pwd/change_pwd",
+    "style": {
+        "enablePullDownRefresh": false,
+        "navigationBarTitleText": "修改密码"
+    }
+}
+,{
+    "path": "uni_modules/uni-id-pages/pages/register/register-admin",
+    "style": {
+        "enablePullDownRefresh": false,
+        "navigationBarTitleText": "注册管理员账号"
+    }
+}
+,{
+    "path": "uni_modules/uni-id-pages/pages/userinfo/set-pwd/set-pwd",
+    "style": {
+        "enablePullDownRefresh": false,
+        "navigationBarTitleText": "设置密码"
+    }
+}
+,{
+    "path": "uni_modules/uni-id-pages/pages/userinfo/deactivate/deactivate",
+    "style": {
+        "navigationBarTitleText": "注销账号"
+    }
+}
+,{
+    "path": "uni_modules/uni-id-pages/pages/userinfo/realname-verify/realname-verify",
+    "style": {
+        "enablePullDownRefresh": false,
+        "navigationBarTitleText": "实名认证"
+    }
+}
+],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "uni-app",
-		"navigationBarBackgroundColor": "#F8F8F8",
-		"backgroundColor": "#F8F8F8"
+		"navigationBarTitleText": "清透视界",
+		"navigationBarBackgroundColor": "#FFFFFF",
+		"backgroundColor": "#F7F6F3"
 	},
 	"uniIdRouter": {}
 }

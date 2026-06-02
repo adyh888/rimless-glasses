@@ -1,0 +1,57 @@
+{
+  "bsonType": "object",
+  "required": ["name", "type", "fileID", "url"],
+  "permission": {
+    "read": true,
+    "create": "'uni-id-token' in request.header",
+    "update": "'uni-id-token' in request.header",
+    "delete": "'uni-id-token' in request.header"
+  },
+  "properties": {
+    "name": {
+      "bsonType": "string",
+      "title": "文件名",
+      "description": "包含扩展名，不含路径",
+      "trim": "both"
+    },
+    "type": {
+      "bsonType": "string",
+      "title": "媒体类型",
+      "enum": ["image", "video"]
+    },
+    "size": {
+      "bsonType": "long",
+      "title": "字节大小",
+      "defaultValue": 0
+    },
+    "mtime": {
+      "bsonType": "long",
+      "title": "修改时间（毫秒）",
+      "defaultValue": 0
+    },
+    "folderPath": {
+      "bsonType": "string",
+      "title": "所在文件夹路径",
+      "description": "形如 \"产品/2026-06\"，根目录为空串",
+      "defaultValue": "",
+      "trim": "both"
+    },
+    "fileID": {
+      "bsonType": "string",
+      "title": "云存储 fileID",
+      "description": "vendor-adapter 上传返回；删除时凭此释放云存储对象"
+    },
+    "url": {
+      "bsonType": "string",
+      "title": "HTTPS URL",
+      "description": "aliyun 上 fileID 即 URL；tcb/alipay 通过 getTempFileURL 解析后存这里"
+    },
+    "created_at": {
+      "bsonType": "timestamp",
+      "title": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}

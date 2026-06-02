@@ -1,0 +1,16 @@
+{
+  "name": "banners",
+  "version": "0.1.0",
+  "description": "轮播图云对象（CRUD）",
+  "main": "index.obj.js",
+  "dependencies": {
+    "db-helpers": "file:../common/db-helpers",
+    "auth-guard": "file:../common/auth-guard"
+  },
+  "cloudfunction-config": {
+    "concurrency": 5,
+    "memorySize": 256,
+    "timeout": 10,
+    "triggers": []
+  }
+}

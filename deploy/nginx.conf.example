@@ -1,0 +1,41 @@
+# 清透视界 H5 + SEO 预渲染部署示例
+#
+# 把 HBuilderX 发行得到的 unpackage/dist/build/h5/ 整个目录上传到 /var/www/glasses
+# 跑过 `node scripts/prerender.mjs` 后，目录里会有形如
+#   /var/www/glasses/index.html               ← 首页（已 SEO 预渲染）
+#   /var/www/glasses/products/index.html      ← 产品列表（已预渲染）
+#   /var/www/glasses/products/<slug>/index.html  ← 每个产品详情（已预渲染）
+#   /var/www/glasses/news/...                 ← 新闻同上
+#   /var/www/glasses/about/index.html, /contact/index.html
+#   /var/www/glasses/static/*, /assets/*, /*.js, /*.css  ← 静态资源
+#
+# nginx 的 try_files 规则：先看 URI 对应的静态文件；
+# 命中预渲染 HTML 就直接返回（爬虫拿到完整内容），
+# 没命中就 fallback 到首页 index.html（SPA 接管路由）。
+
+server {
+    listen 80;
+    server_name qingtou.example.com;
+
+    root /var/www/glasses;
+    index index.html;
+
+    # 长缓存静态资源（JS/CSS 带 hash 文件名）
+    location ~* \.(js|css|woff2?|ttf|otf|svg|png|jpe?g|gif|webp|ico|mp4|webm)$ {
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000, immutable";
+        try_files $uri =404;
+    }
+
+    # 首要规则：优先静态文件 → 静态目录的 index.html → SPA fallback
+    location / {
+        try_files $uri $uri/index.html /index.html;
+        # 不缓存 HTML，下次发布生效
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+    }
+
+    # （可选）gzip
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+    gzip_min_length 1024;
+}

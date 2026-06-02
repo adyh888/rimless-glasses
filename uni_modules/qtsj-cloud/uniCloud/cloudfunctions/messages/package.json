@@ -1,0 +1,16 @@
+{
+  "name": "messages",
+  "version": "0.1.0",
+  "description": "留言云对象（前台提交 + 后台管理）",
+  "main": "index.obj.js",
+  "dependencies": {
+    "db-helpers": "file:../common/db-helpers",
+    "auth-guard": "file:../common/auth-guard"
+  },
+  "cloudfunction-config": {
+    "concurrency": 5,
+    "memorySize": 256,
+    "timeout": 10,
+    "triggers": []
+  }
+}

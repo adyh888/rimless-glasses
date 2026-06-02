@@ -1,0 +1,17 @@
+{
+  "name": "articles",
+  "version": "0.1.0",
+  "description": "文章云对象（CRUD / 批量 / 远程导入）",
+  "main": "index.obj.js",
+  "dependencies": {
+    "db-helpers": "file:../common/db-helpers",
+    "auth-guard": "file:../common/auth-guard",
+    "vendor-adapter": "file:../common/vendor-adapter"
+  },
+  "cloudfunction-config": {
+    "concurrency": 5,
+    "memorySize": 512,
+    "timeout": 60,
+    "triggers": []
+  }
+}

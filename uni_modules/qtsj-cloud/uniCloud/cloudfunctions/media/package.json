@@ -1,0 +1,17 @@
+{
+  "name": "media",
+  "version": "0.1.0",
+  "description": "媒体云对象（列表/上传登记/重命名/复制/删除）",
+  "main": "index.obj.js",
+  "dependencies": {
+    "db-helpers": "file:../common/db-helpers",
+    "auth-guard": "file:../common/auth-guard",
+    "vendor-adapter": "file:../common/vendor-adapter"
+  },
+  "cloudfunction-config": {
+    "concurrency": 5,
+    "memorySize": 256,
+    "timeout": 20,
+    "triggers": []
+  }
+}

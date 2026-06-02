@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <script>
@@ -8,6 +8,39 @@
       document.write(
         '<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0' +
         (coverSupport ? ', viewport-fit=cover' : '') + '" />')
+    </script>
+    <script>
+      // SEO 美化 URL → 内部 uni-app 页面路径。
+      // 爬虫看到的是 /products/<slug>；浏览器加载后由 vue-router 接管内部路径。
+      (function () {
+        var p = window.location.pathname
+        var s = window.location.search || ''
+        var h = window.location.hash || ''
+        var extra = s ? (s.indexOf('?') === 0 ? '&' + s.slice(1) : s) : ''
+        // 注：'/' 不在映射里——uni-app H5 history 模式会自动把 / 映射到 pages.json 第一条（首页），
+        // 翻译反而会让首页 URL 栏变丑。
+        var map = {
+          '/products': '/pages/products/index',
+          '/products/': '/pages/products/index',
+          '/news': '/pages/news/index',
+          '/news/': '/pages/news/index',
+          '/about': '/pages/about/index',
+          '/about/': '/pages/about/index',
+          '/contact': '/pages/contact/index',
+          '/contact/': '/pages/contact/index',
+        }
+        var target
+        if (map[p]) {
+          target = map[p] + s + h
+        } else {
+          var m = p.match(/^\/products\/([^/]+)\/?$/)
+          if (m) target = '/pages/products/detail?slug=' + encodeURIComponent(m[1]) + extra + h
+          else if ((m = p.match(/^\/news\/([^/]+)\/?$/))) target = '/pages/news/detail?slug=' + encodeURIComponent(m[1]) + extra + h
+        }
+        if (target && target !== p + s + h) {
+          history.replaceState(null, '', target)
+        }
+      })()
     </script>
     <title></title>
     <!--preload-links-->

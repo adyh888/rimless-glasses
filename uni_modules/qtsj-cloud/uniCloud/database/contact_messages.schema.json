@@ -1,0 +1,53 @@
+{
+  "bsonType": "object",
+  "required": ["name", "message"],
+  "permission": {
+    "read": "'uni-id-token' in request.header",
+    "create": true,
+    "update": false,
+    "delete": "'uni-id-token' in request.header"
+  },
+  "properties": {
+    "name": {
+      "bsonType": "string",
+      "title": "姓名",
+      "trim": "both",
+      "minLength": 2,
+      "maxLength": 50
+    },
+    "email": {
+      "bsonType": "string",
+      "title": "邮箱",
+      "defaultValue": "",
+      "trim": "both",
+      "maxLength": 100
+    },
+    "phone": {
+      "bsonType": "string",
+      "title": "电话",
+      "defaultValue": "",
+      "trim": "both",
+      "maxLength": 30
+    },
+    "message": {
+      "bsonType": "string",
+      "title": "留言内容",
+      "trim": "both",
+      "minLength": 10,
+      "maxLength": 5000
+    },
+    "is_read": {
+      "bsonType": "int",
+      "title": "是否已读",
+      "defaultValue": 0,
+      "enum": [0, 1]
+    },
+    "created_at": {
+      "bsonType": "timestamp",
+      "title": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}

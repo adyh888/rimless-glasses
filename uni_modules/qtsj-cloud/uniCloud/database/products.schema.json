@@ -1,0 +1,90 @@
+{
+  "bsonType": "object",
+  "required": ["name", "slug"],
+  "permission": {
+    "read": true,
+    "create": "'uni-id-token' in request.header",
+    "update": "'uni-id-token' in request.header",
+    "delete": "'uni-id-token' in request.header"
+  },
+  "properties": {
+    "name": {
+      "bsonType": "string",
+      "title": "产品名称",
+      "trim": "both"
+    },
+    "slug": {
+      "bsonType": "string",
+      "title": "URL 标识",
+      "description": "唯一标识符，用于前端路由和查询",
+      "trim": "both"
+    },
+    "price": {
+      "bsonType": "double",
+      "title": "价格",
+      "defaultValue": 0,
+      "minimum": 0
+    },
+    "description": {
+      "bsonType": "string",
+      "title": "产品描述",
+      "defaultValue": "",
+      "trim": "both"
+    },
+    "specs_json": {
+      "bsonType": "string",
+      "title": "规格参数",
+      "description": "JSON 字符串，存储规格键值对",
+      "defaultValue": "{}"
+    },
+    "images_json": {
+      "bsonType": "string",
+      "title": "产品图片",
+      "description": "JSON 数组字符串，存储图片 URL 列表",
+      "defaultValue": "[]"
+    },
+    "category": {
+      "bsonType": "string",
+      "title": "主分类",
+      "defaultValue": "",
+      "trim": "both"
+    },
+    "sub_category": {
+      "bsonType": "string",
+      "title": "子分类",
+      "defaultValue": "",
+      "trim": "both"
+    },
+    "is_featured": {
+      "bsonType": "int",
+      "title": "是否推荐",
+      "defaultValue": 0,
+      "enum": [0, 1]
+    },
+    "is_active": {
+      "bsonType": "int",
+      "title": "是否上架",
+      "defaultValue": 1,
+      "enum": [0, 1]
+    },
+    "sort_order": {
+      "bsonType": "int",
+      "title": "排序",
+      "defaultValue": 0
+    },
+    "created_at": {
+      "bsonType": "timestamp",
+      "title": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "updated_at": {
+      "bsonType": "timestamp",
+      "title": "更新时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}

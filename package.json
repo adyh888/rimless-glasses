@@ -1,53 +1,15 @@
 {
-  "name": "2026-05",
+  "name": "glasses",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "清透视界 — uni-app 前端",
+  "private": true,
   "scripts": {
-    "dev": "nuxt dev",
-    "build": "nuxt build",
-    "preview": "nuxt preview",
-    "seed": "tsx scripts/seed.ts",
-    "postinstall": "nuxt prepare"
+    "prerender": "node scripts/prerender.mjs"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.18.2",
   "dependencies": {
-    "@tiptap/extension-image": "^3.23.6",
-    "@tiptap/extension-link": "^3.23.6",
-    "@tiptap/extension-placeholder": "^3.23.6",
-    "@tiptap/pm": "^3.23.6",
-    "@tiptap/starter-kit": "^3.23.6",
-    "@tiptap/vue-3": "^3.23.6",
-    "@types/sharp": "^0.32.0",
-    "@vueuse/motion": "^3.0.3",
-    "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^12.10.0",
-    "cropperjs": "^1.6.2",
-    "jsonwebtoken": "^9.0.3",
-    "nuxt": "^4.4.6",
-    "sharp": "^0.34.5",
-    "svg-captcha": "^1.4.0",
-    "uuid": "^14.0.0",
-    "vue": "^3.5.34",
-    "vue-router": "^5.0.7"
+    "vue": "^3.5.34"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.3.0",
-    "@types/bcryptjs": "^3.0.0",
-    "@types/better-sqlite3": "^7.6.13",
-    "@types/jsonwebtoken": "^9.0.10",
-    "tailwindcss": "^4.3.0",
-    "tsx": "^4.22.3"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "better-sqlite3",
-      "esbuild",
-      "@parcel/watcher",
-      "@tailwindcss/oxide"
-    ]
+    "puppeteer": "^23.10.4"
   }
 }

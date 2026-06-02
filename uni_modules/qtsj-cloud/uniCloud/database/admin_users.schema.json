@@ -1,0 +1,30 @@
+{
+  "bsonType": "object",
+  "required": ["username", "password_hash"],
+  "permission": {
+    "read": "'uni-id-token' in request.header",
+    "create": "'uni-id-token' in request.header",
+    "update": "'uni-id-token' in request.header",
+    "delete": "'uni-id-token' in request.header"
+  },
+  "properties": {
+    "username": {
+      "bsonType": "string",
+      "title": "用户名",
+      "trim": "both",
+      "minLength": 2,
+      "maxLength": 50
+    },
+    "password_hash": {
+      "bsonType": "string",
+      "title": "密码哈希"
+    },
+    "created_at": {
+      "bsonType": "timestamp",
+      "title": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}

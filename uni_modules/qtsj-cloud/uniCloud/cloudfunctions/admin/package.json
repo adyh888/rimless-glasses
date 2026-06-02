@@ -1,0 +1,17 @@
+{
+  "name": "admin",
+  "version": "0.1.0",
+  "description": "管理员账号管理云对象（基于 uni-id）",
+  "main": "index.obj.js",
+  "dependencies": {
+    "uni-id-common": "file:../common/uni-id-common",
+    "auth-guard": "file:../common/auth-guard",
+    "db-helpers": "file:../common/db-helpers"
+  },
+  "cloudfunction-config": {
+    "concurrency": 5,
+    "memorySize": 256,
+    "timeout": 10,
+    "triggers": []
+  }
+}

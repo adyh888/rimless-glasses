@@ -1,0 +1,29 @@
+{
+  "passwordSecret": "qtsj-CHANGE-ME-32chars-min-prod-only",
+  "tokenSecret": "qtsj-CHANGE-ME-jwt-secret-32chars-prod-only",
+  "tokenExpiresIn": 604800,
+  "tokenExpiresThreshold": 600,
+  "passwordErrorLimit": 6,
+  "passwordErrorRetryTime": 3600,
+  "bindTokenToDevice": false,
+  "removePermissionAndRoleFromToken": false,
+  "loginTypes": ["username"],
+  "registerTypes": [],
+  "autoSetInviteCode": false,
+  "forceInviteCode": false,
+  "loginLog": {
+    "type": "all",
+    "retentionDays": 30
+  },
+  "captcha": {
+    "register": [],
+    "login": ["password:username"],
+    "sendSmsCode": ["login", "resetPwd"]
+  },
+  "service": {
+    "sms": {
+      "name": "清透视界",
+      "codeExpiresIn": 300
+    }
+  }
+}

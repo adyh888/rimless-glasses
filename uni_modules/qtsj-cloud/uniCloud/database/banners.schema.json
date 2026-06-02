@@ -1,0 +1,72 @@
+{
+  "bsonType": "object",
+  "required": ["title", "image_url"],
+  "permission": {
+    "read": true,
+    "create": "'uni-id-token' in request.header",
+    "update": "'uni-id-token' in request.header",
+    "delete": "'uni-id-token' in request.header"
+  },
+  "properties": {
+    "title": {
+      "bsonType": "string",
+      "title": "标题",
+      "description": "Banner 主标题",
+      "trim": "both"
+    },
+    "subtitle": {
+      "bsonType": "string",
+      "title": "副标题",
+      "defaultValue": "",
+      "trim": "both"
+    },
+    "button_text": {
+      "bsonType": "string",
+      "title": "按钮文案",
+      "defaultValue": "",
+      "trim": "both"
+    },
+    "button_link": {
+      "bsonType": "string",
+      "title": "按钮链接",
+      "defaultValue": "",
+      "trim": "both"
+    },
+    "image_url": {
+      "bsonType": "string",
+      "title": "图片地址",
+      "description": "Banner 主图 URL（云存储 fileID 或 HTTPS URL）"
+    },
+    "video_poster": {
+      "bsonType": "string",
+      "title": "视频封面",
+      "defaultValue": "",
+      "trim": "both"
+    },
+    "sort_order": {
+      "bsonType": "int",
+      "title": "排序",
+      "defaultValue": 0
+    },
+    "is_active": {
+      "bsonType": "int",
+      "title": "是否启用",
+      "defaultValue": 1,
+      "enum": [0, 1]
+    },
+    "created_at": {
+      "bsonType": "timestamp",
+      "title": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "updated_at": {
+      "bsonType": "timestamp",
+      "title": "更新时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}

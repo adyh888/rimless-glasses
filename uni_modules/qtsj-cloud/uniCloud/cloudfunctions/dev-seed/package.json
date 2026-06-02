@@ -1,0 +1,15 @@
+{
+  "name": "dev-seed",
+  "version": "0.0.1",
+  "description": "联调种子数据。仅本地/开发环境使用，请勿上传到生产服务空间。",
+  "main": "index.obj.js",
+  "dependencies": {
+    "db-helpers": "file:../common/db-helpers"
+  },
+  "cloudfunction-config": {
+    "concurrency": 1,
+    "memorySize": 256,
+    "timeout": 20,
+    "triggers": []
+  }
+}

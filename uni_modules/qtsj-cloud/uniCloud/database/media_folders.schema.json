@@ -1,0 +1,37 @@
+{
+  "bsonType": "object",
+  "required": ["path", "name"],
+  "permission": {
+    "read": true,
+    "create": "'uni-id-token' in request.header",
+    "update": "'uni-id-token' in request.header",
+    "delete": "'uni-id-token' in request.header"
+  },
+  "properties": {
+    "path": {
+      "bsonType": "string",
+      "title": "完整路径",
+      "description": "如 \"产品/2026-06\"，根目录的文件夹 path 即其 name",
+      "trim": "both"
+    },
+    "name": {
+      "bsonType": "string",
+      "title": "文件夹名称",
+      "trim": "both"
+    },
+    "parent": {
+      "bsonType": "string",
+      "title": "父文件夹路径",
+      "description": "根目录文件夹 parent 为空串；用于快速列出某层级",
+      "defaultValue": "",
+      "trim": "both"
+    },
+    "created_at": {
+      "bsonType": "timestamp",
+      "title": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "content",
+  "version": "0.1.0",
+  "description": "站点内容云对象（按 key 读/写配置或文案）",
+  "main": "index.obj.js",
+  "dependencies": {
+    "db-helpers": "file:../common/db-helpers",
+    "auth-guard": "file:../common/auth-guard"
+  },
+  "cloudfunction-config": {
+    "concurrency": 5,
+    "memorySize": 256,
+    "timeout": 10,
+    "triggers": []
+  }
+}

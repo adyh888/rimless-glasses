@@ -1,0 +1,16 @@
+{
+  "name": "products",
+  "version": "0.1.0",
+  "description": "产品云对象（CRUD / 批量 / 重排）",
+  "main": "index.obj.js",
+  "dependencies": {
+    "db-helpers": "file:../common/db-helpers",
+    "auth-guard": "file:../common/auth-guard"
+  },
+  "cloudfunction-config": {
+    "concurrency": 5,
+    "memorySize": 256,
+    "timeout": 10,
+    "triggers": []
+  }
+}
