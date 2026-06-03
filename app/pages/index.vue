@@ -45,10 +45,10 @@
 </template>
 
 <script setup lang="ts">
-const sectionsRef = await useHomepageSections()
+const sectionsRef = useHomepageSections()
 const sections = computed(() => sectionsRef.value)
 
-const brandRef = await useBrandName()
+const brandRef = useBrandName()
 const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
 
 useHead({ title: computed(() => siteName.value) })

@@ -32,13 +32,13 @@
 
 <script setup lang="ts">
 const route = useRoute()
-const brandRef = await useBrandName()
+const brandRef = useBrandName()
 const brand = computed(() => brandRef.value)
 
-const logoRef = await useSiteLogo()
+const logoRef = useSiteLogo()
 const logo = computed(() => logoRef.value)
 
-const menuRef = await useAdminMenu()
+const menuRef = useAdminMenu()
 const menuItems = computed(() => menuRef.value)
 
 function isActive(path: string) {

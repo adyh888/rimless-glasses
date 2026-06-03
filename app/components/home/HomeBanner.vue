@@ -86,14 +86,11 @@
 </template>
 
 <script setup lang="ts">
-const { data: bannerData } = await useFetch('/api/banners', { query: { active_only: 'true' } })
+const { data: bannerData } = await useFetch('/api/banners', { query: { active_only: 'true' }, lazy: true })
 const banners = computed(() => (bannerData.value as any[]) || [])
 
-const { data: intervalData } = await useFetch('/api/content/banner_interval')
-const bannerIntervalMs = computed(() => {
-  const sec = parseInt((intervalData.value as any)?.content, 10)
-  return (sec > 0 ? sec : 5) * 1000
-})
+const bannerIntervalRef = useBannerInterval()
+const bannerIntervalMs = computed(() => bannerIntervalRef.value * 1000)
 
 const currentBanner = ref(0)
 const carouselRef = ref<HTMLElement>()

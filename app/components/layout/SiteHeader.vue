@@ -49,13 +49,13 @@
 </template>
 
 <script setup lang="ts">
-const brandRef = await useBrandName()
+const brandRef = useBrandName()
 const brand = computed(() => brandRef.value)
 
-const logoRef = await useSiteLogo()
+const logoRef = useSiteLogo()
 const logo = computed(() => logoRef.value)
 
-const navItemsRef = await useNavItems()
+const navItemsRef = useNavItems()
 const navItems = computed(() => navItemsRef.value.filter(item => item.is_active))
 
 const scrolled = ref(false)

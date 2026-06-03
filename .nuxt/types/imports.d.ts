@@ -102,13 +102,16 @@ declare global {
   const tryUseNuxtApp: typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/nuxt').tryUseNuxtApp
   const unref: typeof import('vue').unref
   const updateAppConfig: typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/config').updateAppConfig
+  const useAboutContent: typeof import('../../app/composables/useSiteSettings').useAboutContent
   const useAboutImage: typeof import('../../app/composables/useSiteSettings').useAboutImage
+  const useAboutOverlay: typeof import('../../app/composables/useSiteSettings').useAboutOverlay
   const useAdminMenu: typeof import('../../app/composables/useSiteSettings').useAdminMenu
   const useAnnouncer: typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/announcer').useAnnouncer
   const useAppConfig: typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/config').useAppConfig
   const useAsyncData: typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/asyncData').useAsyncData
   const useAttrs: typeof import('vue').useAttrs
   const useAuth: typeof import('../../app/composables/useAuth').useAuth
+  const useBannerInterval: typeof import('../../app/composables/useSiteSettings').useBannerInterval
   const useBrandName: typeof import('../../app/composables/useSiteSettings').useBrandName
   const useContactInfo: typeof import('../../app/composables/useSiteSettings').useContactInfo
   const useCookie: typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/cookie').useCookie
@@ -141,7 +144,11 @@ declare global {
   const useNuxtData: typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/asyncData').useNuxtData
   const useNuxtDevTools: typeof import('../../node_modules/.pnpm/@nuxt+devtools@3.2.4_vite@7.3.3_@types+node@25.9.1_jiti@2.7.0_lightningcss@1.32.0_terse_d37a8223c67560ab6d25685d1bf5616b/node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools').useNuxtDevTools
   const usePreviewMode: typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/preview').usePreviewMode
+  const useProductCategories: typeof import('../../app/composables/useSiteSettings').useProductCategories
+  const useProductCategoryOrder: typeof import('../../app/composables/useSiteSettings').useProductCategoryOrder
+  const useProductSubcategoryOrder: typeof import('../../app/composables/useSiteSettings').useProductSubcategoryOrder
   const useProductThumbBg: typeof import('../../app/composables/useSiteSettings').useProductThumbBg
+  const useProductsPerRow: typeof import('../../app/composables/useSiteSettings').useProductsPerRow
   const useReducedMotion: typeof import('../../node_modules/.pnpm/@vueuse+motion@3.0.3_magicast@0.5.3_vue@3.5.34/node_modules/@vueuse/motion/dist/nuxt/runtime/composables/index').useReducedMotion
   const useRequestEvent: typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/ssr').useRequestEvent
   const useRequestFetch: typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/ssr').useRequestFetch
@@ -233,7 +240,7 @@ declare global {
   export type { HomepageBlock } from '../../app/composables/useHomepageSections'
   import('../../app/composables/useHomepageSections')
   // @ts-ignore
-  export type { ContactInfo, BrandName, NavItem, SocialLink, AdminMenuItem, SiteLogo, ProductThumbBg, LightboxArrowStyle, FooterTagline } from '../../app/composables/useSiteSettings'
+  export type { ContactInfo, BrandName, NavItem, SocialLink, AdminMenuItem, SiteLogo, ProductThumbBg, LightboxArrowStyle, FooterTagline, AboutOverlay } from '../../app/composables/useSiteSettings'
   import('../../app/composables/useSiteSettings')
 }
 // for vue template auto import
@@ -341,13 +348,16 @@ declare module 'vue' {
     readonly tryUseNuxtApp: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/nuxt')['tryUseNuxtApp']>
     readonly unref: UnwrapRef<typeof import('vue')['unref']>
     readonly updateAppConfig: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/config')['updateAppConfig']>
+    readonly useAboutContent: UnwrapRef<typeof import('../../app/composables/useSiteSettings')['useAboutContent']>
     readonly useAboutImage: UnwrapRef<typeof import('../../app/composables/useSiteSettings')['useAboutImage']>
+    readonly useAboutOverlay: UnwrapRef<typeof import('../../app/composables/useSiteSettings')['useAboutOverlay']>
     readonly useAdminMenu: UnwrapRef<typeof import('../../app/composables/useSiteSettings')['useAdminMenu']>
     readonly useAnnouncer: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/announcer')['useAnnouncer']>
     readonly useAppConfig: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/config')['useAppConfig']>
     readonly useAsyncData: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/asyncData')['useAsyncData']>
     readonly useAttrs: UnwrapRef<typeof import('vue')['useAttrs']>
     readonly useAuth: UnwrapRef<typeof import('../../app/composables/useAuth')['useAuth']>
+    readonly useBannerInterval: UnwrapRef<typeof import('../../app/composables/useSiteSettings')['useBannerInterval']>
     readonly useBrandName: UnwrapRef<typeof import('../../app/composables/useSiteSettings')['useBrandName']>
     readonly useContactInfo: UnwrapRef<typeof import('../../app/composables/useSiteSettings')['useContactInfo']>
     readonly useCookie: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/cookie')['useCookie']>
@@ -380,7 +390,11 @@ declare module 'vue' {
     readonly useNuxtData: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/asyncData')['useNuxtData']>
     readonly useNuxtDevTools: UnwrapRef<typeof import('../../node_modules/.pnpm/@nuxt+devtools@3.2.4_vite@7.3.3_@types+node@25.9.1_jiti@2.7.0_lightningcss@1.32.0_terse_d37a8223c67560ab6d25685d1bf5616b/node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools')['useNuxtDevTools']>
     readonly usePreviewMode: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/preview')['usePreviewMode']>
+    readonly useProductCategories: UnwrapRef<typeof import('../../app/composables/useSiteSettings')['useProductCategories']>
+    readonly useProductCategoryOrder: UnwrapRef<typeof import('../../app/composables/useSiteSettings')['useProductCategoryOrder']>
+    readonly useProductSubcategoryOrder: UnwrapRef<typeof import('../../app/composables/useSiteSettings')['useProductSubcategoryOrder']>
     readonly useProductThumbBg: UnwrapRef<typeof import('../../app/composables/useSiteSettings')['useProductThumbBg']>
+    readonly useProductsPerRow: UnwrapRef<typeof import('../../app/composables/useSiteSettings')['useProductsPerRow']>
     readonly useReducedMotion: UnwrapRef<typeof import('../../node_modules/.pnpm/@vueuse+motion@3.0.3_magicast@0.5.3_vue@3.5.34/node_modules/@vueuse/motion/dist/nuxt/runtime/composables/index')['useReducedMotion']>
     readonly useRequestEvent: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/ssr')['useRequestEvent']>
     readonly useRequestFetch: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@4.4.6_@babel+plugin-syntax-jsx@7.29.7_@babel+core@7.29.7__@babel+plugin-syntax-typ_fdadf39e74b3ba2f0ebc1c8bde92de70/node_modules/nuxt/dist/app/composables/ssr')['useRequestFetch']>

@@ -74,7 +74,7 @@
 definePageMeta({ layout: false })
 
 const route = useRoute()
-const brandRef = await useBrandName()
+const brandRef = useBrandName()
 const brand = computed(() => brandRef.value)
 
 const { login } = useAuth()

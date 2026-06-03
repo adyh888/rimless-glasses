@@ -9,7 +9,17 @@
 
     <section class="py-16 bg-white">
       <div class="max-w-7xl mx-auto px-6">
-        <div v-if="articles.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div v-if="pending && !articles.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div v-for="n in 6" :key="n">
+            <div class="aspect-[16/10] rounded-xl bg-surface skeleton-shimmer" />
+            <div class="mt-5 space-y-2">
+              <div class="h-3 w-20 bg-surface rounded skeleton-shimmer" />
+              <div class="h-4 w-3/4 bg-surface rounded skeleton-shimmer" />
+              <div class="h-3 w-5/6 bg-surface rounded skeleton-shimmer" />
+            </div>
+          </div>
+        </div>
+        <div v-else-if="articles.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <ScrollReveal
             v-for="(article, idx) in articles"
             :key="article.id"
@@ -40,13 +50,13 @@
 </template>
 
 <script setup lang="ts">
-const { data } = await useFetch('/api/articles', { query: { published_only: 'true' } })
+const { data, pending } = await useFetch('/api/articles', { query: { published_only: 'true' }, lazy: true })
 const articles = computed(() => (data.value as any)?.items || [])
 
-const brandRef = await useBrandName()
+const brandRef = useBrandName()
 const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
 
-const navRef = await useNavItems()
+const navRef = useNavItems()
 const navItem = computed(() => navRef.value.find(n => n.path === '/news'))
 const pageTitle = computed(() => navItem.value?.label || '新闻动态')
 const pageSubtitle = computed(() => navItem.value?.subtitle || `了解${siteName.value}的最新资讯与行业洞察`)

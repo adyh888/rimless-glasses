@@ -101,6 +101,9 @@ declare module "nitropack/types" {
     '/api/products/reorder': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/products/reorder.post').default>>>>
     }
+    '/api/site/bootstrap': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/site/bootstrap.get').default>>>>
+    }
     '/api/stats': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/stats/index.get').default>>>>
     }

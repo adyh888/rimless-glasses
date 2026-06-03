@@ -48,11 +48,12 @@ const props = withDefaults(defineProps<{
 
 const { data: articlesData } = await useFetch('/api/articles', {
   query: computed(() => ({ published_only: 'true', limit: props.limit })),
+  lazy: true,
 })
 const latestArticles = computed(() => (articlesData.value as any)?.items || [])
 
-const navRef = await useNavItems()
-const brandRef = await useBrandName()
+const navRef = useNavItems()
+const brandRef = useBrandName()
 const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
 
 const displayTitle = computed(() => {

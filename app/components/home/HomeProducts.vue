@@ -48,12 +48,13 @@ const limit = computed(() => props.rows * props.perRow)
 
 const { data: productsData } = await useFetch('/api/products', {
   query: computed(() => ({ featured: 'true', active_only: 'true', limit: limit.value })),
+  lazy: true,
 })
 const featuredProducts = computed(() => (productsData.value as any)?.items || [])
 
-const showPriceRef = await useShowPrice()
+const showPriceRef = useShowPrice()
 const showPrice = computed(() => showPriceRef.value)
-const thumbBgRef = await useProductThumbBg()
+const thumbBgRef = useProductThumbBg()
 const thumbBg = computed(() => thumbBgRef.value)
 
 const gridColsClass = computed(() => {

@@ -1,5 +1,18 @@
 <template>
-  <div v-if="article">
+  <div v-if="pending && !article" class="pt-32 pb-16 bg-white">
+    <div class="max-w-3xl mx-auto px-6 space-y-4">
+      <div class="h-3 w-1/3 bg-surface rounded skeleton-shimmer" />
+      <div class="aspect-[16/9] rounded-2xl bg-surface skeleton-shimmer" />
+      <div class="h-8 w-3/4 bg-surface rounded skeleton-shimmer" />
+      <div class="h-3 w-24 bg-surface rounded skeleton-shimmer" />
+      <div class="space-y-2 mt-6">
+        <div class="h-3 w-full bg-surface rounded skeleton-shimmer" />
+        <div class="h-3 w-11/12 bg-surface rounded skeleton-shimmer" />
+        <div class="h-3 w-10/12 bg-surface rounded skeleton-shimmer" />
+      </div>
+    </div>
+  </div>
+  <div v-else-if="article">
     <section class="pt-28 bg-white">
       <div class="max-w-3xl mx-auto px-6">
         <nav class="text-sm text-secondary mb-8">
@@ -50,8 +63,9 @@
 
 <script setup lang="ts">
 const route = useRoute()
-const { data } = await useFetch('/api/articles', {
+const { data, pending } = await useFetch('/api/articles', {
   query: { slug: route.params.slug },
+  lazy: true,
 })
 const article = computed(() => data.value as any)
 
@@ -63,7 +77,7 @@ function formatDate(dateStr: string) {
   return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`
 }
 
-const brandRef = await useBrandName()
+const brandRef = useBrandName()
 const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
 
 useHead({

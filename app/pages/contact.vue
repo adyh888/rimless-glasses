@@ -172,7 +172,7 @@ const emailError = ref('')
 const phoneError = ref('')
 const messageError = ref('')
 
-const contactInfoRef = await useContactInfo()
+const contactInfoRef = useContactInfo()
 const contactInfo = computed(() => contactInfoRef.value)
 
 const qrPreview = reactive({ show: false, src: '', label: '' })
@@ -182,15 +182,15 @@ function openQrPreview(src: string, label: string) {
   qrPreview.show = true
 }
 
-const socialLinksRef = await useSocialLinks()
+const socialLinksRef = useSocialLinks()
 const activeSocialLinks = computed(() => socialLinksRef.value.filter(l => l.is_active))
 
-const navRef = await useNavItems()
+const navRef = useNavItems()
 const navItem = computed(() => navRef.value.find(n => n.path === '/contact'))
 const pageTitle = computed(() => navItem.value?.label || '联系我们')
 const pageSubtitle = computed(() => navItem.value?.subtitle || '期待与您的每一次对话')
 
-const brandRef = await useBrandName()
+const brandRef = useBrandName()
 const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
 
 onMounted(async () => {

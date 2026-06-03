@@ -42,7 +42,18 @@
     <!-- Products Grid -->
     <section class="py-16 bg-white">
       <div class="max-w-7xl mx-auto px-6">
-        <div v-if="filteredProducts.length" class="grid gap-8" :class="gridColClass">
+        <div v-if="pending && !allProducts.length" class="grid gap-8" :class="gridColClass">
+          <div
+            v-for="n in productsPerRow * 2"
+            :key="n"
+            class="rounded-2xl overflow-hidden"
+          >
+            <div class="aspect-square bg-surface skeleton-shimmer" />
+            <div class="mt-4 h-4 bg-surface rounded skeleton-shimmer w-3/4" />
+            <div class="mt-2 h-3 bg-surface rounded skeleton-shimmer w-1/2" />
+          </div>
+        </div>
+        <div v-else-if="filteredProducts.length" class="grid gap-8" :class="gridColClass">
           <ScrollReveal
             v-for="(product, idx) in filteredProducts"
             :key="product.id"
@@ -60,28 +71,26 @@
 </template>
 
 <script setup lang="ts">
-const navRef = await useNavItems()
+const navRef = useNavItems()
 const navItem = computed(() => navRef.value.find(n => n.path === '/products'))
 const pageTitle = computed(() => navItem.value?.label || '产品中心')
 const pageSubtitle = computed(() => navItem.value?.subtitle || '每一副无框眼镜，都是对极简美学的极致诠释')
 
-const { data } = await useFetch('/api/products', {
+const { data, pending } = await useFetch('/api/products', {
   query: { active_only: 'true', limit: 50 },
+  lazy: true,
 })
 
-const { data: catOrderData } = await useFetch('/api/content/product_category_order')
-const { data: subOrderData } = await useFetch('/api/content/product_subcategory_order')
-const { data: perRowData } = await useFetch('/api/content/products_per_row')
+const catOrderRef = useProductCategoryOrder()
+const subOrderRef = useProductSubcategoryOrder()
+const productsPerRowRef = useProductsPerRow()
 
-const showPriceRef = await useShowPrice()
+const showPriceRef = useShowPrice()
 const showPrice = computed(() => showPriceRef.value)
-const thumbBgRef = await useProductThumbBg()
+const thumbBgRef = useProductThumbBg()
 const thumbBg = computed(() => thumbBgRef.value)
 
-const productsPerRow = computed(() => {
-  const val = parseInt((perRowData.value as any)?.content, 10)
-  return val >= 2 && val <= 5 ? val : 3
-})
+const productsPerRow = computed(() => productsPerRowRef.value)
 
 const gridColClass = computed(() => {
   const map: Record<number, string> = {
@@ -96,9 +105,8 @@ const gridColClass = computed(() => {
 const allProducts = computed(() => (data.value as any)?.items || [])
 
 const categories = computed(() => {
-  const rawCats = [...new Set(allProducts.value.map((p: any) => p.category).filter(Boolean))]
-  let savedOrder: string[] = []
-  try { savedOrder = JSON.parse((catOrderData.value as any)?.content || '[]') } catch {}
+  const rawCats = [...new Set(allProducts.value.map((p: any) => p.category).filter(Boolean))] as string[]
+  const savedOrder = catOrderRef.value
   const sorted = savedOrder.filter((c: string) => rawCats.includes(c))
   const rest = rawCats.filter((c: string) => !sorted.includes(c))
   return ['全部', ...sorted, ...rest]
@@ -129,12 +137,10 @@ const subCategories = computed(() => {
   if (selectedCategory.value !== '全部') {
     products = products.filter((p: any) => p.category === selectedCategory.value)
   }
-  const rawSubs = [...new Set(products.map((p: any) => p.sub_category).filter(Boolean))]
+  const rawSubs = [...new Set(products.map((p: any) => p.sub_category).filter(Boolean))] as string[]
   if (rawSubs.length === 0) return []
 
-  let savedSubOrder: Record<string, string[]> = {}
-  try { savedSubOrder = JSON.parse((subOrderData.value as any)?.content || '{}') } catch {}
-
+  const savedSubOrder = subOrderRef.value
   const catOrder = savedSubOrder[selectedCategory.value] || []
   const sorted = catOrder.filter((s: string) => rawSubs.includes(s))
   const rest = rawSubs.filter((s: string) => !sorted.includes(s))

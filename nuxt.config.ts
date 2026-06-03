@@ -40,6 +40,7 @@ export default defineNuxtConfig({
   },
 
   app: {
+    pageTransition: { name: 'page', mode: 'out-in' },
     head: {
       title: '清透视界 - 无框眼镜高端品牌',
       meta: [

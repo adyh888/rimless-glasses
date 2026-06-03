@@ -52,28 +52,24 @@
 </template>
 
 <script setup lang="ts">
-const { data } = await useFetch('/api/content/about_us')
-const content = computed(() => (data.value as any)?.content || '')
+const contentRef = useAboutContent()
+const content = computed(() => contentRef.value)
 
-const { data: overlayData } = await useFetch('/api/content/about_overlay')
-const overlayStyle = computed(() => {
-  try {
-    const cfg = JSON.parse((overlayData.value as any)?.content || '{}')
-    return { backgroundColor: cfg.color || '#000000', opacity: (cfg.opacity ?? 20) / 100 }
-  } catch {
-    return { backgroundColor: '#000000', opacity: 0.2 }
-  }
-})
+const overlayRef = useAboutOverlay()
+const overlayStyle = computed(() => ({
+  backgroundColor: overlayRef.value.color,
+  opacity: overlayRef.value.opacity / 100,
+}))
 
-const brandRef = await useBrandName()
+const brandRef = useBrandName()
 const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
 
-const navRef = await useNavItems()
+const navRef = useNavItems()
 const navItem = computed(() => navRef.value.find(n => n.path === '/about'))
 const pageTitle = computed(() => navItem.value?.label || '关于我们')
 const pageSubtitle = computed(() => navItem.value?.subtitle || '以极简设计重新定义视觉体验')
 
-const aboutImageRef = await useAboutImage()
+const aboutImageRef = useAboutImage()
 const aboutImage = computed(() => aboutImageRef.value)
 
 const values = [

@@ -1,5 +1,20 @@
 <template>
-  <div v-if="product">
+  <div v-if="pending && !product" class="pt-32 pb-16 bg-white">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="h-4 w-1/3 bg-surface rounded skeleton-shimmer" />
+      <div class="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-16">
+        <div class="aspect-square rounded-2xl bg-surface skeleton-shimmer" />
+        <div class="space-y-4">
+          <div class="h-3 w-24 bg-surface rounded skeleton-shimmer" />
+          <div class="h-8 w-2/3 bg-surface rounded skeleton-shimmer" />
+          <div class="h-6 w-1/3 bg-surface rounded skeleton-shimmer" />
+          <div class="h-3 w-full bg-surface rounded skeleton-shimmer" />
+          <div class="h-3 w-5/6 bg-surface rounded skeleton-shimmer" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div v-else-if="product">
     <section class="pt-28 pb-16 bg-white">
       <div class="max-w-7xl mx-auto px-6">
         <!-- Breadcrumb -->
@@ -187,16 +202,17 @@
 
 <script setup lang="ts">
 const route = useRoute()
-const { data } = await useFetch('/api/products', {
+const { data, pending } = await useFetch('/api/products', {
   query: { slug: route.params.slug },
+  lazy: true,
 })
 
 const product = computed(() => data.value as any)
 
-const showPriceRef = await useShowPrice()
+const showPriceRef = useShowPrice()
 const showPrice = computed(() => showPriceRef.value)
 
-const thumbBgRef = await useProductThumbBg()
+const thumbBgRef = useProductThumbBg()
 const thumbBgStyle = computed(() => {
   const bg = thumbBgRef.value
   const r = parseInt(bg.color.slice(1, 3), 16)
@@ -205,7 +221,7 @@ const thumbBgStyle = computed(() => {
   return { backgroundColor: `rgba(${r}, ${g}, ${b}, ${bg.opacity / 100})` }
 })
 
-const arrowStyleRef = await useLightboxArrowStyle()
+const arrowStyleRef = useLightboxArrowStyle()
 const arrowStyle = computed(() => arrowStyleRef.value)
 
 const images = computed(() => {
@@ -301,7 +317,7 @@ onBeforeUnmount(() => {
   document.body.style.overflow = ''
 })
 
-const brandRef = await useBrandName()
+const brandRef = useBrandName()
 const siteName = computed(() => brandRef.value.primary + brandRef.value.accent)
 
 useHead({

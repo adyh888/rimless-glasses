@@ -51,24 +51,20 @@
 </template>
 
 <script setup lang="ts">
-const brandRef = await useBrandName()
-const taglineRef = await useFooterTagline()
-const contactInfoRef = await useContactInfo()
-const navRef = await useNavItems()
+const brandRef = useBrandName()
+const taglineRef = useFooterTagline()
+const contactInfoRef = useContactInfo()
+const navRef = useNavItems()
 const brand = computed(() => brandRef.value)
 const tagline = computed(() => taglineRef.value)
 const contactInfo = computed(() => contactInfoRef.value)
 
-const { data: productsData } = await useFetch('/api/products', {
-  query: { active_only: 'true', limit: 9999 },
-})
-const { data: catOrderData } = await useFetch('/api/content/product_category_order')
+const rawCatsRef = useProductCategories()
+const catOrderRef = useProductCategoryOrder()
 
 const productCategories = computed(() => {
-  const items = (productsData.value as any)?.items || []
-  const rawCats = [...new Set(items.map((p: any) => p.category).filter(Boolean))] as string[]
-  let savedOrder: string[] = []
-  try { savedOrder = JSON.parse((catOrderData.value as any)?.content || '[]') } catch {}
+  const rawCats = rawCatsRef.value
+  const savedOrder = catOrderRef.value
   const sorted = savedOrder.filter(c => rawCats.includes(c))
   const rest = rawCats.filter(c => !sorted.includes(c))
   return [...sorted, ...rest]
