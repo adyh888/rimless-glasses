@@ -58,6 +58,23 @@
 <script>
 import { cloud, showErr } from '@/utils/cloud.js'
 
+// 解析 JWT payload。仅取角色等公开信息，不做签名校验（签名校验在服务端）。
+function decodeJwtPayload (token) {
+  if (!token || typeof token !== 'string') return null
+  const parts = token.split('.')
+  if (parts.length < 2) return null
+  try {
+    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    while (b64.length % 4) b64 += '='
+    const json = decodeURIComponent(
+      atob(b64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
+    )
+    return JSON.parse(json)
+  } catch (e) {
+    return null
+  }
+}
+
 export default {
   data () {
     return {
@@ -104,8 +121,8 @@ export default {
 
     async refreshCaptcha () {
       try {
-        const co = uniCloud.importObject('uni-id-co', { customUI: true })
-        const res = await co.getImgCaptcha({ scene: 'login-by-pwd-username' })
+        const co = uniCloud.importObject('uni-captcha-co', { customUI: true })
+        const res = await co.getImageCaptcha({ scene: 'login-by-pwd' })
         this.captchaSrc = res.captchaBase64 || ''
       } catch (e) {
         showErr(e, '验证码加载失败')
@@ -121,6 +138,10 @@ export default {
         this.error = '请填写用户名和密码'
         return
       }
+      if (this.captchaRequired && !this.form.captcha) {
+        this.error = '请输入图形验证码'
+        return
+      }
       this.loading = true
       this.error = ''
       try {
@@ -133,21 +154,33 @@ export default {
           params.captcha = this.form.captcha
         }
         const res = await co.login(params)
-        const roles = res?.userInfo?.role || []
+        const token = res?.newToken?.token || res?.token || ''
+        const tokenExpired = res?.newToken?.tokenExpired || res?.tokenExpired || 0
+        const payload = decodeJwtPayload(token)
+        const roles = payload?.role || res?.userInfo?.role || []
         if (!roles.includes('admin')) {
           this.error = '该账号无后台访问权限'
-          try { uni.removeStorageSync('uni_id_token') } catch (e) {}
+          try {
+            uni.removeStorageSync('uni_id_token')
+            uni.removeStorageSync('uni_id_token_expired')
+          } catch (e) {}
           return
+        }
+        if (token) {
+          uni.setStorageSync('uni_id_token', token)
+          uni.setStorageSync('uni_id_token_expired', tokenExpired)
         }
         uni.reLaunch({ url: '/pages/admin/index/index' })
       } catch (e) {
-        const errData = e?.errSubject ? e : (e?.result || {})
-        if (errData?.needCaptcha || /captcha/i.test(String(e?.errMsg || ''))) {
+        const errMsg = String(e?.errMsg || e?.message || '')
+        const errCode = String(e?.errCode || e?.code || '')
+        const needCaptcha = e?.needCaptcha || /captcha|验证码/i.test(errMsg) || /captcha/i.test(errCode)
+        if (needCaptcha) {
           this.captchaRequired = true
           this.form.captcha = ''
           this.refreshCaptcha()
         }
-        this.error = e?.errMsg || e?.message || '登录失败'
+        this.error = errMsg || '登录失败'
       } finally {
         this.loading = false
       }
