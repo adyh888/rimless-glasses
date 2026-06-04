@@ -161,10 +161,10 @@ watch(selectedSubCategory, (v) => {
   }
 })
 
-// 监听路由 query 变化（同页面点击页脚分类链接时触发）
 watch(() => route.query.category, (cat) => {
   if (cat && typeof cat === 'string') {
     selectedCategory.value = cat
+    if (import.meta.client) window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 })
 
