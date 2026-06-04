@@ -76,6 +76,11 @@ export function useSiteLogo() {
   return computed(() => s.value?.logo || { url: '', show: false, height: 32 })
 }
 
+export function useFavicon() {
+  const s = siteSettings()
+  return computed(() => s.value?.favicon || '')
+}
+
 export function useProductThumbBg() {
   const s = siteSettings()
   return computed(() => s.value?.productThumbBg || { color: '#ffffff', opacity: 100 })

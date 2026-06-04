@@ -12,6 +12,7 @@ import {
   parseSubcategoryOrder,
   parseBannerInterval,
   parseProductsPerRow,
+  parseFavicon,
   DEFAULT_ABOUT_IMAGE,
 } from '#shared/site-settings'
 
@@ -31,6 +32,7 @@ export default defineEventHandler(() => {
       accent: map.brand_name_accent || '视界',
     },
     logo: parseSiteLogo(map.site_logo),
+    favicon: parseFavicon(map.site_favicon),
     navItems: parseNavItems(map.nav_items),
     footerTagline: {
       line1: map.footer_tagline_line1 || '以极简设计重新定义视觉体验',

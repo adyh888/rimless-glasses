@@ -15,6 +15,7 @@ import type {
 export type SiteSettings = {
   brand: BrandName
   logo: SiteLogo
+  favicon: string
   navItems: NavItem[]
   footerTagline: FooterTagline
   contactInfo: ContactInfo

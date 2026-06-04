@@ -58,8 +58,10 @@ body {
   background: var(--color-accent);
   transition: width 0.3s ease;
 }
-.link-underline:hover::after {
-  width: 100%;
+@media (hover: hover) {
+  .link-underline:hover::after {
+    width: 100%;
+  }
 }
 
 ::-webkit-scrollbar {

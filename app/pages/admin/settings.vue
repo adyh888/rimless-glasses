@@ -504,6 +504,35 @@
       </div>
     </section>
 
+    <!-- 网页图标 (Favicon) -->
+    <section v-show="activeTab === 'basic'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
+      <h2 class="text-sm font-medium text-primary mb-1">网页图标 (Favicon)</h2>
+      <p class="text-xs text-secondary mb-5">显示在浏览器标签页和收藏夹中的小图标。推荐使用 PNG 格式，尺寸 32×32 或 64×64 像素。</p>
+
+      <div class="flex items-end gap-4">
+        <div>
+          <ImageUploader v-model="faviconUrl" />
+        </div>
+        <div v-if="faviconUrl" class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded border border-gray-200 overflow-hidden bg-surface flex items-center justify-center">
+            <img :src="faviconUrl" alt="Favicon 预览" class="w-full h-full object-contain" />
+          </div>
+          <span class="text-xs text-secondary">预览</span>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <button
+          @click="saveFavicon"
+          :disabled="savingFavicon"
+          class="px-5 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50"
+        >
+          {{ savingFavicon ? '保存中...' : '保存图标' }}
+        </button>
+        <span v-if="faviconSaved" class="ml-3 text-sm text-green-600">已保存（刷新页面后生效）</span>
+      </div>
+    </section>
+
     <!-- Logo 设置 -->
     <section v-show="activeTab === 'basic'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">Logo 设置</h2>
@@ -1421,6 +1450,10 @@ const contactValidationSaved = ref(false)
 const siteLogo = reactive({ url: '', show: false, height: 32 })
 const savingLogo = ref(false)
 const logoSaved = ref(false)
+
+const faviconUrl = ref('')
+const savingFavicon = ref(false)
+const faviconSaved = ref(false)
 const logoCropperShow = ref(false)
 const logoCropperSrc = ref('')
 
@@ -1559,7 +1592,7 @@ async function deleteUser(u: AdminUser) {
 }
 
 onMounted(async () => {
-  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes, socialRes, adminMenuRes, logoRes, accessKeyRes, aboutOverlayRes, contactValidationRes, productsPerRowRes, thumbBgRes, lightboxArrowRes] = await Promise.all([
+  const [priceRes, contactRes, brandP, brandA, tag1, tag2, uploadSizeRes, videoFormatsRes, videoSizeRes, bannerIntervalRes, navRes, aboutImageRes, socialRes, adminMenuRes, logoRes, accessKeyRes, aboutOverlayRes, contactValidationRes, productsPerRowRes, thumbBgRes, lightboxArrowRes, faviconRes] = await Promise.all([
     $fetch<any>('/api/content/show_product_price'),
     $fetch<any>('/api/content/contact_info'),
     $fetch<any>('/api/content/brand_name_primary'),
@@ -1581,6 +1614,7 @@ onMounted(async () => {
     $fetch<any>('/api/content/products_per_row'),
     $fetch<any>('/api/content/product_thumb_bg'),
     $fetch<any>('/api/content/lightbox_arrow_style'),
+    $fetch<any>('/api/content/site_favicon'),
   ])
   showPrice.value = (priceRes?.content ?? '1') !== '0'
   productsPerRow.value = productsPerRowRes?.content ? parseInt(productsPerRowRes.content, 10) || 3 : 3
@@ -1661,6 +1695,8 @@ onMounted(async () => {
       siteLogo.height = parsedLogo.height || 32
     }
   } catch {}
+
+  faviconUrl.value = faviconRes?.content || ''
 
   const defaultSocial: SocialLink[] = [
     { platform: 'wechat', label: '微信', icon: '💬', value: '', qrcode: '', is_active: false },
@@ -2038,6 +2074,23 @@ async function saveLogo() {
     alert(e?.data?.statusMessage || '保存失败')
   } finally {
     savingLogo.value = false
+  }
+}
+
+async function saveFavicon() {
+  savingFavicon.value = true
+  faviconSaved.value = false
+  try {
+    await authFetch('/api/content/site_favicon', {
+      method: 'PUT',
+      body: { content: faviconUrl.value },
+    })
+    faviconSaved.value = true
+    setTimeout(() => { faviconSaved.value = false }, 3000)
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || '保存失败')
+  } finally {
+    savingFavicon.value = false
   }
 }
 

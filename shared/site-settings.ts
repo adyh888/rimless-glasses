@@ -244,6 +244,15 @@ export function parseSubcategoryOrder(raw: string | undefined): Record<string, s
   }
 }
 
+export function parseFavicon(raw: string | undefined): string {
+  if (!raw) return ''
+  try {
+    return JSON.parse(raw) || ''
+  } catch {
+    return raw || ''
+  }
+}
+
 export function parseBannerInterval(raw: string | undefined): number {
   const sec = parseInt(raw || '', 10)
   return sec > 0 ? sec : 5
