@@ -59,7 +59,10 @@
                   muted
                   loop
                   playsinline
+                  webkit-playsinline
+                  x5-playsinline
                   preload="auto"
+                  @canplay="tryPlay"
                   @playing="productVideoReady[currentImageIdx] = true"
                 />
               </template>
@@ -182,6 +185,9 @@
             autoplay
             controls
             playsinline
+            webkit-playsinline
+            x5-playsinline
+            @canplay="tryPlay"
             @click.stop
           />
           <img
@@ -243,6 +249,15 @@ const specs = computed(() => {
 const currentImageIdx = ref(0)
 const currentImage = computed(() => images.value[currentImageIdx.value] || 'https://via.placeholder.com/800')
 const productVideoReady = reactive<Record<number, boolean>>({})
+
+function tryPlay(e: Event) {
+  const video = e.target as HTMLVideoElement
+  if (video.paused) {
+    video.muted = true
+    video.play().catch(() => {})
+  }
+}
+
 const productPoster = computed(() => {
   const imgs: string[] = images.value
   return imgs.find((url: string) => !isVideoUrl(url)) || ''
