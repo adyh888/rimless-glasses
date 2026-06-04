@@ -8,7 +8,8 @@ export default <RouterConfig>{
     return new Promise((resolve) => {
       const nuxtApp = useNuxtApp()
       nuxtApp.hooks.hookOnce('page:finish', () => {
-        resolve({ top: 0 })
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+        resolve(false)
       })
     })
   },
