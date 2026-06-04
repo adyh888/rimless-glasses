@@ -507,11 +507,21 @@
     <!-- 网页图标 (Favicon) -->
     <section v-show="activeTab === 'basic'" class="bg-white rounded-xl shadow-sm p-8 max-w-3xl">
       <h2 class="text-sm font-medium text-primary mb-1">网页图标 (Favicon)</h2>
-      <p class="text-xs text-secondary mb-5">显示在浏览器标签页和收藏夹中的小图标。推荐使用 PNG 格式，尺寸 32×32 或 64×64 像素。</p>
+      <p class="text-xs text-secondary mb-5">显示在浏览器标签页和收藏夹中的小图标。请上传 PNG 格式图片，尺寸建议 64×64 像素。</p>
 
       <div class="flex items-end gap-4">
         <div>
-          <ImageUploader v-model="faviconUrl" />
+          <ImageUploader
+            v-model="faviconUrl"
+            :crop="true"
+            :aspect-ratio="1"
+            :hide-library="true"
+            accept="image/png"
+            :keep-format="true"
+            output-format="image/png"
+            :crop-max-width="256"
+            folder="favicon"
+          />
         </div>
         <div v-if="faviconUrl" class="flex items-center gap-3">
           <div class="w-8 h-8 rounded border border-gray-200 overflow-hidden bg-surface flex items-center justify-center">

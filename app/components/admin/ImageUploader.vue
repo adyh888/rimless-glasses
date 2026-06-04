@@ -11,6 +11,7 @@
       <p class="text-xs text-gray-400 mt-1">支持 JPG/PNG/WebP/GIF/MP4/WebM/MOV</p>
       <p v-if="crop" class="text-xs text-accent mt-1">图片将按 {{ aspectRatioLabel }} 比例裁剪</p>
       <button
+        v-if="!hideLibrary"
         type="button"
         class="mt-3 text-xs text-accent hover:underline"
         @click.stop="showLibrary = true"
@@ -42,16 +43,19 @@
         &times;
       </button>
     </div>
-    <input ref="fileInput" type="file" accept="image/*,video/mp4,video/webm,video/quicktime" class="hidden" @change="onFileSelect" />
+    <input ref="fileInput" type="file" :accept="accept" class="hidden" @change="onFileSelect" />
     <p v-if="uploading" class="text-xs text-secondary mt-2">上传中...</p>
 
-    <MediaLibrary v-model="showLibrary" @select="onLibrarySelect" />
+    <MediaLibrary v-if="!hideLibrary" v-model="showLibrary" @select="onLibrarySelect" />
     <ImageCropper
       v-if="crop"
       v-model:show="cropperShow"
       :image-src="cropperSrc"
       :aspect-ratio="aspectRatio"
       :folder="folder"
+      :output-format="outputFormat"
+      :max-width="cropMaxWidth"
+      :keep-format="keepFormat"
       @cropped="onCropped"
     />
   </div>
@@ -63,10 +67,20 @@ const props = withDefaults(defineProps<{
   crop?: boolean
   aspectRatio?: number
   folder?: string
+  hideLibrary?: boolean
+  accept?: string
+  keepFormat?: boolean
+  outputFormat?: string
+  cropMaxWidth?: number
 }>(), {
   crop: false,
   aspectRatio: 0,
   folder: '',
+  hideLibrary: false,
+  accept: 'image/*,video/mp4,video/webm,video/quicktime',
+  keepFormat: false,
+  outputFormat: 'image/jpeg',
+  cropMaxWidth: 1920,
 })
 const emit = defineEmits(['update:modelValue'])
 const { authHeaders } = useAuth()
@@ -123,9 +137,14 @@ async function uploadFile(file: File) {
   try {
     const formData = new FormData()
     formData.append('file', file)
-    const uploadUrl = props.folder
-      ? `/api/upload?folder=${encodeURIComponent(props.folder)}`
-      : '/api/upload'
+    const params = new URLSearchParams()
+    if (props.folder) params.set('folder', props.folder)
+    if (props.keepFormat) {
+      params.set('keepFormat', 'true')
+      if (props.cropMaxWidth !== 1920) params.set('maxWidth', String(props.cropMaxWidth))
+    }
+    const qs = params.toString()
+    const uploadUrl = qs ? `/api/upload?${qs}` : '/api/upload'
     const res = await $fetch<any>(uploadUrl, {
       method: 'POST',
       body: formData,

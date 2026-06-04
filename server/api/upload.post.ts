@@ -62,10 +62,31 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: `图片文件大小不能超过 ${maxSizeMB}MB` })
   }
 
+  const keepFormat = String(query.keepFormat || '') === 'true'
+  const customMaxWidth = query.maxWidth ? parseInt(String(query.maxWidth), 10) : 0
+  const resizeWidth = (customMaxWidth > 0 && customMaxWidth <= MAX_IMAGE_WIDTH) ? customMaxWidth : MAX_IMAGE_WIDTH
+
+  if (keepFormat) {
+    // 保持原始格式（不转 WebP），用于 favicon 等场景
+    const FORMAT_MAP: Record<string, { ext: string; sharp: (s: sharp.Sharp) => sharp.Sharp }> = {
+      'image/png': { ext: 'png', sharp: s => s.png() },
+      'image/jpeg': { ext: 'jpg', sharp: s => s.jpeg({ quality: 92 }) },
+      'image/gif': { ext: 'gif', sharp: s => s.gif() },
+      'image/webp': { ext: 'webp', sharp: s => s.webp({ quality: WEBP_QUALITY }) },
+    }
+    const fmt = FORMAT_MAP[mimeType] || FORMAT_MAP['image/png']
+    const filename = `${uuidv4()}.${fmt.ext}`
+    const optimized = await fmt.sharp(
+      sharp(file.data).resize({ width: resizeWidth, withoutEnlargement: true }),
+    ).toBuffer()
+    writeFileSync(resolve(uploadDir, filename), optimized)
+    return { url: `${urlPrefix}/${filename}` }
+  }
+
   const filename = `${uuidv4()}.webp`
 
   const optimized = await sharp(file.data)
-    .resize({ width: MAX_IMAGE_WIDTH, withoutEnlargement: true })
+    .resize({ width: resizeWidth, withoutEnlargement: true })
     .webp({ quality: WEBP_QUALITY })
     .toBuffer()
 

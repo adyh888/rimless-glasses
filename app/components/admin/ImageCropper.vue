@@ -52,9 +52,15 @@ const props = withDefaults(defineProps<{
   imageSrc: string
   aspectRatio?: number
   folder?: string
+  outputFormat?: string
+  maxWidth?: number
+  keepFormat?: boolean
 }>(), {
   aspectRatio: 3.2,
   folder: '',
+  outputFormat: 'image/jpeg',
+  maxWidth: 1920,
+  keepFormat: false,
 })
 
 const emit = defineEmits<{
@@ -94,15 +100,23 @@ async function confirmCrop() {
   if (!cropper) return
   cropping.value = true
   try {
-    const canvas = cropper.getCroppedCanvas({ maxWidth: 1920, imageSmoothingQuality: 'high' })
-    const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92))
+    const canvas = cropper.getCroppedCanvas({ maxWidth: props.maxWidth, imageSmoothingQuality: 'high' })
+    const isPng = props.outputFormat === 'image/png'
+    const blobArgs: [string, number?] = isPng ? ['image/png'] : [props.outputFormat, 0.92]
+    const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, ...blobArgs))
     if (!blob) throw new Error('裁剪失败')
 
+    const ext = isPng ? 'png' : props.outputFormat === 'image/webp' ? 'webp' : 'jpg'
     const formData = new FormData()
-    formData.append('file', blob, 'cropped.jpg')
-    const uploadUrl = props.folder
-      ? `/api/upload?folder=${encodeURIComponent(props.folder)}`
-      : '/api/upload'
+    formData.append('file', blob, `cropped.${ext}`)
+    const params = new URLSearchParams()
+    if (props.folder) params.set('folder', props.folder)
+    if (props.keepFormat) {
+      params.set('keepFormat', 'true')
+      if (props.maxWidth !== 1920) params.set('maxWidth', String(props.maxWidth))
+    }
+    const qs = params.toString()
+    const uploadUrl = qs ? `/api/upload?${qs}` : '/api/upload'
     const res = await $fetch<any>(uploadUrl, {
       method: 'POST',
       body: formData,
