@@ -17,7 +17,10 @@
             muted
             loop
             playsinline
+            webkit-playsinline
+            x5-playsinline
             :preload="currentBanner === 0 ? 'auto' : (preloaded.has(currentBanner) ? 'auto' : 'metadata')"
+            @canplay="tryPlay"
             @playing="videoReady[currentBanner] = true"
           />
         </template>
@@ -97,6 +100,14 @@ const carouselRef = ref<HTMLElement>()
 const preloaded = reactive(new Set<number>())
 const videoReady = reactive<Record<number, boolean>>({})
 let bannerTimer: ReturnType<typeof setInterval>
+
+function tryPlay(e: Event) {
+  const video = e.target as HTMLVideoElement
+  if (video.paused) {
+    video.muted = true
+    video.play().catch(() => {})
+  }
+}
 
 function preloadBannerResources() {
   if (banners.value.length <= 1) return
