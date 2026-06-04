@@ -1,5 +1,5 @@
 <template>
-  <section ref="carouselRef" class="relative h-screen overflow-hidden" style="touch-action: pan-y;">
+  <section v-if="banners.length" ref="carouselRef" class="relative h-screen overflow-hidden" style="touch-action: pan-y;">
     <Transition name="banner-fade" mode="out-in">
       <div :key="currentBanner" class="absolute inset-0">
         <template v-if="isVideoUrl(banners[currentBanner]?.image_url)">
